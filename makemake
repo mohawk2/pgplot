@@ -369,6 +369,7 @@ PG_ROUTINES="\
  pgqvsz.o\
  pgqwin.o\
  pgrect.o\
+ pgrgbi.o\
  pgrnd.o \
  pgrnge.o\
  pgsah.o \
@@ -444,6 +445,10 @@ GR_ROUTINES="\
  grimg1.o\
  grimg2.o\
  grimg3.o\
+ grrgb0.o\
+ grrgb1.o\
+ grrgb2.o\
+ grsvd.o\
  grinit.o\
  gritoc.o\
  grlen.o \
