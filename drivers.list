@@ -109,6 +109,10 @@
 !
 ! TKDRIV 0 /XTK       X-window Tcl/Tk programs with pgplot widgets.     C
 !
+! The same basic principle holds for the PerlTk driver as well
+!
+! PKDRIV 0 /PTK       X-window Perl/Tk programs with pgplot widgets.    C
+!
 ! The following driver is included solely for use by the aips++ team.
 !
 ! RVDRIV 0 /XRV       X-window Rivet/Tk programs with pgplot widgets.   C

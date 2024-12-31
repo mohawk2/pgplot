@@ -68,7 +68,6 @@ else
   exit 1
 fi
 
-
 # By default the PGPLOT library is initially placed in the current
 # The demos should be explicitly linked against this library.
 
@@ -188,6 +187,7 @@ ZEDRIV="zedriv.o"
 XMDRIV="xmdriv.o pgxwin.o"
 XADRIV="xadriv.o pgxwin.o"
 TKDRIV="tkdriv.o pgxwin.o"
+PKDRIV="pkdriv.o pgxwin.o"
 RVDRIV="rvdriv.o pgxwin.o"
 
 # We need a drivers.list file in the current directory, from which to
@@ -240,6 +240,11 @@ fi
 if (echo $DRIV_LIST | grep -s tkdriv 2>&1 1>/dev/null); then
   DEFAULT_TARGETS="$DEFAULT_TARGETS libtkpgplot.a pgtkdemo pgtkdemo.tcl"
   INSTALL_LIST="$INSTALL_LIST libtkpgplot.a tkpgplot.h"
+fi
+
+if (echo $DRIV_LIST | grep -s pkdriv 2>&1 1>/dev/null); then
+  DEFAULT_TARGETS="$DEFAULT_TARGETS libptkpgplot.a "
+  INSTALL_LIST="$INSTALL_LIST libptkpgplot.a"
 fi
 
 if (echo $DRIV_LIST | grep -s rvdriv 2>&1 1>/dev/null); then
@@ -647,6 +652,7 @@ GENDIR=$GENDIR
 XMDIR=$DRVDIR/xmotif
 XADIR=$DRVDIR/xathena
 TKDIR=$DRVDIR/xtk
+PTKDIR=$DRVDIR/ptk
 #
 # Fortran compiler and compilation flags
 #
@@ -660,6 +666,7 @@ XINCL=$XINCL
 MOTIF_INCL=$MOTIF_INCL
 ATHENA_INCL=$ATHENA_INCL
 TK_INCL=$TK_INCL
+PTK_INCL=$PTK_INCL
 RV_INCL=$RV_INCL
 CCOMPL=$CCOMPL
 CFLAGC=$CFLAGC -I.
@@ -677,6 +684,7 @@ LIBS=$LIBS
 MOTIF_LIBS=$MOTIF_LIBS
 ATHENA_LIBS=$ATHENA_LIBS
 TK_LIBS=$TK_LIBS
+PTK_LIBS=$PTK_LIBS
 #
 #	Loader command for PGPLOT library
 #
@@ -1001,6 +1009,20 @@ tkpgplot.o: $(DRVDIR)/pgxwin.h tkpgplot.h $(TKDIR)/tkpgplot.c
 	$(CCOMPL) -c $(CFLAGC) -I$(DRVDIR) -I$(TKDIR) $(TK_INCL) $(TKDIR)/tkpgplot.c
 
 #-----------------------------------------------------------------------
+# Target "libptkpgplot.a" contains the Perl/Tk widget driver.
+#-----------------------------------------------------------------------
+
+libptkpgplot.a: ptkpgplot.o
+	ar ru libptkpgplot.a ptkpgplot.o
+	$(RANLIB) libptkpgplot.a
+
+ptkpgplot.h: $(PTKDIR)/ptkpgplot.h
+	cp $(PTKDIR)/ptkpgplot.h ptkpgplot.h
+
+ptkpgplot.o: $(DRVDIR)/pgxwin.h ptkpgplot.h $(PTKDIR)/ptkpgplot.c
+	$(CCOMPL) -c -DUSE_PERL $(CFLAGC) -I$(DRVDIR) -I$(PTKDIR) $(PTK_INCL) $(PTKDIR)/ptkpgplot.c
+
+#-----------------------------------------------------------------------
 # Target "librvpgplot.a" contains the Rivet-Tk widget driver.
 #-----------------------------------------------------------------------
 
@@ -1027,7 +1049,7 @@ clean :
 		$(DISPATCH_ROUTINE) $(DRIVERS) $(SYSTEM_ROUTINES)\
 		$(OBSOLETE_ROUTINES) $(PGDISP_ROUTINES) pgmdemo.o\
 		XmPgplot.o pgbind tkpgplot.o pgtkdemo.o rvpgplot.o\
-		pgbind.o pgdemo*.o pgawdemo.o
+		pgbind.o pgdemo*.o pgawdemo.o ptkpgplot.o
 
 #-----------------------------------------------------------------------
 # Include file dependencies
