@@ -43,8 +43,8 @@ C Number of color indices available
       END IF
 
 C Store old color table
-      DO 5 I=0,NCOLS
-         CALL PGQCR(I+MININD,RV,GV,BV)
+      DO 5 I=1,NCOLS
+         CALL PGQCR(I+MININD-1,RV,GV,BV)
          ORVAL(i) = RV
          OGVAL(i) = GV
          OBVAL(i) = BV
@@ -124,11 +124,11 @@ C
 C
 C Restore color table to previous values
 C
-      DO 30 I=0,NCOLS
+      DO 30 I=1,NCOLS
          RV = ORVAL(i)
          GV = OGVAL(i)
          BV = OBVAL(i)
-         CALL PGSCR(I+MININD,RV,GV,BV)
+         CALL PGSCR(I+MININD-1,RV,GV,BV)
  30   CONTINUE
 
 C-----------------------------------------------------------------------
