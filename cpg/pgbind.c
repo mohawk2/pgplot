@@ -27,7 +27,7 @@ static char *prgnam = "pgbind";
  * Specify a maximum for the reasonable length of a C prototype.
  * This is used to set the buffer size used to process prototypes.
  */
-#define MAX_LINE 256
+#define MAX_LINE 2560
 
 /*
  * Specify the max number of arguments expected. Given that the ANSI/ISO
