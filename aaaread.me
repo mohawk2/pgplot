@@ -1,5 +1,5 @@
-                             PGPLOT v5.2.2
-                             -------------
+                             PGPLOT v5.2.2-CD2
+                             -----------------
 
 For further information, look at the following files in this directory:
 
@@ -13,11 +13,39 @@ ver511.txt		What's changed between 5.1.0 and 5.1.1
 ver520.txt		What's changed between 5.1.1 and 5.2.0
 ver521.txt		What's changed between 5.2.0 and 5.2.1
 ver522.txt		What's changed between 5.2.1 and 5.2.2
+ver522cd2.txt	        Differences between this fork and the mainstream
 copyright.notice	Read this!
 
 ========================================================================
 
-PGPLOT Version 5.2.2
+PGPLOT Version 5.2.2-CD3
+
+This is NOT the official PGPLOT distribution, it is a separate fork
+being maintained by Craig DeForest (by analogy to the Alan Cox Linux
+kernels).  The -CD fork contains slightly more experimental features
+than the main branch of PGPLOT.
+
+You can obtain PGPLOT 5.2.2-CD3 at
+
+  http://www.boulder.swri.edu/~deforest/PGPLOT/pgplot-5.2.2-cd3.tar.gz
+
+PGPLOT 5.2.2-CD3 is distributed with NO WARRANTY.
+
+Changes from -cd2:  fixed a transform-matrix bug in grrgb2 and grimg2.
+
+Changes from 5.2.2 'official':
+	* Includes support for rgb output on devices with persistent
+	  color tables, via PGRGBI.
+
+	  (No device color table detection is done;
+	  devices with non-persistent color tables, such as true
+	  pseudocolor X displays or GIF images, give incorrect results)
+
+        * Images are anti-aliased on pixel devices, avoiding resampling
+	  errors on reduction and resampling.
+
+------------------------------
+
 
 Version 5.2.2 of the PGPLOT Graphics Subroutine Library was released
 on 2001 Feb 26.
