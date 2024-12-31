@@ -20,7 +20,7 @@
 
 #ifndef lint
 #ifdef INC_HEADER_RCS
-static char global_h_rcsid[]="@(#)$Id$";
+static char global_h_rcsid[]="@(#)$Id: globals.h,v 1.7 1993/03/04 05:55:13 figaro Exp $";
 #endif
 #endif
 

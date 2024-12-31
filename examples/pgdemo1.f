@@ -99,7 +99,7 @@ C Call PGENV to specify the range of the axes and to draw a box, and
 C PGLAB to label it. The x-axis runs from 0 to 10, and y from 0 to 20.
 C
       CALL PGENV(0.,10.,0.,20.,0,1)
-      CALL PGLAB('(x)', '(y)', 'PGPLOT Example 1:  y = x\u2')
+      CALL PGLAB('(x)', '(y)', 'PGPLOT Example 1:  y = x\\u2')
 C
 C Mark five points (coordinates in arrays XS and YS), using symbol
 C number 9.
@@ -286,8 +286,8 @@ C
       CALL PGSAVE
       CALL PGSCI(CYAN)
       CALL PGENV(-2.0,2.0,-0.5,2.5,1,30)
-      CALL PGLAB('Frequency, \gn (GHz)',
-     1             'Flux Density, S\d\gn\u (Jy)',
+      CALL PGLAB('Frequency, \\gn (GHz)',
+     1             'Flux Density, S\\d\\gn\\u (Jy)',
      2             'PGPLOT Example 5:  Log-Log plot')
 C
 C Draw a fit to the spectrum (don't ask how this was chosen). This 
@@ -400,7 +400,7 @@ C
       CALL PGSAVE
       CALL PGSCI(1)
       CALL PGENV(0.,5.,-0.3,0.6,0,1)
-      CALL PGLAB('\fix', '\fiy', 'PGPLOT Example 7: scatter plot')
+      CALL PGLAB('\\fix', '\\fiy', 'PGPLOT Example 7: scatter plot')
 C
 C Random data points.
 C
@@ -625,15 +625,15 @@ C
       CALL PGFUNX(PGBSJ1,500,0.0,10.0*PI,1)
 C
 C Call PGLAB to label the graph in a different color. Note the
-C use of "\f" to change font.  Use PGMTXT to write an additional
+C use of "\\f" to change font.  Use PGMTXT to write an additional
 C legend inside the viewport.
 C
       CALL PGSCI(GREEN)
       CALL PGSLS(FULL)
-      CALL PGLAB('\fix', '\fiy',
-     2           '\frPGPLOT Example 10: routine PGFUNX')
+      CALL PGLAB('\\fix', '\\fiy',
+     2           '\\frPGPLOT Example 10: routine PGFUNX')
       CALL PGMTXT('T', -4.0, 0.5, 0.5,
-     1     '\frBessel Functions')
+     1     '\\frBessel Functions')
 C
 C Call PGARRO to label the curves.
 C
@@ -641,8 +641,8 @@ C
       CALL PGARRO(12.0, 0.5, 9.0, PGBSJ1(9.0))
       CALL PGSTBG(GREEN)
       CALL PGSCI(0)
-      CALL PGPTXT(8.0, 0.7, 0.0, 0.0, ' \fiy = J\d0\u(x)')
-      CALL PGPTXT(12.0, 0.5, 0.0, 0.0, ' \fiy = J\d1\u(x)')
+      CALL PGPTXT(8.0, 0.7, 0.0, 0.0, ' \\fiy = J\\d0\\u(x)')
+      CALL PGPTXT(12.0, 0.5, 0.0, 0.0, ' \\fiy = J\\d1\\u(x)')
       CALL PGUNSA
       CALL PGEBUF
 C-----------------------------------------------------------------------

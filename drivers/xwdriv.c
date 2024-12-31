@@ -33,15 +33,21 @@
  *                            14. Support for multiple open devices.
  *                            15. The cursor can now be moved with the
  *                                keyboard arrow keys.
+ * Version 3.1 - 2002 Jan 24 - C. E. DeForest (cdeforest@swri.edu).
+ *           Tweaked to support X TrueColor visuals better.  TrueColor
+ *           devices are now handled by direct bit-banging to convert
+ *           color representation to X pixel value; this is about 10^4
+ *           times faster than the XAllocColor method that's used in the
+ *           StaticColor and StaticGrey case.
  *
  *  Scope: This driver should work with all unix workstations running
  *         X Windows (Version 11). It also works on VMS and OpenVMS
  *         workstations running X.
- *  Color: Visual color maps of types, PsuedoColor, StaticColor, GrayScale
- *         and StaticGray are supported. Where insufficient colors are
- *         available in the default colormap, a private colormap is
- *         requested. If this fails, the device is treated as
- *         monochrome.
+ *  Color: Visual color maps of all standard X types (PseudoColor, 
+ *         DirectColor, StaticColor, GrayScale, StaticGray, and TrueColor) 
+ *         are supported. Where insufficient colors are available in the 
+ *         default colormap, a private colormap is requested. If this fails, 
+ *         the device is treated as monochrome.
  * Cursor: The cursor is controlled by a mouse or equivalent. Buttons
  *         1 2 3 are mapped to characters A D X. The cursor can also
  *         be moved horizontally and vertically with the arrow keys.
@@ -222,11 +228,22 @@ typedef struct {
   int ymin,ymax;       /* Min/max X-axis pixels excluding 1/4" margins */
 } XWgeom;
 
+/* 
+ * Auxiliary info cache for TrueColor visuals.
+ *
+ */
+typedef struct {
+  int r_nb, g_nb, b_nb;           /* Number of bits in each rep. */
+  int r_sh,g_sh,b_sh;             /* Number of bits to shift each rep. */
+  char cont;                      /* Are the bits contiguous? */
+} TrueColorInfo;
+
 /*
  * Declare a colormap descriptor.
  */
 typedef struct {
   XVisualInfo *vi;   /* The visual info descriptor for the colormap */
+  TrueColorInfo tci; /* Auxiliary info for TrueColor visuals (usu. 0) */
   Colormap cmap;     /* Colormap ID */
   int ncol;          /* The number of colors available. ci = [0...ncol-1] */
   int monochrome;    /* True we have to use a monochrome screen */
@@ -236,7 +253,7 @@ typedef struct {
   int nbuff;         /* The number of buffered color representation updates */
   int sbuff;         /* The index of the first buffered color representation */
 } XWcolor;
-
+  
 /*
  * Declare a polygon descriptor.
  */
@@ -452,6 +469,7 @@ void XWDRIV(ifunc, rbuf, nbuf, chr, lchr, mode, len)
   if(xw && !xw->bad_device) {
     if(xw->last_opcode != *ifunc) {
       if(xw->flush_opcode_fn != (Flush_Opcode_fn) 0) {
+	/*	fprintf(stderr," F! "); */
 	(*xw->flush_opcode_fn)(xw);
 	xw->flush_opcode_fn = (Flush_Opcode_fn) 0;
       };
@@ -463,6 +481,7 @@ void XWDRIV(ifunc, rbuf, nbuf, chr, lchr, mode, len)
   };
 
 /* Branch on opcode. */
+/*  fprintf(stderr," %d ",*ifunc);*/
 
   switch(*ifunc) {
 
@@ -777,8 +796,9 @@ void XWDRIV(ifunc, rbuf, nbuf, chr, lchr, mode, len)
 
   case 21:
     if(xw_ok(xw)) {
-      if(!xw->color.initialized)
+      if(!xw->color.initialized) {
 	xw_init_colors(xw);
+      }
       xw_set_rgb(xw, (int)(rbuf[0]+0.5), rbuf[1],rbuf[2],rbuf[3]);
     };
     break;
@@ -898,13 +918,16 @@ static int xw_set_rgb(xw, ci, red, green, blue)
     return 1;
 /*
  * Limit RGB values to be between 0 and 1.
+ * (Commented out because xw_rgb_to_xcolor does it for us --CED)
+ *
+ * if(red   < 0.0) red   = 0.0;
+ *  if(green < 0.0) green = 0.0;
+ * if(blue  < 0.0) blue  = 0.0;
+ * if(red   > 1.0) red   = 1.0;
+ * if(green > 1.0) green = 1.0;
+ * if(blue  > 1.0) blue  = 1.0;
  */
-  if(red   < 0.0) red   = 0.0;
-  if(green < 0.0) green = 0.0;
-  if(blue  < 0.0) blue  = 0.0;
-  if(red   > 1.0) red   = 1.0;
-  if(green > 1.0) green = 1.0;
-  if(blue  > 1.0) blue  = 1.0;
+
 /*
  * Color index in range?
  */
@@ -960,6 +983,7 @@ static int xw_set_rgb(xw, ci, red, green, blue)
     } else if(ci > xw->color.sbuff + xw->color.nbuff-1) {
       xw->color.nbuff = ci - xw->color.sbuff + 1;
     };
+    /*    fprintf(stderr,"(%d-%d)  ",xw->color.sbuff,xw->color.sbuff+xw->color.nbuff); */
 /*
  * Register xw_update_colors() to be called to flush the colors to the
  * window.
@@ -1054,6 +1078,7 @@ static float xw_xcolor_to_rgb(urgb)
  *  return    int      0 - OK.
  *                     1 - Error.
  */
+
 #ifdef __STDC__
 static int xw_update_colors(XWdev *xw)
 #else
@@ -1086,7 +1111,6 @@ static int xw_update_colors(xw)
       break;
     case StaticColor:
     case StaticGray:
-    case TrueColor:
       for(i=0; i<nbuff && !xw->bad_device; i++) {
 	if(XAllocColor(xw->display, xw->color.cmap, &xc[i])) {
 	  if(xw->color.initialized)
@@ -1097,6 +1121,27 @@ static int xw_update_colors(xw)
 	};
       };
       break;
+    case TrueColor:
+      {
+	unsigned long mask,cm;
+
+#define COLSHIFT(f,col,nb,sh) if(f){cm=col; cm >>= 16-nb; cm <<= sh; mask |= cm;}
+	if(xw->color.tci.cont) {
+	  for(i=0;i<nbuff; i++) {
+	    mask = 0;
+	    COLSHIFT(xc[i].flags|DoRed  , xc[i].red  , xw->color.tci.r_nb, xw->color.tci.r_sh);
+	    COLSHIFT(xc[i].flags|DoGreen, xc[i].green, xw->color.tci.g_nb, xw->color.tci.g_sh);
+	    COLSHIFT(xc[i].flags|DoBlue,  xc[i].blue,  xw->color.tci.b_nb, xw->color.tci.b_sh);
+	    pixel[i] = mask;
+	  }
+	} else {
+	  fprintf(stderr,"PGPLOT: Noncontinuous TrueColor masks are not yet supported!\n");
+	  exit(-99);
+	}
+      }
+      
+      break;
+
     };
 /*
  * Device error?
@@ -1175,6 +1220,24 @@ static int xw_get_visual(xw)
     return 1;
   };
   xw->color.vi = xw_visual_info(xw->display, xw->screen, attr.visual);
+  
+/* 
+ * Cache some calculation constants if the visual is a TrueColor. 
+ */
+  if(xw->color.vi->class == TrueColor) {
+    int i;
+    unsigned long ms;
+    char ct = 1;
+
+#define MSCT(m,nb,sh) for(ms = m, nb = sh = 0; ms; ms>>= 1) { if( ms & 1 ) nb++; else if(nb) ct=0; else sh++; }
+
+    MSCT(xw->color.vi->red_mask,   xw->color.tci.r_nb, xw->color.tci.r_sh);
+    MSCT(xw->color.vi->green_mask, xw->color.tci.g_nb, xw->color.tci.g_sh);
+    MSCT(xw->color.vi->blue_mask,  xw->color.tci.b_nb, xw->color.tci.b_sh);
+
+    xw->color.tci.cont = ct;
+  }
+
   xw->color.cmap = attr.colormap;
   if(xw->color.vi == NULL || xw->color.cmap == None)
     return 1;

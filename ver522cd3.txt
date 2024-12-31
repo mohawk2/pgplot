@@ -1,0 +1,32 @@
+PGPLOT version 5.2.2-CD3
+
+This version includes support for RGB image output.  The new 
+interface subroutine is PGRGBI.  
+
+
+Modified configuration files
+
+Configuration files for linux have been modified to work under RH 8.0 
+(as well as other systems).
+
+
+Modified driver files
+
+The X-window device driver has been sped up marginally.
+
+Changes to PGPLOT subroutines
+
+pgrgbi
+     Plots an RGB image
+
+pgqinf
+     Returns new version number (5.2.2-cd3).
+
+----------------------------------------------------------------------------
+
+PGPLOT written and maintained by:
+Tim Pearson, California Institute of Technology, tjp@astro.caltech.edu
+Copyright © 1999 California Institute of Technology
+
+-CD3 patch written by:
+Craig DeForest, Southwest Research Institute, deforest@boulder.swri.edu

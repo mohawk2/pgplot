@@ -104,6 +104,8 @@ C%void cpgqvp(int units, float *x1, float *x2, float *y1, float *y2);
 C%void cpgqvsz(int units, float *x1, float *x2, float *y1, float *y2);
 C%void cpgqwin(float *x1, float *x2, float *y1, float *y2);
 C%void cpgrect(float x1, float x2, float y1, float y2);
+C%void cpgrgbi(const float *a, int idim, int jdim, int i1, int i2, \
+C% int j1, int j2, float a1, float a2, const float *tr);
 C%float cpgrnd(float x, int *nsub);
 C%void cpgrnge(float x1, float x2, float *xlo, float *xhi);
 C%void cpgsah(int fs, float angle, float barb);

@@ -78,7 +78,7 @@ C
 C Note: for 64-bit operating systems, change the following 
 C declaration to INTEGER*8:
 C
-      INTEGER*8 PIXMAP, WORK
+      INTEGER PIXMAP, WORK
 C
       SAVE UNIT, IC, CTABLE, NPICT, MAXIDX, BX, BY, PIXMAP, FILENM
       SAVE CDEFLT, STATE
@@ -245,7 +245,7 @@ C
       END IF
 C     -- initialize to zero (background color)
       IF (PIXMAP.NE.0) 
-     :     CALL GRGI03(1, 1, BX, BY, 0, BX, BY, %VAL(PIXMAP))
+     :     CALL GRGI03(1, 1, BX, BY, 0, BX, BY, PIXMAP)
       IF (NPICT.GT.1) THEN
          CALL GRGI10 (FILENM, NPICT, MSG)
          UNIT = GROFIL(MSG)
@@ -263,7 +263,7 @@ C
       IY0=BY-NINT(RBUF(2))
       IY1=BY-NINT(RBUF(4))
       IF (PIXMAP.NE.0)
-     :     CALL GRGI01(IX0, IY0, IX1, IY1, IC, BX, BY, %VAL(PIXMAP))
+     :     CALL GRGI01(IX0, IY0, IX1, IY1, IC, BX, BY, PIXMAP)
       RETURN
 C
 C--- IFUNC=13, Draw dot ------------------------------------------------
@@ -272,7 +272,7 @@ C
       IX0=NINT(RBUF(1))+1
       IY0=BY-NINT(RBUF(2))
       IF (PIXMAP.NE.0)
-     :     CALL GRGI01(IX0, IY0, IX0, IY0, IC, BX, BY, %VAL(PIXMAP))
+     :     CALL GRGI01(IX0, IY0, IX0, IY0, IC, BX, BY, PIXMAP)
       RETURN
 C
 C--- IFUNC=14, End picture ---------------------------------------------
@@ -284,7 +284,7 @@ C
             CALL GRGMSG(IER)
             CALL GRWARN('Failed to allocate work array.')
          ELSE
-            CALL GRGI06(UNIT, BX, BY, CTABLE, %VAL(PIXMAP), MAXIDX,
+            CALL GRGI06(UNIT, BX, BY, CTABLE, PIXMAP, MAXIDX,
      :                  %VAL(WORK))
          END IF
          JUNK = GRCFIL(UNIT)
@@ -364,7 +364,7 @@ C
       IY1=BY-NINT(RBUF(2))
       IY0=BY-NINT(RBUF(4))
       IF (PIXMAP.NE.0) 
-     :     CALL GRGI03(IX0, IY0, IX1, IY1, IC, BX, BY, %VAL(PIXMAP))
+     :     CALL GRGI03(IX0, IY0, IX1, IY1, IC, BX, BY, PIXMAP)
       RETURN
 C
 C--- IFUNC=25, Not implemented -----------------------------------------
@@ -375,7 +375,7 @@ C
 C--- IFUNC=26, Line of pixels ------------------------------------------
 C
   260 CONTINUE
-      CALL GRGI04(NBUF, RBUF, BX, BY, %VAL(PIXMAP), MAXIDX)
+      CALL GRGI04(NBUF, RBUF, BX, BY, PIXMAP, MAXIDX)
       RETURN
 C
 C--- IFUNC=27, Not implemented -----------------------------------------

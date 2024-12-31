@@ -49,9 +49,6 @@ C 27-Feb-1997 [TJP] - updated description.
 C-----------------------------------------------------------------------
       INTEGER       IER
       INTEGER       PGOPEN
-
-cpjt      UNIT = 0
-
 C
 C Initialize PGPLOT if necessary.
 C

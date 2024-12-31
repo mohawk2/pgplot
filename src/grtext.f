@@ -38,8 +38,6 @@ C-----------------------------------------------------------------------
       INTRINSIC ABS, COS, LEN, MIN, SIN
       CHARACTER DEVTYP*14, STEMP*258
       LOGICAL DEVINT, VTEXT
-
-c      CENTER = .FALSE.
 C
 C Check that there is something to be plotted.
 C

@@ -15,8 +15,6 @@ C-----------------------------------------------------------------------
       REAL Z0, X, Y, STARTX, STARTY
       EXTERNAL PLOT
 C
-c      MY = 0
-
       I = IS
       J = JS
       DIR = SDIR

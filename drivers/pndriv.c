@@ -222,8 +222,7 @@ static void write_image_file(DeviceData *dev) {
 	return;
   }
 
-#ifdef PNG_SETJMP_SUPPORTED
-  if (setjmp(png_jmpbuf(png_ptr))) { /* not really sure what I'm doing here... */
+  if (setjmp(png_ptr->jmpbuf)) { /* not really sure what I'm doing here... */
 	fprintf(stderr,"%s: error in libpng while writing file %s, plotting disabled\n", png_ident, filename);
 	png_destroy_write_struct(&png_ptr,&info_ptr);
 	dev->error = true;
@@ -232,7 +231,6 @@ static void write_image_file(DeviceData *dev) {
 	free(filename);
 	return;
   }
-#endif
 
   png_init_io(png_ptr, fp);
 
@@ -500,10 +498,6 @@ static void open_new_device(char *file, int length, float *id, float *err, int m
   }
 
   make_device_active(devnum);
-
-
-  ACTIVE_DEVICE->error  = false;
-  ACTIVE_DEVICE->pixmap = 0x0;
 
   ACTIVE_DEVICE->filename[length] = '\0';
   strncpy(ACTIVE_DEVICE->filename,file,length);

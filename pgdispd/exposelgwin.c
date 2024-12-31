@@ -11,7 +11,7 @@
 /* 14-Oct-1992	SNS/CIT	Now flushs the X connection.  RCS id string added. */
 
 #ifndef lint
-static char rcsid[]="@(#)$Id$";
+static char rcsid[]="@(#)$Id: exposelgwin.c,v 1.4 1992/10/19 02:14:16 figaro Exp $";
 #endif
 
 /* The program include files */

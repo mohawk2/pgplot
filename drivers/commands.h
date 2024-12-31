@@ -65,7 +65,7 @@
 
 #ifndef lint
 #ifdef INC_HEADER_RCS
-static char commands_h_rcsid[]="@(#)$Id$";
+static char commands_h_rcsid[]="@(#)$Id: commands.h,v 1.13 1994/02/07 04:33:26 figaro Exp $";
 #endif
 #endif
 
