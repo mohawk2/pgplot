@@ -550,7 +550,7 @@ void CGDRIV(ifunc, rbuf, nbuf, chr, lchr, mode, len)
     case 9:
     {
         const char *name = "PGPLOT CGM File";
-        const char *desc = "$Revision$";
+        const char *desc = "$Revision: 1.19 $";
         char *filename;
         if (state == 1) {       /* only allow one device */
             printf("CGMDRIV:Error a CGM file is already open\n");

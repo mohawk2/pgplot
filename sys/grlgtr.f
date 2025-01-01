@@ -15,6 +15,4 @@ C       with the new name. If not, the old name will be left there.
 C--
 C 19-Dec-1994
 C-----------------------------------------------------------------------
-c      NAME = ''
-
       END

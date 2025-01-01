@@ -85,7 +85,7 @@
 /* 22-Aug-1994  TJP/CIT Fix bug in positioning thick dots. */
 
 #ifndef lint
-static char rcsid[]="@(#)$Id$";
+static char rcsid[]="@(#)$Id: proccom.c,v 1.17 1993/10/08 00:02:48 figaro Exp figaro $";
 #endif
 
 /* The system include files */

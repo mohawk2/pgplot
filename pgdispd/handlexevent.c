@@ -27,7 +27,7 @@
 /* 14-Oct-1992	SNS/CIT	Merged in changes from ARC/HI. */
 
 #ifndef lint
-static char rcsid[]="@(#)$Id$";
+static char rcsid[]="@(#)$Id: handlexevent.c,v 1.12 1993/10/08 00:02:48 figaro Exp figaro $";
 #endif
 
 /* The system include files */

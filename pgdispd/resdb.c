@@ -36,7 +36,7 @@
 /* 16-Nov-1992	SNS/CIT	resetLUTWrap added into resource table. */
 
 #ifndef lint
-static char rcsid[]="@(#)$Id$";
+static char rcsid[]="@(#)$Id: resdb.c,v 1.13 1993/10/08 00:02:48 figaro Exp figaro $";
 #endif
 
 #include "figdisp.h"

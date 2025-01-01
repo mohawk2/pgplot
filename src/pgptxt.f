@@ -62,5 +62,5 @@ C
           CALL PGSCI(CI)
       END IF
       CALL GRTEXT(.TRUE. ,ANGLE, .TRUE., XP, YP, TEXT(1:L))
-      CALL PGEBUF
+   30 CALL PGEBUF
       END

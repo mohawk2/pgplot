@@ -33,8 +33,6 @@ C-----------------------------------------------------------------------
       CHARACTER*16 DEFLT
       INTEGER I, L, LD
       LOGICAL TEST, DEBUG
-
-      LD = 0
 C
 C Is debug output requested?
 C

@@ -13,11 +13,7 @@ C
 C Returns:
 C  0 => success; any other value => error.
 C-----------------------------------------------------------------------
-
       INTEGER IER
-
-c      DEFNAM = ''
-
       IF (MODE.EQ.1) THEN
           OPEN (UNIT=UNIT, FILE=NAME, STATUS='UNKNOWN', IOSTAT=IER)
       ELSE

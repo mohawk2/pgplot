@@ -78,7 +78,7 @@
 
 #ifndef lint
 #ifdef INC_HEADER_RCS
-static char figdisp_h_rcsid[]="@(#)$Id$";
+static char figdisp_h_rcsid[]="@(#)$Id: figdisp.h,v 1.12 1992/10/19 02:18:32 figaro Exp $";
 #endif
 #endif
 

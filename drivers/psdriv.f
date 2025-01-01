@@ -46,7 +46,6 @@ C                              polylines into shorter segments.
 C Version 6.5  - 1998 Feb 23 - support for real linewidth.
 C Version 6.6  - 1998 Nov 10 - provide easy way to convert color to grey.
 C Version 6.7  - 1998 Dec 12 - added #copies to header.
-C         6.8?   2006 Jul  7 - fixed PS-Adobe-3.0 header for multipage output
 C
 C Supported device: 
 C   Any printer that accepts the PostScript page description language, 
@@ -399,9 +398,7 @@ C        -- machine-dependent!
       NPTS = 0
       CALL GRGENV('PS_EOF', INSTR, L)
       IF (L.GT.0) CALL GRPS02(IOERR, UNIT, CHAR(4))
-C     --  CUPS doesn't seem to like the EPSF-3.0
-C          GRPS02(IOERR, UNIT, '%!PS-Adobe-3.0 EPSF-3.0')
-      CALL GRPS02(IOERR, UNIT, '%!PS-Adobe-3.0')
+      CALL GRPS02(IOERR, UNIT, '%!PS-Adobe-3.0 EPSF-3.0')
       CALL GRUSER(INSTR, L)
       IF (L.GT.0) CALL GRPS02(IOERR, UNIT, '%%For: '//INSTR(1:L))
       CALL GRPS02(IOERR, UNIT, '%%Title: PGPLOT PostScript plot')
