@@ -26,12 +26,11 @@ C-----------------------------------------------------------------------
 C Parameters:
 C   NT is the number of frames in the animation.
       INTEGER N,NT
-      REAL PI,A,B
+      REAL A,B
       PARAMETER (N = 50)
       PARAMETER (NT = 100)
-      PARAMETER (PI=3.14159265359)
-      PARAMETER (A = 2.0*PI/N)
-      PARAMETER (B = 2.0*PI/NT)
+      PARAMETER (A = 2.0*3.1415927/N)
+      PARAMETER (B = 2.0*3.1415927/NT)
 C Variables:
       REAL X(0:N), Y(0:N)
       INTEGER I, T, L
@@ -54,15 +53,15 @@ C-----------------------------------------------------------------------
       CALL PGPAGE
       CALL PGVSTD
       CALL PGWNAD(-A, A*(N+1), -1.1, 1.1)
-      
+
       DO 200 T=0,NT
         CALL PGBBUF
         CALL PGERAS
         CALL PGSCI(1)
         CALL PGBOX('bcnst', 0.0, 0, 'bcnst', 0.0, 0)
         DO 100 I=0,N
-          X(I) = I*A 
-          Y(I) = SIN(I*A-T*B)  
+          X(I) = I*A
+          Y(I) = SIN(I*A-T*B)
   100   CONTINUE
         CALL PGSCI(3)
         CALL PGLINE(N+1,X,Y)
@@ -71,28 +70,28 @@ C-----------------------------------------------------------------------
         CALL PGEBUF
   200 CONTINUE
 
-      CALL PGPAGE
       WRITE (*,*) '2: erasing only the line between frames'
 
+      CALL PGPAGE
       CALL PGVSTD
       CALL PGWNAD(-A, A*(N+1), -1.1, 1.1)
       CALL PGBBUF
       CALL PGSCI(1)
       CALL PGBOX('bcnst', 0.0, 0, 'bcnst', 0.0, 0)
       DO 300 I=0,N
-         X(I) = I*A 
-         Y(I) = SIN(I*A)  
+         X(I) = I*A
+         Y(I) = SIN(I*A)
  300  CONTINUE
       CALL PGEBUF
-   
+
       DO 500 T=0,NT
         CALL PGBBUF
         CALL PGSCI(0)
         CALL PGLINE(N+1,X,Y)
         CALL PGSCI(3)
         DO 400 I=0,N
-          X(I) = I*A 
-          Y(I) = SIN(I*A-T*B)  
+          X(I) = I*A
+          Y(I) = SIN(I*A-T*B)
   400   CONTINUE
         CALL PGLINE(N+1,X,Y)
         CALL PGEBUF

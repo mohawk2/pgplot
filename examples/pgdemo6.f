@@ -40,7 +40,7 @@ C
       CALL PGBOX('bcts',0.1,5,'bcts',0.1,5)
 C
 C Loop to read and display cursor position. Initial position for cursor
-C is center of viewport. 
+C is center of viewport.
 C
       X = 0.5
       Y = 0.5
@@ -57,7 +57,7 @@ C         Check for switch of cursor type.
              WRITE (*,*) 'Cursor mode:', MODE
              GOTO 10
           END IF
-          CALL PGPT1(X, Y, ICHAR(CH))
+          CALL PGPT(1, X, Y, ICHAR(CH))
       GOTO 10
 C
 C Close the device and exit.

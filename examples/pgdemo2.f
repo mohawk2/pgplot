@@ -129,7 +129,7 @@ C by manipulating the viewport.
 C
       CALL PGSWIN(-1.,1.,-1.,1.)
 C
-C Loop through all known symbols (N=0-31 and -1 to -8). 
+C Loop through all known symbols (N=0-31 and -1 to -8).
 C
       DO 10 N=0,39
           IF (N.LE.31) WRITE (LABEL,'(I2)') N
@@ -162,12 +162,12 @@ C
           CALL PGSCH(0.5)
           CALL PGMTXT('T',-1.5,0.05,0.0,LABEL)
 C
-C Call PGPT1 to draw the symbol.
+C Call PGPT to draw the symbol.
 C
           CALL PGSLW(LW)
           CALL PGSCH(1.5)
-          IF (N.LE.31) CALL PGPT1(0.0,0.0,N)
-          IF (N.GT.31) CALL PGPT1(0.0,0.0,31-N)
+          IF (N.LE.31) CALL PGPT(1,0.0,0.0,N)
+          IF (N.GT.31) CALL PGPT(1,0.0,0.0,31-N)
    10 CONTINUE
 C
       CALL PGEBUF
@@ -176,38 +176,39 @@ C-----------------------------------------------------------------------
 
       SUBROUTINE PGEX23
 C-----------------------------------------------------------------------
-C Demonstration program for the PGPLOT plotting package. 
+C Demonstration program for the PGPLOT plotting package.
 C-----------------------------------------------------------------------
-      INTEGER N
-      PARAMETER (N=9)
       INTEGER I
-      REAL X1, Y1
-      CHARACTER*80 SAMPLE(N)
-      DATA SAMPLE/
-     1 'Normal:  \fnABCDQ efgh 1234 \ga\gb\gg\gd \gL\gH\gD\gW',
-     2 'Roman:  \frABCDQ efgh 1234 \ga\gb\gg\gd \gL\gH\gD\gW',
-     3 'Italic:  \fiABCDQ efgh 1234 \ga\gb\gg\gd \gL\gH\gD\gW',
-     4 'Script:  \fsABCDQ efgh 1234 \ga\gb\gg\gd \gL\gH\gD\gW',
-     5 '\fif\fr(\fix\fr) = \fix\fr\u2\dcos(2\gp\fix\fr)e\u\fix\fr\u2',
-     6 '\fiH\d0\u \fr= 75 \(2233) 25 km s\u-1\d Mpc\u-1\d',
-     7 '\fsL/L\d\(2281)\u\fr = 5\.6 \x 10\u6\d (\gl1216\A)',
-     8 'Markers: 3=\m3, 8=\m8, 12=\m12, 28=\m28.',
-     9 'Cyrillic: \(2830)\(2912)\(2906)\(2911)\(2919)\(2917)\(2915).'/
+      CHARACTER*80 SAMPLE(8)
+      DATA SAMPLE(1)
+     1 /'Normal:  \fnABCDQ efgh 1234 \ga\gb\gg\gd \gL\gH\gD\gW'/
+      DATA SAMPLE(2)
+     1 /'Roman:  \frABCDQ efgh 1234 \ga\gb\gg\gd \gL\gH\gD\gW'/
+      DATA SAMPLE(3)
+     1 /'Italic:  \fiABCDQ efgh 1234 \ga\gb\gg\gd \gL\gH\gD\gW'/
+      DATA SAMPLE(4)
+     1 /'Script:  \fsABCDQ efgh 1234 \ga\gb\gg\gd \gL\gH\gD\gW'/
+      DATA SAMPLE(5)
+     1 /'\fif\fr(\fix\fr) = \fix\fr\u2\dcos(2\gp\fix\fr)e\u\fix\fr\u2'/
+      DATA SAMPLE(6)
+     1 /'\fiH\d0\u \fr= 75 \(2233) 25 km s\u-1\d Mpc\u-1\d'/
+      DATA SAMPLE(7)
+     1 /'\fsL/L\d\(2281)\u\fr = 5\.6 \x 10\u6\d (\gl1216\A)'/
+      DATA SAMPLE(8)
+     1 /'Markers: 3=\m3, 8=\m8, 12=\m12, 28=\m28.'/
 C
 C Call PGENV to initialize the viewport and window.
 C Call PGLAB to label the graph.
 C
-      CALL PGENV(0.,20.,REAL(N),0.,0,-2)
+      CALL PGENV(0.,20.,8.,0.,0,-2)
       CALL PGLAB(' ',' ','\fiPGPLOT \frFonts')
 C
 C Use PGTEXT to write the sample character strings.
 C
       CALL PGSCH(1.6)
-      DO 10 I=1,N
-         X1 = 0.0
-         Y1 = REAL(I)-0.5
-         CALL PGTEXT(X1, Y1, SAMPLE(I))
- 10    CONTINUE
+      DO 10 I=1,8
+          CALL PGTEXT(0.0,FLOAT(I),SAMPLE(I))
+   10 CONTINUE
       CALL PGSCH(1.0)
 C-----------------------------------------------------------------------
       END
@@ -322,7 +323,7 @@ C
       CALL PGSCI(1)
       CALL PGSFS(2)
       CALL PGPOLY(5, SX, SY)
-C     
+C
 C       The next polygon should be invisible.
       CALL PGSFS(1)
       CALL PGSCI(4)
@@ -344,7 +345,7 @@ C
       CALL PGSLW(1)
       DO 20 I=0,30,5
          DO 10 J=-5,25,5
-            CALL PGPT1(REAL(I),REAL(J),9)
+            CALL PGPT(1,REAL(I),REAL(J),9)
  10      CONTINUE
  20   CONTINUE
 C
@@ -419,7 +420,7 @@ C
       CALL PGSLW(3)
       CALL PGCIRC(X*0.5, Y*0.5, R*1.3)
       CALL PGSLS(1)
-      CALL PGSLW(1)      
+      CALL PGSLW(1)
 C
 C Demonstrate different line-styles
 C
@@ -457,7 +458,7 @@ C
       DO 30 I=1,21
           YP = I*Y/22.0
           CALL PGSLW(I)
-          CALL PGPT1(XP,YP,-1)
+          CALL PGPT(1,XP,YP,-1)
    30 CONTINUE
       CALL PGSLW(1)
 C

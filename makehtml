@@ -1,4 +1,7 @@
-#!/usr/local/bin/perl
+: # *-*-perl-*-*
+  eval 'exec perl -S $0 "$@"'
+  if $running_under_some_shell;
+#!/usr/bin/perl
 
 $, = ' ';		# set output field separator
 $\ = "\n";		# set output record separator
@@ -6,11 +9,10 @@ $\ = "\n";		# set output record separator
 @files = @ARGV;
 
 print <<'EOD';
+\begin{rawhtml}
 <HTML>
 <HEAD><TITLE>PGPLOT Subroutine Descriptions</TITLE></HEAD>
-<BODY BGCOLOR="FFFFFF">
-
-<H1>PGPLOT Subroutine Descriptions</H1>
+<BODY>
 
 <H2>Introduction</H2>
 
@@ -49,7 +51,7 @@ not <CODE>INTEGER*2</CODE>.
 
 <H2>Index of Routines</H2>
 
-<EM>Version 5.2</EM><P>
+<EM>Version 5.1.1</EM><P>
 
 EOD
 
@@ -88,7 +90,7 @@ while (<>)
 
     print '<HR>';
     ($module, $rest) = split (' ', substr($_, 2), 2);
-    print "<H2><A NAME=\"$module\">$module</A> $rest</H2>";
+    print "<H2><A NAME=\"$module\">$module</A><A NAME=\"xref_$module\"> </A>$rest</H2>";
     next;
   };
 
@@ -143,6 +145,7 @@ while (<>)
 print <<'EOD';
 <HR>
 </BODY></HTML>
+\end{rawhtml}
 EOD
 
 sub Getline0 {

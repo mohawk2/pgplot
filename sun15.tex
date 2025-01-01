@@ -1,0 +1,362 @@
+\documentclass[twoside,11pt,nolof]{starlink}
+
+% ? Specify used packages
+% ? End of specify used packages
+
+% -----------------------------------------------------------------------------
+% ? Document identification
+% Fixed part
+\stardoccategory    {Starlink User Note}
+\stardocinitials    {SUN}
+\stardocsource      {sun\stardocnumber}
+
+
+% Variable part - replace [xxx] as appropriate.
+% \stardocnumber      {Draft - 15.8}
+\stardocnumber      {15.8}
+\stardocauthors     {D L Terrett, M J Bly}
+\stardocdate        {25 February 1999}
+\stardoctitle       {PGPLOT --- Graphics Subroutine Library}
+\stardocversion     {v5.1.1/v5.2.0}
+\stardocmanual      {User's Guide}
+\stardocabstract    {PGPLOT is the \emph{de facto} standard plotting
+library in Astronomy.  Starlink supports both the original `Native' version and the GKS-based `Starlink' version.  This document describes their use on
+Starlink systems.}
+% ? End of document identification
+% -----------------------------------------------------------------------------
+% ? Document specific \providecommand or \newenvironment commands.
+% ? End of document specific commands
+% -----------------------------------------------------------------------------
+%  Title Page.
+%  ===========
+\begin{document}
+\scfrontmatter
+
+% ? Main text
+
+\section{\xlabel{introduction}Introduction}
+\label{introduction}
+
+PGPLOT is a high level graphics package for plotting X \emph{versus} Y
+plots, functions, histograms, bar charts, contour maps and images.
+Complete diagrams can be produced with a minimal number of subroutine
+calls, but control over colour, lines-style, character font,
+\emph{etc},.\ is available if required.  The package was written (by Dr
+T J Pearson of the Caltech astronomy department) with astronomical
+applications in mind and has become a \textit{de facto} standard for
+graphics in astronomy world wide.
+
+The package exists in two versions: the original or `Native' version
+which uses the low level graphics package GRPCKG which was also
+written at Caltech, and a version developed by Starlink, in
+collaboration with Dr Pearson, which uses GKS.  The two versions have
+identical subroutine interfaces and in most cases, applications can be
+moved from one version to the other simply by re-linking.
+
+Starlink supports both the `Native' version and the `Starlink' version
+which co-exist on Starlink systems.  Most packages available in the
+Starlink Software Collection currently use the Starlink version but
+work is currently underway to replace this with the Native version.
+
+The current Native PGPLOT is version 5.2.0.
+The current Starlink PGPLOT is based on PGPLOT Version 5.1.1.
+
+The main source of information on using PGPLOT is the PGPLOT manual.
+The manual for version 5 is still in preparation but a hypertext version
+can be found at:
+\begin{quote}
+\url{http://astro.caltech.edu/\~tjp/pgplot/}
+\end{quote}
+This describes the original GRPCKG \emph{Native-PGPLOT} version but the
+majority of the manual applies equally to both versions.
+
+When using the GKS \emph{Starlink-PGPLOT} version the following
+sections of the manual should be ignored and the information in this
+user note used instead:
+
+\begin{itemize}
+\item Using PGPLOT (chapter 1)
+\item Graphics Devices (chapter1)
+\item Compiling and Running the Program (chapter 2)
+\item Appendix D --- Supported Devices
+\item Appendix E --- Writing a Device Handler
+\item Appendix F --- Installation Instructions
+\item Appendix G --- Porting PGPLOT
+\end{itemize}
+
+\section{\xlabel{native-pgplot}Native-PGPLOT}
+\label{native-pgplot}
+
+Readers interested in the Starlink-PGPLOT version should refer to
+section~\latexhtml{\ref{starlink-pgplot}} %%
+{\htmlref{\emph{Starlink-PGPLOT}}{starlink-pgplot}}.
+
+\subsection{\xlabel{using_the_native_version}Using the Native version}
+\label{using_the_native_version}
+
+To link a program with the Native-PGPLOT library, use the following:
+
+\begin{quote}
+\texttt{\% f77 \emph{prog.f} -L/star/lib `pgplot\_link`}
+\end{quote}
+
+It is currently not possible to use Native PGPLOT with ADAM applications
+though in future this facility will be provided.
+
+\subsection{\xlabel{native-pgplot_device_names}Native-PGPLOT device names}
+\label{native-pgplot_device_names}
+
+Native-PGPLOT device names are described in the PGPLOT manual.  The
+Native-PGPLOT device names are not the same as those used for other
+Starlink graphics and it does not support the Starlink device name system.
+However, substantially the same graphics device types are available
+(Xwindows, Postscript).
+
+It should be noted that the two PGPLOT systems have different Xwindows
+device drivers which do not interact -- hence a program using
+Starlink-PGPLOT and drawing to the `\texttt{xwindows}' device will not draw
+in the same display window as a Native-PGPLOT program drawing to the
+`\texttt{/XWIN}' device.
+
+\subsection{\xlabel{native_pgplot_examples}Native-PGPLOT examples}
+\label{native_pgplot_examples}
+
+\begin{quote}
+\emph{ On non-Starlink systems you may have to replace \texttt{/star} by
+some other path name to locate the files referred to in this section.}
+\end{quote}
+
+Binaries of the example programs can be found in
+\texttt{/star/bin/examples/pgplot}.
+They can be run with a command such as:
+
+\begin{quote}
+\texttt{/star/bin/examples/pgplot/pgdemo{\emph{n}}}
+\end{quote}
+
+where \texttt{\emph{n}} is between 1 and 17, provided that they have
+been installed.  (They may not have been in order to save disk space).
+
+\section{\xlabel{starlink-pgplot}Starlink-PGPLOT}
+\label{starlink-pgplot}
+
+Readers interested in the Native-PGPLOT version should refer to
+section~\latexhtml{\ref{native-pgplot}} %%
+{\htmlref{\emph{Native-PGPLOT}}{native-pgplot}}.
+
+\subsection{\xlabel{using_the_gks_version}Using the GKS version}
+\label{using_the_gks_version}
+
+There are two ways in which the GKS version of PGPLOT can be used:
+
+\begin{enumerate}
+
+\item As a self contained graphics package where \emph{all} graphics, including
+opening and closing the workstation, is done with PGPLOT. Programs written in
+this way can be run with other implementations of PGPLOT. Such programs
+are linked with the command:
+
+\begin{quote}
+\texttt{\% f77 \emph{prog.f} -L/star/lib `pgp\_link`}
+\end{quote}
+
+\item To plot a picture in the current viewport of an already open GKS
+workstation (see \latexhtml{section~\ref{plotting_in_the_current_viewport}} %%
+{\htmlref{Plotting in the current viewport}{plotting_in_the_current_viewport}}).
+\end{enumerate}
+
+To use PGPLOT in an ADAM application, consult the
+\xref{\emph{ADAM Graphics Programmer's Guide}}{sun113}{} (SUN/113).
+
+\subsection{\xlabel{starlink-pgplot_device_names}Starlink-PGPLOT device names}
+\label{starlink-pgplot_device_names}
+
+Any graphics device supported by GKS can be used with Starlink PGPLOT
+and device names are translated using the graphics name service
+described in \xref{\emph{GNS -- Graphics Name
+Service}}{sun57}{GKSWorkstationNames} (SUN/57).  Device names
+containing a `\texttt{/}' character (such as UNIX file names) must be
+surrounded by quote (`\texttt{"}') characters.
+
+If a question mark is typed in response to the prompt from
+\xref{\texttt{PGBEG}}{sun15}{PGBEG}, a list of those workstation names
+defined on your system will be listed on the terminal.
+
+On some hard copy devices the output from a PGPLOT program is a file
+and some further action (such as printing the file) is required to
+produce a plot.  If you are unfamiliar with a particular device,
+consult \xref{SUN/83}{sun83}{}.
+
+If one of the metafile workstations is selected the metafile can be
+tailored for a particular real workstation type by appending
+\texttt{/TARGET=\emph{workstation}} to the device specification.  The
+default target is the monochrome A4 Postscript workstation. The
+resulting metafile can be played back on any workstation but will be
+tailored with respect to such things as resolution, number of colour
+indices, etc. for the selected target.
+
+The device name syntax described in the PGPLOT manual is also
+supported; when using this form of device name, the device type is
+specified using a GNS workstation name.
+
+\subsection{\xlabel{starlink-pgplot_examples}Starlink-PGPLOT examples}
+\label{starlink-pgplot_examples}
+
+\begin{quote}
+\emph{ On non-Starlink systems you may have to replace \texttt{/star} by
+some other path name to locate the files referred to in this section.}
+\end{quote}
+
+The directory \texttt{/star/share/pgp} contains the source of a
+number of example programs which demonstrate most of the features of
+PGPLOT.  Binaries of the example programs can be found in
+\texttt{/star/bin/examples/pgp}.
+
+They can be run with a command such as:
+
+\begin{quote}
+\texttt{/star/bin/examples/pgp/pgdemo{\emph{n}}}
+\end{quote}
+
+where \texttt{\emph{n}} is between 1 and 14, provided that they have
+been installed.  (They may not have been in order to save disk space).
+
+\subsection{\xlabel{plotting_in_the_current_viewport} %%
+Plotting in the current viewport}
+\label{plotting_in_the_current_viewport}
+\label{viewport}
+
+PGPLOT can be used to plot a picture in the current viewport on an
+already open GKS workstation. When used in this way, the second
+argument to \xref{\texttt{PGBEG}}{sun15}{PGBEG} (normally the workstation
+name) is a GKS workstation identifier (encoded as a character string).
+PGPLOT then behaves as if the region of the display surface defined by
+the current viewport is a complete workstation.  When
+\xref{\texttt{PGEND}}{sun15}{PGEND} is called the workstation is not closed
+but the state of GKS is restored to what it was at the time that
+\texttt{PGBEG} was called.
+
+PGPLOT assumes that it has exclusive control over the GKS and so the only
+graphics calls allowed between \texttt{PGBEG} and \texttt{PGEND} are PGPLOT
+routines and GKS inquiry routines.
+
+The following simple example is a subroutine that uses PGPLOT to draw an X, Y
+plot in an SGS zone.
+\begin{small}
+\begin{terminalv}
+     SUBROUTINE XYPLOT (IZONE, X, Y, N, XLO, XHI, YLO, YHI, ISTAT)
+*++
+*
+*   XYPLOT   Draw X,Y plot in an SGS zone.
+*
+*   Description:
+*
+*      Uses PGPLOT to draw an X,Y plot of the real arrays X & Y in the
+*      region of the display surface defined be the specified SGS zone.
+*
+*   Input arguments:
+*
+*      IZONE    INTEGER         SGS zone identifier
+*      X        REAL(N)         X values of data points
+*      Y        REAL(N)         Y   "    "    "    "
+*      N        INTEGER         Number of data points
+*      XLO      REAL            Lower X axis limit
+*      XHI      REAL            Higher X  "    "
+*      YLO      REAL            Lower Y  "     "
+*      YHI      REAL            Higher Y  "    "
+*
+*   Output arguments:
+*
+*      ISTAT    INTEGER         SGS status
+*
+*   Side effects:
+*
+*      The specified SGS zone is selected.
+*++
+     IMPLICIT NONE
+     INTEGER  IZONE, N, ISTAT, PGSTAT
+     REAL     X(N), Y(N), XLO, XHI, YLO, YHI
+
+     CHARACTER*10 WKID
+     INTEGER IWKID
+
+     INTEGER PGBEG
+
+
+*  Select the specified SGS zone.
+     CALL SGS_SELZ(IZONE, ISTAT)
+     IF (ISTAT.EQ.0) THEN
+
+*     Inquire the GKS workstation identifier of the current zone.
+        CALL SGS_ICURW(IWKID)
+
+*     Encode workstation id as a character string.
+        WRITE(UNIT=WKID, FMT='(I10)') IWKID
+
+*     Open PGPLOT
+        PGSTAT = PGBEG(0, WKID, 1, 1)
+        IF (PGSTAT.EQ.1) THEN
+
+*     Define axis limits.
+           CALL PGENV(XLO, XHI, YLO, YHI, 0, 0)
+
+*     Plot the data.
+           CALL PGPT(N, X, Y, 2)
+
+*     Close down PGPLOT.
+           CALL PGEND
+        END IF
+     END IF
+     END
+\end{terminalv}
+\end{small}
+
+Because other plotting packages may have plotted on the same physical device,
+there are some restrictions when using PGPLOT in this way:
+
+\begin{itemize}
+\item \xref{\texttt{PGVSIZ}}{sun15}{PGVSIZ} cannot be used.
+
+\item \xref{\texttt{PGPAGE}}{sun15}{PGPAGE} will never clear the
+screen.  If the display surface has been divided into sub-pictures
+\texttt{PGPAGE} will move to the next sub-picture in the usual way.
+
+\item On devices with fixed colour tables, the default PGPLOT colour
+table will not be set up by \xref{\texttt{PGBEG}}{sun15}{PGBEG} unless the
+display surface is empty.
+
+\end{itemize}
+
+\section{\xlabel{other_differences}Other Differences}
+\label{other_differences}
+
+In general the two versions produce nearly identical results when run on
+the same device but the following differences should be noted:
+
+\begin{itemize}
+\item The GKS version of \xref{\texttt{PGPAGE}}{sun15}{PGPAGE} cannot be
+used to make the display surface larger than the default size provided by
+\xref{\texttt{PGBEG}}{sun15}{PGBEG}.
+\item The GKS version of \texttt{PGBEG} clears the display surface immediately
+instead of waiting until the first vector is plotted.
+\end{itemize}
+
+\section{\xlabel{support}Support}
+\label{support}
+
+PGPLOT is Starlink supported software and bugs should be reported through the
+usual channels and not by contacting Dr Pearson directly. Problems with the GKS
+specific code will be dealt with by Starlink but all changes to the code which
+is common to the two versions of PGPLOT must be made in collaboration with Dr
+Pearson.
+
+The mixing of calls to PGPLOT and GKS routines is not supported except as
+described in \slhyperref{this section}{section~}{}{viewport}, and neither
+version supports the calling of GRPCKG routines directly. Existing programs
+that call GRPCKG should be re-written to call the equivalent PGPLOT routines.
+
+
+
+
+% ? End of main text
+\end{document}
