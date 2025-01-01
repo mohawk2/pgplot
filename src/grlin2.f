@@ -1,3 +1,4 @@
+
 C*GRLIN2 -- draw a normal line
 C+
       SUBROUTINE GRLIN2 (X0,Y0,X1,Y1)
@@ -31,7 +32,6 @@ C---
       RBUF(3)=X1
       RBUF(4)=Y1
       NBUF=4
-C     WRITE(*,'(A,4F10.5)') 'GRLIN2',RBUF(1), RBUF(2), RBUF(3), RBUF(4)
       CALL GREXEC(GRGTYP,12,RBUF,NBUF,CHR,LCHR)
 C
       END

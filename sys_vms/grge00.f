@@ -1,7 +1,7 @@
 
 C*GRGE00 -- open output device; device handler routine (VMS)
 C+
-      INTEGER FUNCTION GRGE00(CTYP,LUN,CHR,LCHR)
+	INTEGER FUNCTION GRGE00(CTYP,LUN,CHR,LCHR)
 C
 C General routine to open plot device.  This version can open
 C 1) A file with of any FORM and CARRIAGECONTROL,
@@ -12,23 +12,23 @@ C If an error occurs, a message is sent to SYS$OUTPUT via GRWARN.
 C
 C Arguments:
 C- CTYP(1:1)='F' I/O will use standard Fortran I/O and
-C-       CTYP(2:2)      ='F' for formatted, ='U' for unformatted.
-C-      CTYP(3:3)      ='L' for LIST, ='N' for 'NONE carriagecontrol
-C-      LUN            return, logical unit number of file.
-C-       CHR(:LCHR)      input, name of file to open.
+C- 	CTYP(2:2)	='F' for formatted, ='U' for unformatted.
+C-	CTYP(3:3)	='L' for LIST, ='N' for 'NONE carriagecontrol
+C-	LUN		return, logical unit number of file.
+C- 	CHR(:LCHR)	input, name of file to open.
 C- CTYP(1:1)='Q' for DEC QIO and
-C-      CTYP(2:2)      ='1' for device type 66 expected.
-C-      CTYP(2:2)      ='2' for device type 96 expected.
-C-      LUN            return, channel number of opened channel,
-C-       CHR(:LCHR)      input, name of device to open.
+C-	CTYP(2:2)	='1' for device type 66 expected.
+C-	CTYP(2:2)	='2' for device type 96 expected.
+C-	LUN		return, channel number of opened channel,
+C- 	CHR(:LCHR)	input, name of device to open.
 C
 C GRGE00 (returns integer): 0 if the device/channel could
-C      not be opened, 1 if the file/channel was opened
-C      successfully on a local device, 3 for a successful open
-C      of a channel over a network (the remote status of the
-C      device must be flagged since, the QIO functions codes are
-C      different when writting to a physical device or to the
-C      network).
+C	not be opened, 1 if the file/channel was opened
+C	successfully on a local device, 3 for a successful open
+C	of a channel over a network (the remote status of the
+C	device must be flagged since, the QIO functions codes are
+C	different when writting to a physical device or to the
+C	network).
 C--
 C  5-Aug-1986 - [AFT].
 C-----------------------------------------------------------------------

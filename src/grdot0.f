@@ -1,3 +1,4 @@
+
 C*GRDOT0 -- draw a dot
 C+
       SUBROUTINE GRDOT0 (X,Y)
@@ -17,7 +18,7 @@ C  5-Aug-1986 - add GREXEC support [AFT].
 C 21-Feb-1987 - If needed, calls begin picture [AFT].
 C-----------------------------------------------------------------------
       INCLUDE 'grpckg1.inc'
-      INTEGER  NBUF, LCHR
+      INTEGER  I, J, NBUF, LCHR
       REAL     X, Y, RBUF(6)
       CHARACTER CHR
 C
@@ -26,12 +27,17 @@ C
       GRXPRE(GRCIDE) = X
       GRYPRE(GRCIDE) = Y
 C
+C Convert to integer.
+C
+      I = NINT(X)
+      J = NINT(Y)
+C
 C Check window.
 C
-      IF (X .LT. GRXMIN(GRCIDE)) RETURN
-      IF (X .GT. GRXMAX(GRCIDE)) RETURN
-      IF (Y .LT. GRYMIN(GRCIDE)) RETURN
-      IF (Y .GT. GRYMAX(GRCIDE)) RETURN
+      IF (I .LT. GRXMIN(GRCIDE)) RETURN
+      IF (I .GT. GRXMAX(GRCIDE)) RETURN
+      IF (J .LT. GRYMIN(GRCIDE)) RETURN
+      IF (J .GT. GRYMAX(GRCIDE)) RETURN
 C
 C Begin picture if necessary.
 C

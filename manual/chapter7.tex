@@ -1,0 +1,132 @@
+% PGPLOT manual, 9-May-1988, T. J. Pearson
+%------------------------------------------------------------------------
+% Copyright (c) 1983, 1984, 1985, 1986, 1987, 1988, 1989 by
+% California Institute of Technology.
+% All rights reserved.
+%------------------------------------------------------------------------
+
+\beginchapter{7}{INTERACTIVE GRAPHICS}
+
+\beginsection Introduction
+
+The previous chapters have described how to produce a {\it static\/}
+graphical image:  if the same program is run twice with the same input
+parameters, the same image will result.  An {\it interactive\/}
+program allows the user to control the behavior of the program with a
+graphical input device. PGPLOT supports a limited interactive capability
+on devices with a cursor for graphical input (\eg, Grinnell, VT125
+terminal, some Tektronix terminals, VT640 Retrographics terminal).  The
+capabilities are necessarily limited by the aim to keep PGPLOT
+device-independent.
+
+\beginsection The Cursor
+
+Some of the graphics devices supported by PGPLOT have a {\it graphics
+cursor}.  This appears on the view surface as a plus sign, a cross-hair,
+or a diamond, and can be moved around the view surface with a joy-stick,
+mouse, or trackball attached to the graphics device. If the hardware
+does not provide this mechanism, PGPLOT allows the user to move the
+cursor using the arrow keys on his terminal. See Appendix D for
+instructions for using the cursor on a specific device. 
+
+\beginsection Using the Cursor
+
+The basic routine for cursor input is |PGCURSE|. This routine
+enables the cursor on the selected device, positions it
+at a specified location within the viewport, and allows the user to
+move it.  When the user has positioned the cursor, he types a
+key on his terminal; |PGCURSE| returns the cursor position (in world
+coordinates) and the character that was typed. 
+
+In addition, PGPLOT provides three higher-level routines for cursor 
+input: |PGOLIN|, |PGNCURSE|, and |PGLCUR|.  These three routines
+require that the device has erase capability.
+
+|PGOLIN| allows the user to specify a set of points within the viewport,
+with the capability of correcting mistakes. Interactive commands (single
+characters [|A|, |D|, or |X|] typed on the keyboard) allow the user to {\it
+add\/} a point at the current cursor position, {\it delete\/} the
+last-entered point, or {\it exit\/} from the subroutine. The
+world-coordinates of the entered points are returned to the calling
+program. The following program fragment illustrates the use of |PGOLIN|;
+the user supplies |NPT| (up to 50) points with world-coordinates |X()|
+and |Y()|, and the program then shades the polygon defined by these
+points by calling |PGPOLY|: 
+\begintt
+INTEGER NPT
+REAL X(50), Y(50)
+...
+WRITE (6,*) 'Use the cursor to draw a polygon'
+WRITE (6,*) 'Type A to add point, D to delete, X to exit'
+NPT = 0
+CALL PGOLIN (50, NPT, X, Y, 0)
+IF (NPT.GE.3) CALL PGPOLY (NPT, X, Y)
+\endtt
+
+|PGNCURSE| is similar to |PGOLIN|, but the points are sorted into
+increasing order of $x$ before being returned to the calling program. In
+addition, the {\it delete\/} command deletes the point nearest to the
+cursor, rather than the last-entered point. It can be used, for example,
+to allow the user to supply a set of points to represent the continuum
+level on a spectrum. 
+
+|PGLCUR| is similar to |PGOLIN| but instead of using a graph marker to
+mark each entered point it draws a polyline through them. 
+
+\beginsection Buffering
+
+By default, PGPLOT ensures that the image seen on the view surface is up
+to date at all times; that is, each PGPLOT subroutine updates the image
+before returning control to the calling program. To improve efficiency,
+PGPLOT can save instructions for controlling the graphics device in a
+buffer, and only send them to the device when the buffer is filled up.
+This means that at any given moment, the image displayed on the screen
+may not be completely up to date. This can be a problem in an
+interactive program, where, for example, the user has to tell the
+program what to do next based on his interpretation of the current
+display. Three PGPLOT routines (|PGBBUF|, |PGEBUF|, and |PGUPDT|) are provided 
+for controlling the buffering of output. All three routines have no 
+arguments.
+
+The routine |PGBBUF| causes PGPLOT to begin saving graphical output in a
+buffer. The output is saved until (1) a matching |PGEBUF| call is made, or
+(2) the buffer fills up, or (3) the buffer is emptied by a call to
+|PGUPDT|, or (4) |PGEND| is called.  The routine |PGEBUF| stops buffering and
+causes the buffered commands to be sent to the output device. Calls to
+|PGBBUF| and |PGEBUF| should always be paired. |PGBBUF| increments an internal
+counter, while |PGEBUF| decrements this counter and flushes the buffer to
+the output device when the counter drops to zero.  This allows a
+subroutine to turn on and turn off buffering without disturbing any
+buffering that may have been established by the calling program. 
+
+Routine |PGUPDT| empties the buffer created by |PGBBUF|, but it does not
+alter the internal counter. The routine should be called when it is
+essential that the display be completely up-to-date (before interaction
+with the user, for example) but it is not known if output is being
+buffered. 
+
+Usually output is not buffered; this is the default state established by 
+|PGBEGIN|. The default behavior can be changed, however, by defining an 
+environment variable |PGPLOT_BUFFER| (see Chapter~1). If this variable is 
+defined, with any value, |PGBEGIN| will start buffering output
+(by calling |PGBBUF|).
+
+The following example shows how routine |PGLABEL| might be implemented
+in terms of routine |PGMTEXT|: 
+\begintt
+SUBROUTINE PGLABEL (XLBL, YLBL, TOPLBL)
+CHARACTER*(*) XLBL, YLBL, TOPLBL
+CALL PGBBUF
+CALL PGMTEXT('T', 2.0, 0.5, 0.5, TOPLBL)
+CALL PGMTEXT('B', 3.2, 0.5, 0.5, XLBL)
+CALL PGMTEXT('L', 2.2, 0.5, 0.5, YLBL)
+CALL PGEBUF
+END
+\endtt
+The calls to |PGBBUF| and |PGEBUF| ensure that the output generated by the
+three calls to |PGMTEXT| is buffered (i.e., sent to the output device as a
+single command instead of three separate ones). If buffering is already
+enabled by the program which calls |PGLABEL|, the calls to |PGBBUF| and
+|PGEBUF| have no effect. 
+
+\endchapter

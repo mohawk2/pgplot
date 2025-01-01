@@ -1,5 +1,4 @@
 C*PGQPOS -- inquire current pen position
-C%void cpgqpos(float *x, float *y);
 C+
       SUBROUTINE PGQPOS (X, Y)
       REAL X, Y

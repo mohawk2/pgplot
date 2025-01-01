@@ -1,0 +1,22 @@
+FFLAGC=-O1		# options for Fortran compiler
+FCOMPL=fc		# name of Fortran compiler
+LIBS=			# additional libraries required
+PGPLOT= ../libpgplot.a	# location of PGPLOT library
+
+.SUFFIXES: .for
+
+.for.f:
+	cp $*.for $*.f
+.f.o:
+	$(FCOMPL) -c $(FFLAGC) $<
+
+programs: fig21 fig41 fig42 hershey
+
+fig21: fig21.o $(PGPLOT)
+	$(FCOMPL) $(load) -o fig21 fig21.o $(PGPLOT) $(LIBS)
+fig41: fig41.o $(PGPLOT)
+	$(FCOMPL) $(load) -o fig41 fig41.o $(PGPLOT) $(LIBS)
+fig42: fig42.o $(PGPLOT)
+	$(FCOMPL) $(load) -o fig42 fig42.o $(PGPLOT) $(LIBS)
+hershey: hershey.o $(PGPLOT)
+	$(FCOMPL) $(load) -o hershey hershey.o $(PGPLOT) $(LIBS)

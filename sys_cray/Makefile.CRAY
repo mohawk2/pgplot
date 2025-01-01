@@ -1,0 +1,140 @@
+# Makefile for Cray Unix PGPLOT			Revised 12-Oct-90
+#
+
+# Instructions for Fortran compilation: system-dependent
+# Convex:
+#FFLAGC=-O1 -72
+#FCOMPL=fc
+#CFLAGC=
+#CCOMPL=cc
+# Sun:
+#FFLAGC=-u
+#FCOMPL=f77
+#CFLAGC=
+#CCOMPL=cc
+# Cray:
+FFLAGC=-Wf"-o novector -i64"
+FCOMPL=cf77
+CFLAGC=
+CCOMPL=cc
+
+.f.o:
+	$(FCOMPL) -c $(FFLAGC) $<
+.c.o:
+	$(CCOMPL) -c $(CFLAGC) $<
+
+PG_ROUTINES=\
+    pgpage.o pgask.o pgbbuf.o pgbegin.o pgbin.o pgbox.o\
+    pgbox1.o pgcn01.o pgconb.o\
+    pgcons.o pgcont.o pgconx.o pgcp.o pgcurse.o pgdraw.o pgebuf.o\
+    pgend.o pgenv.o pgerr.o pgerrx.o pgerry.o pgetxt.o pgfunt.o\
+    pgfunx.o pgfuny.o pggray.o pghi2d.o pghis1.o pghist.o pgiden.o\
+    pglabel.o pglcur.o pgldev.o pgline.o pgmove.o pgmtext.o pgncurse.o\
+    pgnumb.o pgolin.o pgpaper.o pgpoint.o pgpoly.o pgptext.o pgqcf.o\
+    pgqch.o pgqci.o pgqcr.o pgqfs.o pgqinf.o pgqls.o pgqlw.o pgqvp.o\
+    pgqwin.o pgrect.o pgrnd.o pgrnge.o pgscf.o pgsch.o pgsci.o pgscr.o\
+    pgsfs.o pgshls.o pgsls.o pgslw.o pgtext.o pgupdt.o pgvport.o\
+    pgvsize.o pgvstand.o pgvw.o pgwindow.o pgwnad.o 
+GR_ROUTINES=\
+    grarea.o grbpic.o grchsz.o grclip.o\
+    grclos.o grclpl.o grcurs.o grdot0.o grdtyp.o\
+    gresc.o gretext.o grfa.o\
+    grgray.o grgrgr.o grgrps.o grinqcol.o grinqdev.o\
+    grqfnt.o grinqls.o grinqlw.o grinqtyp.o\
+    grldev.o grlen.o grlin0.o grlin1.o grlin2.o grlin3.o\
+    grlina.o grmarker.o grmova.o gropen.o\
+    grpage.o grpars.o grrect.o grscr.o grselect.o\
+    grsetc.o grsetcol.o grsfnt.o grsetls.o grsetlw.o\
+    grsets.o grsize.o grsy00.o grsyds.o grsymk.o grsyxd.o\
+    grterm.o grtext.o grtoup.o grtrn0.o\
+    grtxy0.o grvct0.o grxhls.o grxrgb.o grqdev.o grqcol.o
+
+CGDRIVER=cgdriv.o
+GFDRIVER=gfdriv.o grre01.o grte02.o grre04.o gr_termio.o lib_get_vm.o
+IMDRIVER=imdriv.o grim00.o grim02.o grim03.o lib_get_vm.o
+IVDRIVER=ivdriv.o griv00.o grivas.o grgetc.o
+NUDRIVER=nudriv.o
+PSDRIVER=psdriv.o grps02.o
+PXDRIVER=pxdriv.o grpx01.o grpx02.o lib_get_vm.o gribf1.o 
+QMDRIVER=qmdriv.o grqm00.o
+QPDRIVER=qpdriv.o grqm00.o
+REDRIVER=redriv.o grre01.o grte02.o grre04.o gr_termio.o lib_get_vm.o
+TEDRIVER=tedriv.o grte01.o grte02.o grte04.o gr_termio.o lib_get_vm.o
+TFDRIVER=tfdriv.o grtf01.o grtf02.o grtf03.o lib_get_vm.o
+VEDRIVER=vedriv.o grve01.o grve02.o lib_get_vm.o gribf1.o 
+VPDRIVER=vpdriv.o grps02.o
+VTDRIVER=vtdriv.o grvt02.o grvt03.o
+VVDRIVER=vvdriv.o grve01.o grve02.o lib_get_vm.o gribf1.o 
+
+# Include emulation routines for Cray; only include "gr" drivers once
+CRREDRIVER=redriv.o grre01.o          grre04.o
+CRTEDRIVER=tedriv.o grte01.o grte02.o grte04.o gr_termio.o emulate.o
+CRPSDRIVER=psdriv.o
+
+# Drivers for Convex version
+#DRIVERS=\
+#    $(GFDRIVER) $(IMDRIVER) $(IVDRIVER) $(NUDRIVER) $(PSDRIVER)\
+#    $(PXDRIVER) $(QMDRIVER) $(QPDRIVER) $(REDRIVER) $(TEDRIVER)\
+#    $(TFDRIVER) $(VEDRIVER) $(VPDRIVER) $(VTDRIVER) $(VVDRIVER)
+#DISPATCH_ROUTINE=grexecCONVEX.o
+
+# Drivers for Sun version
+#DRIVERS=\
+#    $(CGDRIVER) $(GFDRIVER) $(NUDRIVER) $(PSDRIVER) $(REDRIVER)\
+#    $(TEDRIVER) $(VPDRIVER) $(VTDRIVER)
+#DISPATCH_ROUTINE=grexecSUN.o
+
+# Drivers for Cray version
+DRIVERS=\
+    $(CRTEDRIVER) $(CRPSDRIVER) $(CRREDRIVER) $(NUDRIVER) $(VPDRIVER)\
+    $(VTDRIVER)
+DISPATCH_ROUTINE=grexecCRAY.o
+
+SYSTEM_ROUTINES=\
+    grdate.o grfao.o  grflun.o grgcom.o grgenv.o\
+    grglun.o grgmsg.o gritoc.o grlgtr.o groptx.o grprom.o grquit.o\
+    grtrml.o grtter.o gruser.o grwarn.o
+
+OBSOLETE_ROUTINES=\
+    grchar.o grchr0.o grdat2.o grgtc0.o grmark.o grinqli.o grinqpen.o\
+    grsetli.o grsetpen.o grlinr.o grmovr.o grtran.o grvect.o\
+    pgsetc.o pgsize.o grinqfont.o grsetfont.o pgadvance.o
+
+libpgplot.a : $(PG_ROUTINES) $(GR_ROUTINES) $(DISPATCH_ROUTINE) $(DRIVERS)\
+    $(SYSTEM_ROUTINES)
+	ar ru libpgplot.a $(PG_ROUTINES) $(GR_ROUTINES) $(DISPATCH_ROUTINE)\
+	    $(DRIVERS) $(SYSTEM_ROUTINES)
+#	ranlib libpgplot.a 
+
+libpgobs.a : $(OBSOLETE_ROUTINES)
+	ar ru libpgobs.a $(OBSOLETE_ROUTINES)
+#	ranlib libpgobs.a
+
+# Include file dependencies:
+# The following PG routines reference `pgplot.inc'
+
+pgpage.o pgask.o pgbbuf.o pgbegin.o pgbin.o pgbox.o pgcons.o\
+pgcont.o pgcp.o pgcurse.o pgebuf.o pgend.o pgenv.o pgerrx.o pgerry.o\
+pgfunt.o pgfunx.o pgfuny.o pggray.o pghi2d.o pghist.o pgiden.o\
+pglabel.o pglcur.o pgmtext.o pgncurse.o pgolin.o pgpaper.o pgpoint.o\
+pgpoly.o pgptext.o pgqch.o pgqfs.o pgqinf.o pgqvp.o pgqwin.o pgsch.o\
+pgsfs.o pgupdt.o pgvport.o pgvsize.o pgvstand.o pgvw.o pgwindow.o\
+pgwnad.o : pgplot.inc
+
+# The following GR routines reference `grpckg.inc'
+
+grarea.o grbpic.o grchr0.o grchsz.o grclos.o grclpl.o grcurs.o\
+grdot0.o grdtyp.o gresc.o gretext.o grfa.o grinqcol.o grinqdev.o\
+grinqfont.o grinqls.o grinqlw.o grinqtyp.o grldev.o grlen.o grlin0.o\
+grlin1.o grlin2.o grlin3.o grlina.o grlinr.o grmarker.o grmova.o\
+grmovr.o gropen.o grpage.o grqdev.o grrect.o grscr.o grselect.o\
+grsetc.o grsetcol.o grsetfont.o grsetli.o grsetls.o grsetlw.o\
+grsets.o grsize.o grterm.o grtext.o grtrn0.o grtxy0.o grvct0.o\
+: grpckg1.inc
+
+# The following GR routines reference `pgplot.inc' (this is a temporary
+# inconsistency which will be eliminated)
+ 
+grgray.o grgrgr.o grgrps.o : pgplot.inc
+
+griv00.o : gadef.h gmdef.h gphdef.h

@@ -1,0 +1,82 @@
+CCOMPL=cc
+CFLAGC=-O
+LDFLAG=-n
+PGLIBS=-L/usr/lib/X11R4 -lX11 -lm
+#
+# PGDISP-only routines
+#
+PGOBJS=cleanup.o mainloop.o pgdisp.o figcurs.o getdata.o proccom.o resdb.o
+#
+# Shared routines
+#
+OBJECTS=exposelgwin.o initlgluts.o initlgwin.o initlock.o initwmattr.o\
+	resizelgwin.o returnbuf.o waitevent.o
+COMSRC=$(OBJECTS:.o=.c)
+#
+# The programs to compile
+#
+PROGS=pgdisp 
+
+prog: $(PROGS)
+
+lib:
+
+pgdisp: $(PGOBJS) $(OBJECTS)
+	$(CCOMPL) -o pgdisp $(CFLAGC) $(LDFLAG) $(PGOBJS) $(OBJECTS) $(PGLIBS)
+
+clean:
+	-@rm -f $(PGOBJS) $(OBJECTS)
+#
+# The PGPLOT version needs to be compiled with special flags
+#
+cleanup.o: cleanup.c
+	$(CCOMPL) -c -o cleanup.o -DPGDISP $(CFLAGC) cleanup.c
+mainloop.o: mainloop.c
+	$(CCOMPL) -c -o mainloop.o -DPGDISP $(CFLAGC) mainloop.c
+figcurs.o: figcurs.c
+	$(CCOMPL) -c -o figcurs.o -DPGDISP $(CFLAGC) figcurs.c
+getdata.o: getdata.c
+	$(CCOMPL) -c -o getdata.o -DPGDISP $(CFLAGC) getdata.c
+proccom.o: proccom.c
+	$(CCOMPL) -c -o proccom.o -DPGDISP $(CFLAGC) proccom.c
+resdb.o: resdb.c
+	$(CCOMPL) -c -o resdb.o -DPGDISP $(CFLAGC) resdb.c
+
+#
+# The include file dependancies
+#
+dokey.o exam1.o exam2.o getdata.o initlock.o initwmattr.o mainloop.o\
+	getdata.o mainloop.o proccom.o proccom.o writeim.o: commands.h
+
+checkoff.o cleanup.o coordtrans.o copyzoom.o dokey.o doseeing.o doslit.o\
+	drawline.o exposebmwin.o exposecmap.o exposelgwin.o exposesee.o\
+	figcurs.o figdisp.o getbmvisual.o getdata.o initbmdata.o initbmluts.o\
+	initbmwin.o initcmapwin.o initlgluts.o initlgwin.o initlock.o\
+	initlocwin.o initpatchwin.o initseewin.o initwmattr.o lwwrite.o\
+	mainloop.o panloc.o panpatch.o cleanup.o figcurs.o getdata.o\
+	mainloop.o proccom.o resdb.o pgdisp.o proccom.o redrawim.o\
+	resdb.o resizebmwin.o resizecmap.o resizeim.o resizelgwin.o resizeloc.o\
+	returnbuf.o seehester.o seeing.o transim.o transluts.o updateloc.o\
+	updatepatch.o updatetitle.o waitevent.o writeim.o\ writeluts.o\
+	zoomim.o: figdisp.h
+
+initbmwin.o initcmapwin.o initlgwin.o initlocwin.o initpatchwin.o\
+	initseewin.o: figdisp.icon
+
+doslit.o figdisp.o getbmvisual.o getdata.o initbmwin.o initcmapwin.o\
+	initlgwin.o initlock.o initlocwin.o lwwrite.o mainloop.o getdata.o\
+	mainloop.o proccom.o pgdisp.o proccom.o resizebmwin.o\
+	resizecmap.o resizeim.o resizeloc.o updateloc.o waitevent.o writeim.o\
+	zoomim.o: messages.h
+
+checkoff.o cleanup.o coordtrans.o copyzoom.o dokey.o doseeing.o doslit.o\
+	drawline.o exposebmwin.o exposecmap.o exposelgwin.o exposesee.o\
+	figcurs.o figdisp.o getbmvisual.o getdata.o initbmdata.o initbmluts.o\
+	initbmwin.o initcmapwin.o initlgluts.o initlgwin.o initlock.o\
+	initlocwin.o initpatchwin.o initseewin.o initwmattr.o lwwrite.o\
+	mainloop.o panloc.o panpatch.o cleanup.o figcurs.o getdata.o\
+	mainloop.o proccom.o resdb.o pgdisp.o printhelp.o proccom.o\
+	redrawim.o resdb.o resizebmwin.o resizecmap.o resizelgwin.o resizeim.o\
+	resizeloc.o returnbuf.o seehester.o seeing.o transim.o transluts.o\
+	updateloc.o updatepatch.o updatetitle.o waitevent.o writeim.o\
+	writeluts.o zoomim.o: globals.h

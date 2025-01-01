@@ -1,18 +1,5 @@
-The following notes are reproduced from an earlier version of PGPLOT.
-PGPLOT v5.0 has not yet been ported to MS-DOS. Neither I nor Allyn
-Tennant has the resources to do this. Anyone planning to try to port
-PGPLOT to MS-DOS should contact me before doing so, to avoid
-duplication of effort.
+                   PGPLOT on an MS-DOS machine
 
-The makefile in this directory is not complete, but may serve as a
-model.
-
-Tim Pearson
-30 December 1994
-------------------------------------------------------------------------
-
-
-                   PGPLOT on an MS-DOS machine 
                         Allyn F. Tennant
                    Marshall Space Flight Center
                           1991-Jun-30
@@ -176,4 +163,4 @@ the Microsoft device handler (MSDRIV.FOR).  With the huge memory model,
 each subroutine is compiled into a separate segment.  A complicated
 program can easily contain calls to more than 128 routines (the default
 maximum number of segments).  Therefore you are encouraged to use
-the /SEGMENTS:256 to increase this default.
+the /SEGMENTS:256 to increase this default.  

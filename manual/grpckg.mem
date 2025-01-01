@@ -1,0 +1,736 @@
+
+
+
+                                GRPCKG
+
+                     Graphics Subroutine Package
+
+
+
+                                 NOTE
+
+        The GRPCKG routines described  in  this  document  are
+        obsolete,  having been replaced by the PGPLOT library.
+        New programs should use PGPLOT instead of GRPCKG,  and
+        old programs should be converted to use PGPLOT.
+
+GRPCKG is a set of VAX FORTRAN subroutines used for drawing graphs  on
+the   various  graphical  output  devices  available  on  the  Caltech
+Astronomy VAXes.  The interfaces provided by GRPCKG are  uniform  over
+the  graphics  devices  which  it  handles  and  provide  a  means  of
+constructing higher level device independent graphics procedures.  The
+routines were originally written for the Space Telescope VAX by Robert
+Deverill.
+
+This reference manual is divided into the following sections:
+
+1.0     DEVICES  
+1.1       Hardcopy Devices 
+1.2       Interactive Devices  
+1.3       Device Specifications  
+2.0     DEVICE CONTROL ROUTINES  
+3.0     SCALING AND WINDOWS  
+4.0     LINE- AND DOT- DRAWING ROUTINES  
+5.0     CHARACTER-DRAWING ROUTINES 
+6.0     ATTRIBUTES 
+7.0     INQUIRY ROUTINES 
+8.0     SPECIAL PLOTTING SYMBOLS 
+
+GRPCKG                                                            Page 2
+
+
+1  DEVICES
+
+The graphical display devices supported by the subroutine package  are
+the following:
+
+
+
+1.1  Hardcopy Devices
+
+
+     1.  Printronix printer-plotter:  this is a dot-matrix device with
+         a resolution of 60 dots per inch horizontally and 72 dots per
+         inch vertically.
+
+     2.  Trilog printer-plotter:  this is like the Printronix, but has
+         100  dots  per  inch in both dimensions.  There are no Trilog
+         printer-plotters on the Caltech Astronomy VAXes at present.
+
+     3.  Versatec printer-plotter:  this is a dot matrix device with a
+         resolution of 200 dots per inch in both dimensions.
+
+Hardcopy devices  are  not  usually  used  interactively.   One  first
+creates  the  plot  in a disk file and then send it to the appropriate
+printer with a  PRINT  command.   The  "device  specification"  for  a
+hardcopy device takes the form "diskfile/type" where "diskfile" is the
+name of the intermediate disk file, and "type" is one of "PRINTRONIX",
+"TRILOG",  or  "VERSATEC".   It  is,  however, possible to send a plot
+directly  to  a  printer  by  giving  the  name  of  the  printer,  eg
+"SYS$PRINT:/VERS"  or  "LPA0:/PRINT"  instead of a disk file name; the
+correct type must still be specified.  If you send a Versatec plot  to
+a  Printronix printer or vice versa, you will get a completely garbled
+plot, and will waste a lot of paper!
+
+
+
+1.2  Interactive Devices
+
+
+     1.  Tektronix  4006/4010  terminals:   these   are   storage-tube
+         terminals with a nominal resolution of 136 dots per inch.
+
+     2.  Tektronix 4014 terminals:  these are much  the  same  as  the
+         4010  series, but with higher resolution.  There are no 4014s
+         on the Caltech Astronomy VAXes.
+
+     3.  Digital Equipment Corporation VT125 graphics terminal:   this
+         has  a  nominal  resolution of 100 dots per inch horizontally
+         and 50 per inch vertically.  It has two  separate  bit-planes
+         which allow it to display lines in 4 different intensities.
+
+     4.  "Retrographics" VT100 terminals, modified to accept Tektronix
+         plotting commands (these can be identified by the green video
+         display).  These emulate a Tektronix 4010, but have  slightly
+         different resolution.
+
+GRPCKG                                                            Page 3
+
+
+     5.  Grinnell Image  Display:   this  is  primarily  intended  for
+         displaying   color  and  grey-scale  images,  but  it  has  a
+         line-drawing mode which is used by the GRPCKG  routines.   It
+         can draw lines in several different colors and intensities.
+
+To specify one of these devices use a "device  specification"  of  the
+form "device/type" where "device" is a terminal name (eg TTA4:) or the
+name of a Grinnell device (eg GRA0:) and "type" is one of "TEKTRONIX",
+"TEK4014",  "VT125", "RETRO", or "GRINNELL".  For Tektronix and VT125,
+the default device is the terminal on which the  program  is  running;
+for Grinnell the default device is GRA0:.
+
+
+
+1.3  The Null Device
+
+A "null" device may be  specified  to  suppress  plotting  altogether.
+This has a device type "NULL".
+
+
+
+1.4  Device Specifications
+
+Note that device specifications always consist of two parts, separated
+by  a slash.  The first part is a physical or logical device name (for
+interactive devices) or disk-file name (for  hardcopy  devices).   The
+second  part  is the device type, one of PRINTRONIX, TRILOG, VERSATEC,
+TEKTRONIX, TEK4010, TEK4014, VT125, RETRO, GRINNELL, or NULL, and  may
+be abbreviated to uniqueness.  If the first part is omitted, a default
+is chosen, based on the device type.  If the second part  is  omitted,
+the  type  is chosen according to the default specified in the call to
+routine  GROPEN  (see  below).   Alternatively,   the   whole   device
+specification  may be replaced by a logical name equivalent to a valid
+specification.
+
+Examples:
+
+TTA4:/TEK :  Tektronix 4006/4010 terminal TTA4:
+/GR :  Grinnell Image Display GRA0:
+/VT :  the logged-in terminal, assumed to be a VT125
+SYS$SCRATCH:PLOT.DAT/VER :  a disk file, in Versatec format
+
+Summary of device types:
+
+Type           Default device   Other device names, examples
+
+/PRINTRONIX    FORnnn.DAT       Any disk file name
+/TRILOG        FORnnn.DAT       Any disk file name
+/VERSATEC      FORnnn.DAT       Any disk file name
+
+/TEKTRONIX )
+/TEK4010   )   TT:              Any Tek terminal, eg TTA2:
+/TEK4014       TT:              Any Tek terminal, eg TTA6:
+/VT125         TT:              Any VT125 terminal, or a disk file
+/RETRO         TT:              Any Retrographics VT100 terminal
+
+GRPCKG                                                            Page 4
+
+
+/GRINNELL      GRA0:            Any other Grinnell, eg GRA1:
+
+/NULL                           Irrelevant; ignored
+
+Notes:
+
+"FORnnn.DAT" is a file name chosen by GRPCKG; nnn  will  be  a  unique
+3-digit number; the file is written in your current default directory.
+"TT:" is the terminal attached to the  process  running  the  program,
+normally  the terminal you are logged in to.  When specifying the null
+graphics device, it is sufficient to write "/NULL":   anything  before
+the / is ignored.
+
+GRPCKG                                                            Page 5
+
+
+2  DEVICE CONTROL ROUTINES
+
+A graph must be begun with a call to GROPEN and ended with a  call  to
+GRCLOS.   Note  that if the GRCLOS call is omitted, some or all of the
+picture will be lost.  Routine GRPAGE erases the  screen  (interactive
+devices) or advances to a new page (hardcopy devices).  GRTERM flushes
+the internal buffers and thus ensures that the picture  shown  on  the
+screen corresponds to what you expect.  When plotting on more than one
+device simultaneously, calls to GRSELECT are needed to  specify  which
+device the following commands should be directed to.
+
+CALL GROPEN(TYPE,0,FILE,ID)
+or
+IER = GROPEN(TYPE,0,FILE,ID)
+
+        To open a connection to a particular graphics device or  file.
+        The use of this function is mandatory and must precede any use
+        of the other facilities of GRPCKG.  This  routine  returns  an
+        identifier (ID) that must be passed to GRSELECT when switching
+        between devices; some of the other plotting  subroutines  also
+        require  ID  as  an  input argument to identify the particular
+        device.  It is possible to interleave plotting on two or  more
+        devices,  and  the  identifier  is  used  to  distinguish  the
+        devices.
+
+        TYPE - INTEGER:  identifies the default device type to be used
+        if  none  is  specified  in FILE:  TYPE=1 - Printronix printer
+        file; TYPE=2 - Tektronix 4014-1 with EGM; TYPE=3  -  Tektronix
+        4006;  TYPE=4  - Trilog printer file; TYPE=5 - VT125 terminal;
+        TYPE=6 - Grinnell Image Display;  TYPE=7  -  Versatec  printer
+        file.  Further types may be added in the future.
+
+        The second argument of GROPEN is ignored at present.  Put zero
+        here.
+
+        FILE - CHARACTER:  the "device specification" of the  graphics
+        device (see above).
+
+        ID - INTEGER (output):  receives the  identification  assigned
+        by  GROPEN for the specific graphics device or file specified.
+        At most 3 such graphics devices or files may be active at  any
+        one time.  The value returned by GROPEN into ID is used in all
+        subsequent calls to GRSELECT and other routines to identify to
+        which  one  of the active graphics devices or files the output
+        of the requested operation is to be directed.
+
+        IER -  if  GROPEN  is  called  as  a  function  instead  of  a
+        subroutine,  it returns an error code.  IER=1 implies success,
+        other values imply failure.  If this mode is used, GROPEN must
+        be  declared  INTEGER in the calling program.  If GROPEN fails
+        to open the specified device, an explanatory message  will  be
+        typed on SYS$OUTPUT.
+
+
+
+GRPCKG                                                            Page 6
+
+
+CALL GRCLOS
+
+        Close the currently selected plot device.  Buffers are flushed
+        and  released; no further plotting can be done on this device.
+        Note that there must be a GRCLOS call for each GROPEN; if  the
+        GRCLOS  call  is  omitted,  the  plot  will  probably  not  be
+        completed correctly.
+
+
+CALL GRPAGE
+
+        Advance the plotting area to  a  new  page.   For  interactive
+        devices,  this  amounts  to  erasing  the  screen; for printer
+        plotting, the plot buffer is written to the  output  file  and
+        followed  by  a form-feed to advance the paper to the start of
+        the next page.   Note  that  for  interactive  devices  it  is
+        necessary  to  call  GRPAGE before doing any other plotting to
+        ensure that the device is initialized correctly.
+
+
+CALL GRTERM
+
+        GRTERM should be called after making a batch of changes  to  a
+        plot  to  cause  the  appropriate  commands  to be sent to the
+        graphics device.  In interactive applications, the  programmer
+        will  typically  arrange  for  GRTERM to be called before each
+        request  for  user  input.   For   non-interactive   (printer)
+        graphics  this  is  a null operation.  (To improve efficiency,
+        several commands are held in a buffer by  the  program  before
+        being  sent  to  the  graphics  device,  so the picture on the
+        screen may lag behind the sequence of  commands  generated  by
+        the  program.   GRTERM flushes the buffer and ensures that the
+        picture on the screen is up to date.)
+
+
+CALL GRSELECT(ID)
+
+        Select device number ID for subsequent plotting.   ID  is  the
+        number  returned  in  argument  ID  of  GROPEN.   It  is  only
+        necessary to call GRSELECT when  switching  between  two  plot
+        devices.   Note  that  some GR routines have ID as an explicit
+        argument:  it is not necessary to call GRSELECT before one  of
+        these.
+
+GRPCKG                                                            Page 7
+
+
+3  SCALING AND WINDOWS
+
+CALL GRSIZE(ID,XSZDEF,YSZDEF,XSZMAX,YSZMAX,XPERIN,YPERIN)
+
+        To obtain device-dependent information about the size  of  the
+        available  plotting surface.  The plotting area is represented
+        as  a  rectangular  grid  of  addressable  (x,y)  points  with
+        coordinate  values  assuming  integral values starting at zero
+        and limited by device dependent  maximum  values.   The  point
+        (0.0,0.0)  is  the lower left and (XSZDEF,YSZDEF) is the upper
+        right corner of the default plotting area.  The  size  of  the
+        plotting  area  may be changed from this default by use of the
+        function GRSETS, below.
+
+        XSZDEF - REAL (output):   the  default  limiting  x-coordinate
+        (horizontal) value for the plotting area.
+
+        YSZDEF - REAL (output):   the  default  limiting  y-coordinate
+        (vertical) value for the plotting area.
+
+        XSZMAX - REAL (output):  the absolute maximum value  to  which
+        the x-coordinate of the right edge of the plotting area may be
+        set.  However, if the value of XSZMAX is less than  0.0,  then
+        there is no absolute maximum limit.
+
+        YSZMAX  -  REAL  (output):   as  for  XSZMAX,  above,   except
+        pertaining to the upper edge of the plotting area.
+
+        XPERIN, YPERIN - REAL (output):  the  number  of  x-units  and
+        y-units  per inch on the physical plotting surface.  These two
+        values will not necessarily be equal:  for example,  they  are
+        equal  for  the  Tektronix  terminals,  but  not equal for the
+        Printronix  line-printer  which  plots  60   dots   per   inch
+        horizontally and 72 dots per inch vertically.
+
+
+CALL GRSETS(ID,XSIZE,YSIZE)
+
+        To change the size of  the  plotting  area  from  its  current
+        setting  to  any  setting  consistent with the absolute limits
+        XSZMAX and YSZMAX, above.  Any subarea  definition  previously
+        made by means of GRAREA, below, is cancelled.
+
+        XSIZE, YSIZE - REAL:  the coordinate values  for  the  desired
+        upper  right  corner  of  the new plotting area.  If the given
+        values are not integral, then they will be rounded.  If  XSIZE
+        or  YSIZE is less than or equal to 0.0, then the plotting area
+        size will be set to the default size, (XSZDEF,YSZDEF), above.
+
+
+
+GRPCKG                                                            Page 8
+
+
+CALL GRAREA(ID,X0,Y0,XSIZE,YSIZE)
+
+        To define a rectangular subarea of the current  plotting  area
+        as defined by GRSETS, above.  All graphics will be windowed in
+        the current subarea, except for GRCHAR,  below.   The  default
+        subarea  which  obtains before the first call of GRAREA is the
+        whole plotting area.  A call of GRSETS, above, will  cancel  a
+        subarea definition made by a prior call of GRAREA, the subarea
+        reverting to the default.
+
+        X0, Y0 - REAL:  the  coordinate  values  for  the  lower  left
+        corner  of  the plotting subarea.  If not integral, the values
+        will be rounded.
+
+        XSIZE, YSIZE - REAL:  the desired extents of  the  subarea  in
+        the  x  and  y  directions; the upper right corner will be the
+        point (X0+XSIZE, Y0+YSIZE).  If not integral, the values  will
+        be  rounded.   If XSIZE or YSIZE is less than or equal to 0.0,
+        then the subarea will be set to the default subarea, i.e., the
+        whole current plotting area.
+
+        If the parameters X0, Y0, XSIZE, YSIZE determine  a  rectangle
+        which  is not a subarea of the plotting area, then the subarea
+        set will  be  the  intersection  of  the  rectangle  with  the
+        plotting area.
+
+
+CALL GRTRAN(ID,XORG,YORG,XSCALE,YSCALE)
+
+        To establish a scaling-shifting transformation  from  relative
+        coordinates  (XREL,YREL) to absolute plotting area coordinates
+        (XABS,YABS):
+
+                XABS = XORG + XREL * XSCALE,
+                YABS = YORG + YREL * YSCALE.
+
+        XREL and YREL here are the same as the X and Y used  in  calls
+        of GRVECT, GRCHAR and GRMARK, below, in which ABSXY = .FALSE..
+
+             For example, if XMIN and XMAX are  the  desired  relative
+        values  of X for the left and right edges of the plotting area
+        and if XSIZE is the absolute width of the plotting  area  (the
+        default  size  given by GRSIZE, the value set by GRSETS or the
+        subarea width set by GRAREA), then the values  of  XSCALE  and
+        XORG would be given by:
+
+                XSCALE = XSIZE / (XMAX - XMIN),
+                XORG = XABS(XMIN) - XSCALE * XMIN,
+
+        where XABS(XMIN) denotes the absolute coordinate of  the  left
+        hand edge of the plotting area.
+
+             In lieu of a call of GRTRAN, the  default  transformation
+        parameters will be XORG = YORG = 0.0, XSCALE = YSCALE = 1.0.
+
+GRPCKG                                                            Page 9
+
+
+        XORG, YORG, XSCALE, YSCALE - REAL:  the values to be  set  for
+        the parameters in the transformation equations, above.
+
+GRPCKG                                                           Page 10
+
+
+4  LINE- AND DOT- DRAWING ROUTINES
+
+
+CALL GRVECT(ID,MODE,ABSXY,N,X,Y)
+
+To plot (line or dot) a list of points (X,Y).  If there are N  points,
+then  N vectors will be generated, from point 0 to point 1, from point
+1 to point 2, ..  to point N, where point 0 is the last point  plotted
+by  GRPCKG  prior  to  this  call of GRVECT.  In dot mode all of these
+vectors are blanked so that  only  dots  at  the  N  specified  points
+remain;  in line mode all of the vectors except possibly the first are
+unblanked so that a line plot results.  The plot is  windowed  in  the
+current subarea as defined by GRAREA, above.
+
+      o  MODE - INTEGER:  selects the plotting mode:   MODE=1  -  line
+         plot,  first  vector  unblanked;  MODE=2  -  line plot, first
+         vector blanked; MODE=3 - dot plot.
+
+      o  ABSXY - LOGICAL:  determines whether  or  not  the  X  and  Y
+         coordinate values are absolute plotting area coordinates.  If
+         the  coordinates  are  not  absolute,  then  they   will   be
+         translated    to   absolute   values   by   the   scale/shift
+         transformation defined through GRTRAN,  above,  before  being
+         plotted.
+
+      o  N - INTEGER:  the number of points to be plotted.
+
+      o  X,  Y  -  REAL  arrays,  dimension  N  (or   greater):    the
+         coordinates values for the points to be plotted.
+
+
+
+CALL GRMARK(ID,CENTER,SYMBOL,ABSXY,N,X,Y)
+
+To mark a sequence of (X,Y) points in  the  current  plotting  subarea
+with  a  specified  symbol,  i.e.,  a  point  plot.   The plot will be
+windowed in the subarea.
+
+      o  CENTER - LOGICAL:  determines whether or not the symbol is to
+         be centered at each point.  If CENTER=.FALSE., then the lower
+         left corner of the symbol will be placed at each point.
+
+      o  SYMBOL - BYTE, LOGICAL*1, or INTEGER:  the number, 0-127,  of
+         the  symbol  to be used to mark each point.  0-18 are special
+         plotting symbols constructed so as to  have  obvious  centers
+         (displayed  below);  32-126  represent  the  ASCII characters
+         whose ASCII codes are  the  corresponding  numbers;  127  and
+         19-31  are  currently  undefined  and  will  output the blank
+         character.
+
+      o  ABSXY - LOGICAL:  determines whether or not the (X,Y)  values
+         are absolute plot area coordinates as in GRVECT, above.
+
+GRPCKG                                                           Page 11
+
+
+      o  N - INTEGER:  the number of points to be plotted.
+
+      o  X, Y - REAL arrays, dimension  N  (or  greater):   the  (X,Y)
+         values of the points to be plotted.
+
+
+GRPCKG                                                           Page 12
+
+
+5  CHARACTER-DRAWING ROUTINES
+
+
+CALL GRCHAR(ID,CENTER,ORIENT,ABSXY,X0,Y0,STRING)
+
+To plot a string of characters on the plotting surface.  The  plot  is
+not windowed in the current subarea, but in the full plotting area.
+
+      o  CENTER -  LOGICAL:   determines  whether  or  not  the  first
+         character  of  the  string  is  to  centered  at (X0,Y0).  If
+         CENTER=.FALSE., then the  lower  left  corner  of  the  first
+         character will be placed at (X0,Y0).
+
+      o  ORIENT - REAL:  the angle, in degrees, that the string is  to
+         make with the horizontal, increasing counterclockwise.
+
+      o  ABSXY - LOGICAL:  determines whether or not  the  coordinates
+         of   the   start   of  the  string  are  absolute  plot  area
+         coordinates.
+
+      o  X0, Y0  -  REAL:   (X0,Y0)  is  the  point  where  the  first
+         character of the plotted string will be placed.
+
+      o  STRING - CHARACTER:  the string of  symbols  to  be  plotted.
+         Each  symbol in string may be an ASCII character or a special
+         plot symbol as in GRMARK, above.
+
+
+
+CALL GRCHSZ(ID,XSZDEF,YSZDEF,XSPDEF,YSPDEF)
+
+To determine the  default  character  size  and  spacing  in  absolute
+coordinates.
+
+      o  XSZDEF, YSZDEF - REAL (output):  the default  character  size
+         in absolute units.
+
+      o  XSPDEF,  YSPDEF  -  REAL  (output):   the  default  character
+         spacing  in  absolute  units.  XSPDEF is the distance between
+         the lower left corners of adjacent characters  in  a  plotted
+         string; YSPDEF is the corresponding vertical spacing.
+
+
+
+CALL GRSETC(ID,XCHSIZ)
+
+To change the character size from the default size.
+
+      o  XCHSIZ - REAL:  the new XSZ (corresponding to XSZDEF,  above)
+         value.   The  corresponding  YSZ,  XSP and YSP values will be
+         determined so as to bear  the  same  ratios  to  XSZ  as  the
+         corresponding  default  values  have  to  XSZDEF,  above.  If
+         XCHSIZ is less than or equal to 0.0, then the character  size
+         is set to the default size.
+
+GRPCKG                                                           Page 13
+
+
+6  ATTRIBUTES
+
+The appearance of output primitives  (lines,  symbols,  and  text)  is
+affected  by values of "primitive attributes", such as line-thickness,
+line-style  (dotted,  dashed,  full),  color,  and  size.    Primitive
+                          _______attributes  are specified modally:  that is, all lines created between
+changes to a  current  attribute  value  will  have  their  appearance
+affected  in  the  same  way.  The following routines are available to
+select attributes for subsequent plotting.  There is  a  corresponding
+GRINQ...   routine  for each GRSET...  routine (see below).  Note that
+the routines for selecting attributes do not have an argument ID;  use
+GRSELECT if you want to switch between devices.
+
+     The file GRAPHICS:GRATTRIB.FOR contains definitions  of  symbolic
+names  for  the  various  attributes which can be used in place of the
+integer codes.  To make use of the symbolic names, put  the  following
+INCLUDE statement in each subroutine which needs them:
+
+        INCLUDE 'GRAPHICS:GRATTRIB.FOR'
+
+
+CALL GRSETCOL(IC)
+
+        Select the COLOR  for  subsequent  plotting.   Color  is  only
+        available  on Grinnell displays; calls to GRSETCOL are ignored
+        for other devices.  The default color  is  white  on  a  black
+        background,  or  black on a white background for printer plots
+        (IC=1).  IC (integer, input) is the number of the color to  be
+        selected,  in  the  range  0-255.   At  present  the following
+        primary and secondary colors are defined  (both  the  symbolic
+        names and the corresponding integer codes are listed):
+
+        BLACK = 0 = black (background color),
+        WHITE = 1 = white (default),
+        RED = 2 = red,
+        GREEN = 3 = green,
+        BLUE = 4 = blue,
+        CYAN = 5 = cyan (blue+green),
+        MAGENTA = 6 = magenta (red+blue),
+        YELLOW = 7 = yellow (red+green).
+
+
+CALL GRSETLS(IS)
+
+        Select the LINE-STYLE for  subsequent  plotting.   Dashed  and
+        dotted  lines are generated in hardware on the VT125 terminal,
+        and are generated  by  GRPCKG  for  the  other  devices.   The
+        default  line-style  is  a  full,  unbroken  line  (IS=1).  IS
+        (integer, input) is a code describing the line style:
+
+        FULL = 1 = full line,
+        DASHED = 2 = long dashes,
+        DOTDASH = 3 = dash-dot-dash-dot,
+        DOTTED = 4 = dotted,
+        FANCY = 5 = dash-dot-dot-dot.
+
+GRPCKG                                                           Page 14
+
+
+        Line-style does not affect the appearance  of  characters  and
+        graph markers, which are always drawn with a full line.
+
+
+CALL GRSETLI(INTEN)
+
+        Select  the  LINE  INTENSITY  for  subsequent  plotting.   The
+        interpretation of this depends on the device:  VT125 terminals
+        and  Grinnells  have  four  different  intensities  (including
+        zero);  printer devices have two intensities (on and off), and
+        Tektronix terminals have only  one  intensity.   Writing  with
+        zero  intensity  can  be  used  for erasing parts of a drawing
+        (except on a Tektronix).  The default intensity is the maximum
+        (INTEN=3).   INTEN  (integer,  input) is a code specifying the
+        intensity:
+
+        0 = zero intensity (erase),
+        1 = one-third maximum,
+        DIM = 2 = two-thirds maximum,
+        BRIGHT = 3 = maximum intensity (default).
+
+        INTEN = 1,2,3  are  all  treated  as  "maximum"  intensity  on
+        printer  devices; calls to GRSETLI have no effect on Tektronix
+        terminals.
+
+
+CALL GRSETLW(IWIDTH)
+
+        Select the LINE WIDTH for subsequent plotting.  A thick-nibbed
+        pen  is  simulated  by tracing each line with multiple strokes
+        offset in the direction perpendicular to the line.   The  line
+        width is specified by the number of strokes (argument IWIDTH);
+        the actual appearance will depend on  the  resolution  of  the
+        device.    This   routine   is   most  useful  for  generating
+        publication-quality plots on the Versatec printer; the  actual
+        line  width on the Versatec is about (IWIDTH/200) inches.  The
+        default width is one stroke (IWIDTH=1).  The maximum that  may
+        be specified for IWIDTH is 21.
+
+GRPCKG                                                           Page 15
+
+
+7  INQUIRY ROUTINES
+
+The following routines return information  about  the  status  of  the
+current  plot.   For  example, it may be necessary for a subroutine to
+draw a figure in a particular color, without making a permanent change
+to  the  selected  color.   The  subroutine  can  call GRINQCOL at the
+beginning to find out the  current  color  and  save  it  in  a  local
+variable,  change  the  color,  and  then  reset it to the saved value
+before returning.  Note that the  inquiry  routines  do  not  have  an
+argument ID; use GRSELECT if you want to switch between devices.
+
+
+CALL GRINQDEV(DEVICE)
+
+        Returns the device  name/type  of  the  current  plot  in  the
+        CHARACTER  variable  DEVICE.  The name is returned in the same
+        form as the name supplied to GROPEN, eg 'TTA0:/VT125',  except
+        that  any  unspecified  parts  of  the file or device name are
+        filled in and abbreviations in the device type  are  expanded.
+        The  device-type  is  returned  in the same form as by routine
+        GRINQTYP (described in the next paragraph).
+
+
+CALL GRINQTYP(TYPE,INTER)
+
+        Returns the device type of the current plot in  the  character
+        variable  TYPE,  and sets the logical variable INTER to .TRUE.
+        if the device is an interactive device (terminal or  Grinnell)
+        or  to  .FALSE.   if  it is a hardcopy device (printer or disk
+        file).  Programs may test the device  type,  for  example,  to
+        decide whether to use colored lines or dashed lines for a part
+        of the picture.  The variable INTER may be used, for  example,
+        to  decide whether or not to ask the user for permission to go
+        on to the next page; on interactive devices it is a good  idea
+        to  wait  for  a  response  from  the user before clearing the
+        screen.  The string returned  in  TYPE  will  be  one  of  the
+        following:    'PRINTRONIX',  'TEK4014',  'TEK4010',  'TRILOG',
+        'VT125', 'GRINNELL', or 'VERSATEC', and it will  be  truncated
+        if  the  length of the character variable TYPE is too short to
+        contain the full string.
+
+
+CALL GRINQCOL(IC)
+
+        Returns the currently-selected color in the  integer  variable
+        IC.   The  codes  are  defined in the description of GRSETCOL,
+        above.
+
+
+
+GRPCKG                                                           Page 16
+
+
+CALL GRINQLS(IS)
+
+        Returns  the  currently-selected  line-style  in  the  integer
+        variable  IS.   The  codes  are  defined in the description of
+        GRSETLS, above.
+
+
+CALL GRINQLI(INTEN)
+
+        Returns the currently-selected line-intensity in  the  integer
+        variable  INTEN.   The codes are defined in the description of
+        GRSETLI, above.
+
+
+CALL GRINQLW(IWIDTH)
+
+        Returns  the  currently-selected  line-width  in  the  integer
+        variable  IWIDTH.  The value is the number of strokes required
+        to draw each line, as described for GRSETLW, above.
+
+GRPCKG                                                           Page 17
+
+
+8  SPECIAL PLOTTING SYMBOLS
+
+Below are listed approximate representations of the  special  plotting
+symbols  used  by GRMARK and GRCHAR, together with their corresponding
+number codes.  The symbol representations are  distorted  because  the
+character spacing on the printer differs from the line spacing.
+
+
+   *******     ***        *         *      *     *      *         *   
+   *  *  *    * * *      ***        *       *   *      ***       ***
+   *  *  *   *  *  *    * * *       *        * *      * * *     * * *
+   *  *  *   *  *  *   *  *  *   *******      *      *  *  *   *******
+   *     *   *     *   *     *      *        * *      *   *       *
+   *     *    *   *    *     *      *       *   *      * *        *
+   *******     ***     *******      *      *     *      *         *
+
+      0         1         2         3         4         5         6
+
+
+   *******   *******   *     *   *     *   *  *  *   *******      *
+    *   *         *     *   *     *****     * * *     *   *       *
+     * *         *       * *      *  **      ***       * *        *
+      *       *****       *       * * *    *******      *        ***
+     * *       *          *       *   *      ***       * *        *
+    *   *     *           *       *****     * * *     *   *       *
+   *     *   *******      *      *     *   *  *  *   *******      *
+
+      7         8         9        10        11        12        13
+
+
+   *******             *******     ***        *
+     * *               *******    *****      ***
+    *   *      ***     *******   *******    *****
+   *  *  *     ***     *******   *******   *******
+    *   *      ***     *******   *******    *****
+     * *               *******    *****      ***
+   *******             *******     ***        *
+
+     14        15        16        17        18

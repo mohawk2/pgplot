@@ -1,6 +1,4 @@
-C*PGPNTS -- draw several graph markers, not all the same
-C%void cpgpnts(int n, const float *x, const float *y, \
-C% const int *symbol, int ns);
+C*PGPNTS -- draw one or more graph markers
 C+
       SUBROUTINE PGPNTS (N, X, Y, SYMBOL, NS)
       INTEGER N, NS
@@ -8,12 +6,12 @@ C+
       INTEGER SYMBOL(*)
 C
 C Draw Graph Markers. Unlike PGPT, this routine can draw a different
-C symbol at each point. The markers are drawn using the current values
-C of attributes color-index, line-width, and character-height
-C (character-font applies if the symbol number is >31).  If the point
-C to be marked lies outside the window, no marker is drawn.  The "pen 
-C position" is changed to (XPTS(N),YPTS(N)) in world coordinates
-C (if N > 0).
+C symbol at each point. The markers
+C are drawn using the current values of attributes color-index,
+C line-width, and character-height (character-font applies if the symbol
+C number is >31).  If the point to be marked lies outside the window,
+C no marker is drawn.  The "pen position" is changed to
+C (XPTS(N),YPTS(N)) in world coordinates (if N > 0).
 C
 C Arguments:
 C  N      (input)  : number of points to mark.
@@ -33,7 +31,6 @@ C variables).  If NS is 1, then SYMBOL may be a scalar.  If N is
 C less than 1, nothing is drawn.
 C--
 C 11-Mar-1991 - new routine [JM].
-C 26-Feb-1997 - revised to use PGPT1 [TJP].
 C-----------------------------------------------------------------------
       INTEGER I, SYMB
 C
@@ -45,7 +42,7 @@ C
           ELSE
               SYMB = SYMBOL(1)
           END IF
-          CALL PGPT1(X(I), Y(I), SYMB)
+          CALL PGPT(1, X(I), Y(I), SYMB)
    10 CONTINUE
       CALL PGEBUF
       END

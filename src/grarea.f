@@ -16,8 +16,7 @@ C XSIZE, YSIZE (input, real): width and height of the window in absolute
 C       coordinates; if either is negative, the window will be reset to
 C       the full plotting area.
 C--
-C  1-Feb-1983 - [TJP].
-C 25-Nov-1994 - use floating-point [TJP].
+C (1-Feb-1983)
 C-----------------------------------------------------------------------
       INCLUDE 'grpckg1.inc'
       INTEGER IDENT
@@ -31,10 +30,9 @@ C
           GRYMIN(IDENT) = 0
           GRYMAX(IDENT) = GRYMXA(IDENT)
       ELSE
-          GRXMIN(IDENT) = MAX(X0,0.0)
-          GRYMIN(IDENT) = MAX(Y0,0.0)
-          GRXMAX(IDENT) = MIN(XSIZE+X0,REAL(GRXMXA(IDENT)))
-          GRYMAX(IDENT) = MIN(YSIZE+Y0,REAL(GRYMXA(IDENT)))
+          GRXMIN(IDENT) = MAX(NINT(X0),0)
+          GRYMIN(IDENT) = MAX(NINT(Y0),0)
+          GRXMAX(IDENT) = MIN(NINT(XSIZE+X0),GRXMXA(IDENT))
+          GRYMAX(IDENT) = MIN(NINT(YSIZE+Y0),GRYMXA(IDENT))
       END IF
-C
       END

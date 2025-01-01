@@ -1,193 +1,163 @@
-NOTE
-
-The system support files in this directory (sys_next)
-are for Nextstep 3.x and earlier. For Openstep 4.x, use
-the system support files in directory sys_openstep.
-
-------------------------------------------------------------------------
-
                     PGPLOT on NeXT Computers
 
                         Allyn F. Tennant
                    Marshall Space Flight Center
-                          1995-Apr-29
-
-OVERVIEW
-This directory contains the system dependent routines needed to run
-PGPLOT on a NeXT computer.  Several device handlers will compile and
-run on the NeXT, allowing those devices to be used as before.
-
-Also provided is a PGPLOT viewer program called pgview.  Pgview is
-a stand alone NextStep program that uses interprocess communication to
-communicate with programs using PGPLOT.  This allows pgview to be
-a full NeXTstep application.  Existing PGPLOT programs can use pgview
-without any modifications, other than being linked with an additional
-device handler.  To use pgview, run the PGPLOT program, and when
-prompted for a device name, enter /NEXT.  If the viewer has been
-correctly installed, it will automatically launch.  The viewer will
-create a window and display your plot in that window.  Using pgview
-you can create several windows although you can only plot to one window
-at a time.  Any window can be examined, resized, and/or printed after
-the original PGPLOT program exits.
-
-This version of pgview is configured for NextStep 3.x systems.
-
+                          1991-Jul-03
 
 FORTRAN
 The NeXT computer does not come with a Fortran compiler therefore
-you must use a third party product.  The supplied makefile can be
-used to compile and run PGPLOT with either the 1) Absoft, 2) Oasys
-(Green Hill), or 3) f2c compilers.  Once you have selected a compiler
-then read the compiler specific notes for it below.
+you must use a third party product.  This version of PGPLOT has been
+tested with both the Fortran compiler from Absoft and the free
+Fortran compiler f2c.  I bought the Absoft compiler over a year
+ago, and now routinely use f2c.  I currently have the Oasys Fortran
+compiler which sounds like it will be better than either Absoft or
+f2c.  Thus if you need Fortran on your NeXT then I would recommend
+either f2c or Oasys.
 
-IMPORTANT NOTES FOR f2c compiler
-The f2c default is to treat backslash characters in strings as escape
-characters like C, despite the fact this is completely unnecessary,
-not to mention wrong, in Fortran.  The f2c program supports a -!bs
-switch to turn off this default and this option should be used when
-compiling the PGPLOT example programs.  The fc shell script provided
-at the archive sites does not correctly deal with this option.  In
-this directory I provide a shell script called nfc which will correctly
-send -!bs to f2c and not to the C compiler.  I've changed the name
-from fc to nfc (for Next Fortran to C) since fc is the name of a
-ksh/bash built-in command.
-
-IMPORTANT NOTES FOR Green Hill compiler
-Code compiled with the Oasys compiler cannot read unformatted records
-longer than 32k bytes.  This is a problem for the PGPLOT font file
-which is currently written as a single record ~67000 bytes long.
-The default installation with the gf77_cc option, should automatically
-create a 'grfont.daf' file which is direct access format with a record
-size that can be read.  If PGPLOT detects an filename extension of
-'.daf' (instead of '.dat') then will automatically assume the font
-file is direct access and read the file correctly.
-
-The pgdemo1 program also causes the a problem with the Oasys compiler.
-That program contains two routines (besj0 and besj1) that are also
-in the Oasys supplied library and this prevents the program from
-linking.  Until a better solution is found I suggest editing pgdemo1.f
-and changing all occurrences of 'besj' to 'xbesj'.
-
-IMPORTANT NOTES FOR Absoft compiler
-The default mode for the Absoft compiler is to be case sensitive.  The
-supplied configuration file and software assume this default.  Absoft
-uses the compiler switch -f to fold routine names into lower case.
-If you use this switch, you will need to edit some of the C wrappers
-in sys_next/af77_src directory and change the upper case names
-to lower case.
-
-If you use any of the X11 drivers you should be aware of a bug in
-the Absoft f77 script.  My version of this script reverses the order
-in which libraries are called before passing the list to the linker.
-Thus if you use f77 -o pgdemo1 -lpgplot -lX11, the linker will see
-'-lX11 -lpgplot'.  This means that the linker will not be to find
-any X11 routines called by PGPLOT.  The simple solution is to make
-sure that you always put -lX11 before -lpgplot.  Since the makemake
-script places -lX11 after -lpgplot, you must use a trick to get makemake
-to get it to generate a makefile that will link the demos.  This trick
-is to edit af77_cc.conf to contain:
-
-   LIBS="-lX11 libpgplot.a -lNeXT_s -lsys_s"
-
-This puts an extra reference to the PGPLOT library into the link
-command, but it does ensure that linker will search the PGPLOT library
-before the X11 library.  Thanks to Martin Shepherd for suggesting
-this.
+If you use the f2c compiler, then you should examine the fc shell
+script in this directory.  This script is based on the f77 script
+in the archive sites.  It has been modified so that the -!bs option
+is passed to f2c and not to cc.  The f2c default is to treat backslash
+characters in strings as escape characters like C, despite the fact
+this is completely unnecessary, not to mention wrong, in Fortran.  The
+-!bs option switches this off.  By the way, I call this shell script
+fc in order not to confuse it with the f77 script that invokes the
+Absoft compiler.  If you use another name to invoke this script then
+you will need to edit the makefile.
 
 
 X WINDOWS
-The NeXT computer does not come with an X server, and so if you want
-to use X you need to obtain a third party product.  I've tested PGPLOT
-with MouseX (the free X Window package), Pencom's demo server, and
-the eXodus server.  In all cases, I've used the MouseX libraries
-and include files to compile and link.
+It is possible to run X Windows on the NeXT.  I run the 'free' mouse
+X package that can be obtained from the archives.  The commercial
+X implementation from Pencom Software sounds very good, and if I ever
+have a real need for X, I will consider buying it.  The default is
+for PGPLOT to support X Windows, however, X is NOT required to run
+PGPLOT on the NeXT.
 
-To include X Window drivers in the build, you should first edit the
-*_cc.conf file for the Fortran compiler that you will use.  Where *
-is either af77, gf77, or f2c.  Add -lX11 to the LIBS line as one
-of the needed libraries.  (See Absoft note above.)
 
-Although I can get pgdisp and the /XDISP drivers to compile and link,
-I can not get anything plotted in pgdisp window.  Therefore I strongly
-suggest that you use the /XWIND and/or /XSERVE drivers.  You may have
-minor problems compiling drivers/xwdriv.c and drivers/pgxwin_server.c.
-both file include <unistd.h> which is not on NeXT 3.0 system (newer
-versions of NeXTStep include this file).  If the file is missing
-then just comment out the include in the source.  It is not needed
-on the NeXT.  Also, if the linker complains that the setpgid is not
-defined in the pgxwin_server program, you should edit pgxwin_server.c
-and comment out the line:
+PGPLOT VIEWER
+The PGPLOT viewer, pgview, is the first NeXT program that I'd written
+that uses 1) Interprocess communication, 2) the Interface Builder,
+and 3) Objective C.  I ran out of time before the program was finished.
+However, it does work.
 
-  setpgid(0,0);
+If you have correctly installed the pgview program, then plotting to
+the /NEXT device will automatically launch the pgview program that
+creates the plot window.  This means that the window will stay on
+your screen even after the original program exits.  If the pgview
+program is already running when you specify /NEXT then the existing
+window will be used.  Remember that as part of the standard NeXT
+interface, holding down the alternate key while clicking the mouse
+will bring the window to the top without making it key.  This will
+allow you to continue type in terminal window with the plot window
+completely visible.
 
-Note, you should not do this unless forced since will couple the
-server program too closely to the PGPLOT program, i.e., things
-like aborting the PGPLOT program, via a ^C, may also abort the
-server.
+Warning: I WILL change the pgview program before the next release
+of PGPLOT.  It is very likely that the new version of pgview will
+be incompatible with the old.  If this happens then all programs linked
+with PGPLOT will need to be relinked with the new version.  (I make
+these statements because I don't think too many people will be using
+PGPLOT on NeXT's, let me know if I am wrong!)
+
+Limitations:  Size of the window can not be changed.  Since the
+relative appearance of PGPLOT text depends on the aspect ratio of
+the plot, I have fixed the window size to be same as a PostScript
+plot in Landscape mode.  This ensures that what appears on the
+screen will be close to what appears on paper.  A future enhancement
+is to allow Portrait shaped windows.
+
+pgview allows you to create a new plotting windows by selecting the New
+item from the main menu.  However the plot is always routed to the most
+recently created window, even if it has been deleted.  Thus you should
+only use New as a way of saving a plot that currently appears on the
+screen.
+
+pgview does not support the PGPLOT cursor.
 
 
 MAKE PGPLOT
+The default setup includes X Window support.  If you do not have
+X Windows on your NeXT (this is not a major loss!) then you must
+change the setup.  First cd to the pgplot/sys_next directory and
+then edit the grexec.f file.  Remove the calls to the two X Window
+drivers X2DRIV and XWDRIV.  I.e., delete the following 4 lines:
 
-You should now refer to the standard PGPLOT documentation to create
-a makefile, and then compile PGPLOT.  In brief you will need to create
-a directory where you can build PGPLOT, create a drivers.list file
-(make sure you include the NEXT driver!) and then use the
+    8 CALL X2DRIV(IFUNC,RBUF,NBUF,CHR,LCHR)
+      RETURN
+    9 CALL XWDRIV(IFUNC,RBUF,NBUF,CHR,LCHR)
+      RETURN
 
-$(PGPLOT)/makemake $(PGPLOT) next f2c_cc
+The statement labels that you remove (8 and 9) should be deleted
+from the computed GOTO list.  Finally, in the NDEV= parameter statement
+reduce the number by two (for the two drivers that you have deleted).
 
-where $(PGPLOT) is the directory containing the PGPLOT source.  Then
-type make and wait.  This will create the library, demos, help files,
-and the pgview program.  If you have asked for the XWIND driver, the
-pgxwin_server program should also be created.
+Now copy makefile.nex to the pgplot directory.  If you are using the
+Absoft compiler, then edit the makefile and comment out the four f2c
+specific lines, and turn on the 4 Absoft specific lines.  Next type:
 
-If you install pgview.app into the /LocalApps directory, then PGPLOT
-will automatically launch it when you plot to the /next device.  If
-pgview is not in LocalApps, then you should launch it by double clicking
-on it before using /next (although it is possible to start it before
-the timeout, if you forget).  Use the following commands to install:
+make -f makefile.nex
 
-strip pgview.app/pgview
-cp -pr pgview.app /LocalApps
+This should make the library, the font file, and the example programs.
+
+
+MAKE THE VIEWER
+Go the the pgplot/sys_next directory and type make.  This will make the
+pgview.  In order to work correctly, it is important that pgview be
+installed somewhere in your default search path.  /LocalApps is a 
+good location.  Use the following to install
+
+strip pgview
+cp -p pgview /LocalApps
 
 Using 'strip' will reduce the size of the program by a factor 8 and
-this improves startup time.
+will improve startup time.
 
 
-Useful tips when using pgview
-
-Remember that as part of the standard NeXT interface, holding down
-the alternate key while clicking in the title bar will bring the window
-to the top without making it key.  This is useful when you wish to
-continue type in terminal window and have the plot window completely
-visible.
-
-Use the main menu to select either a Portrait or Landscape window.
-Although the window can be resized, PGPLOT produces slightly different
-output depending on the original aspect ratio of the plot.  These
-aspect ratios were selected to match the aspect ratios of the /PS
-and /VPS devices.  If you start with a Landscape window, then no matter
-how you resize the window with the resize bar, PGPLOT will still assume
-the same aspect ratio when drawing.  In other words, you first create
-a plot and then resize window, it will look exactly the same as if you
-had first first resized the window and then created the plot.
-
-When PGPLOT starts, it plots to the most recently active viewer window
-i.e., the last key window.  The viewer will not allow you to change
-the active plot window while a plot is in progress.
+MAKE PGDISP
+If you wish to use the X Window display program on your NeXT, go to
+the pgplot/pgdisp directory and type make.  Again you should use
+the 'strip pgdisp' command to reduce the size of pgdisp, and then
+install pgdisp in your current search path.  Currently pgdisp will
+not automatically be launched when you use the /XD device, thus if
+you plan on using this device, you must launch pgdisp 'by hand' using
+the 'pgdisp &' to put it into the background.
 
 
-BUG REPORTS:
+TESTED DRIVERS
+The drivers that have been tested on the NeXT are:
 
-The PGPLOT viewer, pgview, was my first NeXT program.  Thus I learned
-about 1) Interprocess communication, 2) the Interface Builder, 3)
-Objective C and 4) Display Postscript.  The viewer still has a few
-rough edges, but it is usable.
+/NEXT If the pgview has be created and installed, then plotting to /NEXT
+will route the plot to the view window created by pgview.  If pgview is
+not running and cannot be found, then you will get an error.
 
-Please send bug-reports/suggestions/thank-you notes (but not money)
-to:
+/Null The null device works anywhere/anytime.
 
-Internet:  allyn.tennant@msfc.nasa.gov
-SPAN:      SSL::TENNANT
+/Postscipt and /VPostscript  Create Postscript files.
 
-Do NOT send NextMail to that address.  Like all free support, you get
-what you pay for.
+/QMS make files that can be printed on a QMS printer.
+
+/Retrographics A Tektronix type terminal emulator.
+
+/Xwindow The original X Window driver.  With this driver the window
+will disappear when the program exits.  Note to get this driver to
+run on the NeXT, you must use the FORK implementation of backing store.
+You will need to edit the top of xwdriv.c and ensure that following
+are defined:
+
+#define SIGNAL 0
+#define FORK   1
+
+If you fail to do this then strange things will happen (pgex13 seems to
+work OK, but pgdemo1 will crash.)
+
+/Xdisp For use with the Figaro display server pgdisp.  Note, the pgdisp
+program must be running in the background before this will work/
+
+/Zstem  A PC VT100/VT200 terminal emulator used here at MSFC.  This
+driver can be used with other terminal emulators as it sometimes
+correctly toggles the screen to Tektronix mode when /retro fails (for
+example, xterm works this way).  Since these other emulators usually
+do not support color commands, garbage characters (such as L1) will
+appear on the screen whenever /ZSTEM send color commands.  If you
+use this emulator and will never use the color, then you should edit
+zsdriv.f and disable the color function code.

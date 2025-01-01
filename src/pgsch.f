@@ -1,5 +1,4 @@
 C*PGSCH -- set character height
-C%void cpgsch(float size);
 C+
       SUBROUTINE PGSCH (SIZE)
       REAL SIZE
@@ -17,21 +16,18 @@ C--
 C (1-Mar-1983)
 C-----------------------------------------------------------------------
       INCLUDE  'pgplot.inc'
-      LOGICAL  PGNOTO
       REAL     XC, XCNEW, YC, XS, YS
 C
-      IF (PGNOTO('PGSCH')) RETURN
+      IF (PGOPEN.EQ.0) RETURN
 C
-      CALL GRCHSZ(PGID, XC, YC, XS, YS)
-      IF (PGXSZ(PGID)/PGXPIN(PGID) .GT.
-     1    PGYSZ(PGID)/PGYPIN(PGID)) THEN
-          XCNEW = SIZE*XC*PGYSZ(PGID)/YS/40.0
+      CALL GRCHSZ(IDENT, XC, YC, XS, YS)
+      IF (XSZ/XPERIN .GT.YSZ/YPERIN) THEN
+          XCNEW = SIZE*XC*YSZ/YS/40.0
       ELSE
-          XCNEW = SIZE*XC*(PGXSZ(PGID)*PGYPIN(PGID)/PGXPIN(PGID))
-     1            /YS/40.0
+          XCNEW = SIZE*XC*(XSZ*YPERIN/XPERIN)/YS/40.0
       END IF
-      CALL GRSETC(PGID,XCNEW)
-      PGXSP(PGID) = XS*XCNEW/XC
-      PGYSP(PGID) = YS*XCNEW/XC
-      PGCHSZ(PGID) = SIZE
+      CALL GRSETC(IDENT,XCNEW)
+      XSP = XS*XCNEW/XC
+      YSP = YS*XCNEW/XC
+      PGCHSZ = SIZE
       END

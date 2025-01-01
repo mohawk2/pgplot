@@ -1,5 +1,4 @@
 C*PGMOVE -- move pen (change current pen position)
-C%void cpgmove(float x, float y);
 C+
       SUBROUTINE PGMOVE (X, Y)
       REAL X, Y

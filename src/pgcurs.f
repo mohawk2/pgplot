@@ -1,9 +1,8 @@
 C*PGCURS -- read cursor position
-C%int cpgcurs(float *x, float *y, char *ch_scalar);
 C+
       INTEGER FUNCTION PGCURS (X, Y, CH)
       REAL X, Y
-      CHARACTER*(*) CH
+      CHARACTER*1 CH
 C
 C Read the cursor position and a character typed by the user.
 C The position is returned in world coordinates.  PGCURS positions
@@ -28,15 +27,22 @@ C the device has no cursor or if the user does not move the cursor.
 C Under these circumstances, the position returned in (X,Y) is that of
 C the pixel nearest to the requested position.
 C--
-C  7-Sep-1994 - changed to use PGBAND [TJP].
+C  1-Aug-1984 - extensively revised [TJP].
+C 11-Jun-1991 - missing return value [TJP].
 C-----------------------------------------------------------------------
-      INTEGER PGBAND
-      LOGICAL PGNOTO
+      INCLUDE      'pgplot.inc'
+      INTEGER      GRCURS, I, J
 C
-      IF (PGNOTO('PGCURS')) THEN
-         CH = CHAR(0)
-         PGCURS = 0
-      ELSE
-         PGCURS = PGBAND(0, 1, 0.0, 0.0, X, Y, CH)
+      IF (PGOPEN.EQ.0) THEN
+          CH = CHAR(0)
+          PGCURS = 0
+          RETURN
       END IF
+C
+      I = NINT(XORG + X*XSCALE)
+      J = NINT(YORG + Y*YSCALE)
+      PGCURS = GRCURS(IDENT,I,J,CH)
+      X = (I - XORG)/XSCALE
+      Y = (J - YORG)/YSCALE
+      CALL GRTERM
       END

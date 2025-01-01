@@ -1,5 +1,4 @@
 C*PGQVP -- inquire viewport size and position
-C%void cpgqvp(int units, float *x1, float *x2, float *y1, float *y2);
 C+
       SUBROUTINE PGQVP (UNITS, X1, X2, Y1, Y2)
       INTEGER UNITS
@@ -32,25 +31,25 @@ C-----------------------------------------------------------------------
       REAL SX, SY
 C
       IF (UNITS.EQ.0) THEN
-          SX = PGXSZ(PGID)
-          SY = PGYSZ(PGID)
+          SX = XSZ
+          SY = YSZ
       ELSE IF (UNITS.EQ.1) THEN
-          SX = PGXPIN(PGID)
-          SY = PGYPIN(PGID)
+          SX = XPERIN
+          SY = YPERIN
       ELSE IF (UNITS.EQ.2) THEN
-          SX = (PGXPIN(PGID)/25.4)
-          SY = (PGYPIN(PGID)/25.4)
+          SX = (XPERIN/25.4)
+          SY = (YPERIN/25.4)
       ELSE IF (UNITS.EQ.3) THEN
           SX = 1.0
           SY = 1.0
       ELSE
           CALL GRWARN(
      1        'Illegal value for parameter UNITS in routine PGQVP')
-          SX = PGXSZ(PGID)
-          SY = PGYSZ(PGID)
+          SX = XSZ
+          SY = YSZ
       END IF
-      X1 = PGXVP(PGID)/SX
-      X2 = (PGXVP(PGID)+PGXLEN(PGID))/SX
-      Y1 = PGYVP(PGID)/SY
-      Y2 = (PGYVP(PGID)+PGYLEN(PGID))/SY
+      X1 = XVP/SX
+      X2 = (XVP+XLEN)/SX
+      Y1 = YVP/SY
+      Y2 = (YVP+YLEN)/SY
       END

@@ -1,5 +1,4 @@
 C*PGQWIN -- inquire window boundary coordinates
-C%void cpgqwin(float *x1, float *x2, float *y1, float *y2);
 C+
       SUBROUTINE PGQWIN (X1, X2, Y1, Y2)
       REAL X1, X2, Y1, Y2
@@ -21,8 +20,8 @@ C 26-Sep-1985 - new routine (TJP).
 C-----------------------------------------------------------------------
       INCLUDE 'pgplot.inc'
 C
-      X1 = PGXBLC(PGID)
-      X2 = PGXTRC(PGID)
-      Y1 = PGYBLC(PGID)
-      Y2 = PGYTRC(PGID)
+      X1 = XBLC
+      X2 = XTRC
+      Y1 = YBLC
+      Y2 = YTRC
       END

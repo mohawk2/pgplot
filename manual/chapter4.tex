@@ -1,0 +1,232 @@
+% PGPLOT manual, 9-Jun-1988, T. J. Pearson
+%------------------------------------------------------------------------
+% Copyright (c) 1983, 1984, 1985, 1986, 1987, 1988, 1989 by
+% California Institute of Technology.
+% All rights reserved.
+%------------------------------------------------------------------------
+
+\beginchapter{4}{PRIMITIVES}
+
+\beginsection Introduction
+
+Having selected a view surface and defined the viewport and the window,
+we are ready to draw the substance of the image that is to appear within
+the viewport.  This chapter describes the most basic routines, called
+{\it primitives}, that can be used for drawing elements of the image.  
+There are four different sorts of primitive:  {\it lines, graph-markers,
+text}, and {\it area fill}.  Chapter 5 explains how to change the 
+{\it attributes\/} of these primitives, \eg, color, line-style, text font;
+and Chapter 6 describes some higher-level routines that simplify
+the composition of images that would require a large number of calls to 
+the primitive routines.
+
+The primitive routines can be used in any combination and order after
+the viewport and window have been defined.  They all indicate where the
+primitive is to appear on the view surface by specifying world
+coordinates. See the subroutine descriptions in Appendix A
+for more details. 
+
+\beginsection Clipping
+
+The primitives are ``clipped'' at the edge of the viewport: any parts 
+of the image that would appear outside the viewport are suppressed.  The 
+various primitives behave slightly differently. A {\it line\/} is
+clipped where it crosses the edge of the viewport. A {\it graph marker\/}
+is plotted if the center (the point marked) lies within or on the edge 
+of the viewport; otherwise it is suppressed. {\it Text\/}, which is 
+usually used for annotation, is not clipped (except at the edge of the 
+view surface. A {\it filled area\/} is clipped at the edge of the
+viewport. 
+
+
+\beginsection Lines
+
+The primitive line-drawing routine is |PGLINE|. This draws one 
+or more connected straight-line segments (generally called a {\it 
+polyline\/} in computer graphics).  It has three arguments: the number 
+(|N|) of points defining the polyline, and two arrays (|XPTS| and 
+|YPTS|) containing the world $x$ and $y$-coordinates of the points. 
+The polyline consists of $N-1$ straight-line segments connecting 
+points 1--2, 2--3, $\ldots$, $(N-1)$--$N$:
+\begintt
+CALL PGLINE (N, XPTS, YPTS)
+\endtt
+
+The two routines |PGMOVE| and |PGDRAW| are even more primitive than 
+|PGLINE|, in the sense
+that any line graph can be produced by calling these two routines alone.
+In general, |PGLINE| should be preferred, as it is more
+modular. |PGMOVE|
+and |PGDRAW| are provided for those who are used to Calcomp-style plotting
+packages.  |PGMOVE| moves the plotter ``pen'' to a specified point, without 
+drawing a line (``pen up''). It has two arguments: the world-coordinates of the
+required new pen position.  |PGDRAW| moves the plotter ``pen'' from its 
+current position (defined by the last call of |PGMOVE| or |PGDRAW|) to a new 
+point, drawing a straight line as it goes (``pen down'').  The above call to
+|PGLINE| could be replaced by the following:
+\begintt
+CALL PGMOVE (XPTS(1), YPTS(1))
+DO I=2,N
+    CALL PGDRAW (XPTS(I), YPTS(I))
+END DO
+\endtt
+
+
+\beginsection Graph Markers
+
+A Graph Marker is a symbol, such as a cross, dot, or circle, drawn on a graph 
+to mark a specific point. Usually the symbol used will be chosen to be 
+symmetrical with a well-defined center. The routine |PGPOINT| draws one 
+or more graph markers (sometimes called a {\it polymarker\/}).
+It has four arguments: the number 
+(|N|) of points to mark, two arrays (|XPTS| and 
+|YPTS|) containing the world $x$ and $y$-coordinates of the points, and 
+a number (|NSYM|) identifying the symbol to use:
+\begintt
+CALL PGPOINT (N, XPTS, YPTS, NSYM)
+\endtt
+The symbol number can be: $-1$, to draw a dot of the smallest possible 
+size (one pixel); 0--31, to draw any one of the symbols in Figure
+\the\chapnum.1; or 33--127, to draw the corresponding ASCII character
+(the character is taken from the currently selected text font); or 
+$>127$, to draw one of the Hershey symbols from Appendix~B. The 
+Fortran |ICHAR| function can be used to obtain the ASCII value; \eg, to 
+use letter $F$:
+\begintt
+CALL PGPOINT (1, 0.5, 0.75, ICHAR('F') )
+\endtt
+
+\pageinsert
+\insertplot{fig41.ps}{7.5}{4.5}{2.0}{1.75}{1}{0}
+\smallskip
+\centerline{{\bf Figure \the\chapnum.1}\quad Standard Graph Markers.}
+\endinsert
+
+
+\beginsection Text
+
+The Text primitive routine is used for writing labels and titles
+on the image.  It converts an internal computer representation of the
+text (ASCII codes) into readable text.  The simplest routine for
+writing text is |PGTEXT|, which writes a horizontal character string 
+starting at a specific $(x,y)$ world coordinate position, \eg,
+\begintt
+CALL PGTEXT (X, Y, 'A text string')
+\endtt
+|PGTEXT| is actually a simplified interface to the more general
+primitive routine |PGPTEXT|, which allows one to
+change orientation and justification of the text, \eg,
+\begintt
+CALL PGPTEXT (X, Y, 45.0, 0.5, 'A text string')
+\endtt
+writes the text at an angle of $45\deg$ to the horizontal, centered
+at $(x,y)$ (see Appendix A).
+
+Both |PGTEXT| and |PGMTEXT| require the position of the text string
+to be specified in world coordinates.  When annotating a graph, it is 
+usually more convenient to position the text relative to the edge of the
+viewport, rather than in world-coordinate space.  The routine |PGMTEXT|
+(see Appendix A) is provided for this, and |PGLABEL| provides a simple 
+interface to |PGMTEXT| for the normal job of annotating an $(x,y)$ 
+graph.
+
+The appearance of text can be altered by specifying a number of {\it
+attributes}, described in the next chapter.  In particular, the
+character size and character font can be changed.  Figure \the\chapnum.2 
+illustrates some of the possibilities.
+
+\pageinsert
+\insertplot{fig42.ps}{7.5}{4.5}{2.0}{1.75}{1}{0}
+\smallskip
+\centerline{{\bf Figure \the\chapnum.2}\quad Text examples.}
+\endinsert
+
+To include one of the graph marker symbols in a text string, use the
+Fortran |CHAR| function, \eg,
+\begintt
+CALL PGTEXT (X, Y, 'Points marked with '//CHAR(17))
+\endtt
+
+The routine |PGPTEXT| (and all the PGPLOT routines which call
+it, \eg, |PGTEXT|, |PGLABEL|) allows one to include {\it escape 
+sequences\/}
+in the text string to be plotted. These are character-sequences that are
+not plotted, but are interpreted as instructions to change font, draw
+superscripts or subscripts, draw non-ASCII characters (\eg, Greek
+letters), \etc\  All escape sequences start with a backslash character
+(|\|). The following escape sequences are defined (the letter following
+the |\| may be either upper or lower case): 
+
+\noindent |\u| -- start a superscript, or end a subscript;
+
+\noindent |\d| -- start a subscript, or end a superscript (note that
+|\u| and |\d| must always be used in pairs); 
+
+\noindent |\b| -- backspace (\ie, do not advance text pointer after
+plotting the previous character);
+
+\noindent |\\| -- backslash character (|\|);
+
+\noindent |\A| -- \AA ngstr\"om symbol (\AA);
+
+\noindent |\g|$x$ -- greek letter corresponding to roman letter $x$;
+
+\noindent |\fn| -- switch to Normal font (1);
+
+\noindent |\fr| -- switch to Roman font (2);
+
+\noindent |\fi| -- switch to Italic font (3);
+
+\noindent |\fs| -- switch to Script font (4);
+
+\noindent |\(|$n$|)| -- character number $n$ (1 to 4 decimal digits);
+the closing parenthesis may be omitted if the next character is neither
+a digit nor ``)''.  This makes a number of special characters (\eg,
+mathematical, musical, astronomical, and cartographical symbols)
+available.  See Appendix~B for a list of available characters. 
+
+
+Greek letters are obtained by |\g| followed by one of the following
+upper-case and lower-case letters:
+$$\vbox{\halign{\hfil#\quad&&\ \hfil$\mit#$\hfil\cr
+use:&A&B&G&D&E&Z&Y&H&I&K&L&M&N&C&O&P&R&S&T&U&F&X&Q&W\cr
+for:&A&B&\Gamma&\Delta&E&Z&H&\Theta&I&K&\Lambda&M&N&\Xi&O&\Pi&P&\Sigma&T&\Upsilon&\Phi&X&\Psi&\Omega\cr
+ or:&a&b&g&d&e&z&y&h&i&k&l&m&n&c&o&p&r&s&t&u&f&x&q&w\cr
+for:&\alpha&\beta&\gamma&\delta&\epsilon&\zeta&\eta&\theta&\iota&\kappa&
+\lambda&\mu&\nu&\xi&o&\pi&\rho&\sigma&\tau&\upsilon&\phi&\chi&
+\psi&\omega\cr
+}}$$
+Use uppercase letters for uppercase Greek,
+lowercase for lowercase. Example: |\gh| is $\theta$, lowercase ``theta''.
+
+
+\beginsection Area Fill
+
+The Area Fill primitive allows the programmer to shade the interior of
+an arbitrary polygonal region.  The appearance of the primitive is
+controlled by attributes {\it fill area style\/} and {\it color index\/}
+(see Chapter 5).  An area is specified by the set of vertices of the
+polygon. 
+
+The routine |PGPOLY| is used to fill an area. It has three arguments:
+the number (|N|) of vertices defining the polygon, and two arrays
+(|XPTS| and |YPTS|) containing the world $x$ and $y$-coordinates
+of the vertices: 
+\begintt
+CALL PGPOLY (N, XPTS, YPTS)
+\endtt
+If the polygon is not convex, it may not be obvious which points in the
+image are inside the polygon. PGPLOT assumes that a point is inside the
+polygon if a straight line drawn from the point to infinity intersects
+an odd number of the polygon's edges.
+
+For the special case of a {\it rectangle\/} with edges parallel to the 
+coordinates axes, it is better to use routine |PGRECT| instead of 
+|PGPOLY|; this routine will use the hardware rectangle-fill capability 
+if available. |PGRECT| has four arguments: the $(x,y)$ world coordinates 
+of two opposite corners (note the order of the arguments):
+\begintt
+CALL PGRECT (X1, X2, Y1, Y2)
+\endtt
+
+\endchapter

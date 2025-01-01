@@ -1,5 +1,4 @@
 C*PGBBUF -- begin batch of output (buffer)
-C%void cpgbbuf(void);
 C+
       SUBROUTINE PGBBUF
 C
@@ -16,9 +15,8 @@ C--
 C 21-Nov-1985 - new routine [TJP].
 C-----------------------------------------------------------------------
       INCLUDE 'pgplot.inc'
-      LOGICAL PGNOTO
 C
-      IF (.NOT.PGNOTO('PGBBUF')) THEN
-          PGBLEV(PGID) = PGBLEV(PGID) + 1
+      IF (PGOPEN.NE.0) THEN
+          PGBLEV = PGBLEV + 1
       END IF
       END

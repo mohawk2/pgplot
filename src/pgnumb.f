@@ -1,6 +1,4 @@
 C*PGNUMB -- convert a number into a plottable character string
-C%void cpgnumb(int mm, int pp, int form, char *string, \
-C% int *string_length);
 C+
       SUBROUTINE PGNUMB (MM, PP, FORM, STRING, NC)
       INTEGER MM, PP, FORM
@@ -13,7 +11,7 @@ C number must be provided as an integer (MM) multiplied by a power of 10
 C (10**PP).  The output string retains only significant digits of MM,
 C and will be in either integer format (123), decimal format (0.0123),
 C or exponential format (1.23x10**5). Standard escape sequences \u, \d 
-C raise the exponent and \x is used for the multiplication sign.
+C raise the exponent and \\ is used for the multiplication sign.
 C This routine is used by PGBOX to create numeric labels for a plot.
 C
 C Formatting rules:
@@ -34,8 +32,8 @@ C         digit before the decimal sign
 C       - The mantissa is formatted as in (a), unless its value is
 C         1 in which case it and the multiplication sign are omitted
 C       - If the power of 10 is not zero and the mantissa is not
-C         zero, an exponent of the form \x10\u[-]nnn is appended,
-C         where \x is a multiplication sign (cross), \u is an escape
+C         zero, an exponent of the form \\10\u[-]nnn is appended,
+C         where \\ is a multiplication sign (cross), \u is an escape
 C         sequence to raise the exponent, and as many digits nnn
 C         are used as needed
 C   (c) Automatic choice (FORM=0):
@@ -60,8 +58,6 @@ C 23-Nov-1983
 C  9-Feb-1988 [TJP] - Use temporary variable to avoid illegal character
 C                     assignments; remove non-standard DO loops.
 C 15-Dec-1988 [TJP] - More corrections of the same sort.
-C 27-Nov-1991 [TJP] - Change code for multiplication sign.
-C 23-Jun-1994 [TJP] - Partial implementation of FORM=1 and 2.
 C-----------------------------------------------------------------------
       CHARACTER*1 BSLASH
       CHARACTER*2 TIMES, UP, DOWN
@@ -72,7 +68,7 @@ C
 C Define backslash (escape) character and escape sequences.
 C
       BSLASH = CHAR(92)
-      TIMES  = BSLASH//'x'
+      TIMES  = BSLASH//BSLASH
       UP     = BSLASH//'u'
       DOWN   = BSLASH//'d'
 C
@@ -119,8 +115,7 @@ C
 C
 C Integral numbers of 4 or less digits are formatted as such.
 C
-      IF ((P.GE.0) .AND. ((FORM.EQ.0 .AND. P+ND.LE.4) .OR.
-     :                    (FORM.EQ.1 .AND. P+ND.LE.10))) THEN
+      IF ((P.GE.0) .AND. (P+ND.LE.4)) THEN
           DO 30 I=1,P
               ND = ND+1
               WORK(ND:ND) = '0'
@@ -129,7 +124,7 @@ C
 C
 C If NBP is 4 or less, simply insert a decimal point in the right place.
 C
-      ELSE IF (FORM.NE.2.AND.NBP.GE.1.AND.NBP.LE.4.AND.NBP.LT.ND) THEN
+      ELSE IF (NBP.GE.1.AND.NBP.LE.4.AND.NBP.LT.ND) THEN
           TEMP = WORK(NBP+1:ND)
           WORK(NBP+2:ND+1) = TEMP
           WORK(NBP+1:NBP+1) = '.'
@@ -140,12 +135,12 @@ C Otherwise insert a decimal point after the first digit, and adjust P.
 C
       ELSE
           P = P + ND - 1
-          IF (FORM.NE.2 .AND. P.EQ.-1) THEN
+          IF (P.EQ.-1) THEN
               TEMP = WORK
               WORK = '0'//TEMP
               ND = ND+1
               P = 0
-          ELSE IF (FORM.NE.2 .AND. P.EQ.-2) THEN
+          ELSE IF (P.EQ.-2) THEN
               TEMP = WORK
               WORK = '00'//TEMP
               ND = ND+2

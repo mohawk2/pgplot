@@ -38,9 +38,8 @@ C
       INTEGER   I, LENGTH, LOC, NC, NC1, NC2, NCHAR, XYGRID(400)
 C-----------------------------------------------------------------------
  1000 FORMAT (7(2X,2I4))
-C Reduce chattiness. -- 2010 July 6, PKGW
-C 2000 FORMAT (' Characters defined: ', I5/
-C     1        ' Array cells used:   ', I5)
+ 2000 FORMAT (' Characters defined: ', I5/
+     1        ' Array cells used:   ', I5)
  3000 FORMAT (' ++ERROR++ Buffer is too small: ',I7)
 C-----------------------------------------------------------------------
 C
@@ -87,8 +86,7 @@ C
 C
 C Write summary.
 C
-C Reduce chattiness. -- 2010 July 6, PKGW
-C     WRITE (6,2000) NCHAR, LOC
+      WRITE (6,2000) NCHAR, LOC
       STOP
 C
 C Error exit.

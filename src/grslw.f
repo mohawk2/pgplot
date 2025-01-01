@@ -24,7 +24,6 @@ C                     commands were not being filtered out.
 C 26-May-1987 [TJP] - add GREXEC support.
 C 11-Jun-1987 [TJP] - remove built-in devices.
 C 31-May-1989 [TJP] - increase maximum width from 21 to 201.
-C  1-Sep-1994 [TJP] 
 C-----------------------------------------------------------------------
       INCLUDE 'grpckg1.inc'
       INTEGER I, ITHICK
@@ -54,7 +53,9 @@ C
 C Inquire if hardware supports thick lines.
 C
       ITHICK = 0
-      IF (GRGCAP(GRCIDE)(5:5).EQ.'T') ITHICK = 1
+      CALL GREXEC(GRGTYP, 4,RBUF,NBUF,CHR,LCHR)
+      ITHICK = 0
+      IF (CHR(5:5).EQ.'T') ITHICK = 1
 C
 C For devices with hardware support of thick lines, send the
 C appropriate commands to the device driver, and give the "current

@@ -4,8 +4,6 @@ C+
       INTEGER N
       REAL XPTS(*), YPTS(*)
       INTEGER SYMBOL
-C
-C See description of PGPT.
 C--
       CALL PGPT (N, XPTS, YPTS, SYMBOL)
       END

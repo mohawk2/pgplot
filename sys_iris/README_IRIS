@@ -1,0 +1,84 @@
+Tim, 
+  Here are the details of the port to the SGI (at least most of them I hope).
+The only problem remaining in the driver is one which you may be able to help
+me with.  In the routine PGCURSE the driver is expected to return x and y 
+WORLD coordinates, and I am returning the coordinates in the graphics window,
+relative to the lower left corner of the window.  Is there an easy way to 
+convert between the two?  I'm sending the driver anyway, maybe you know someone
+who may be able to solve the problem.
+
+  I'm also sending the terminal I/O routines since these were also largely 
+rewritten.
+
+Cut Here
+---------------These are a few helpful hints that should allow you to port PGPLOT to the
+Silicon Graphics Personal Iris.
+
+Most of these changes (I must admit) were suggested by the document found in the
+file dec3100/README within the PGPLOT directory.  Some of the problems there did
+not appear here and vice versa.
+
+To begin I copied Makefile.SUN to Makefile.IRIS so as to make the needed changes
+with the opportunity for recovery. 
+
+The warning "dummy procedure not declared EXTERNAL.  Code may be wrong."
+was given for lines 45 and 46 of pgfunt.f, line 55 of pgfunx.f, and
+line 52 of pgfuny.f.  warning ignored after checking the appropriate
+source files.
+
+The error "impossible element in concatenation" was given for line 146
+of tedriv.f and line 238 of vtdriv.f.  possible bug in compiler.  solved
+by modifying the relevant lines to not use string concatenation.
+
+it is necessary to compile the fortran source code with a -static flag.
+this declares all function variables to be static (equivalent to the
+save command) instead of automatic.  this is especially important for
+the various drivers which implicitly rely upon the function variables
+being static.
+
+The compile flags used were "-O2 -static -u" for f77 and "-O2" for cc.
+"-O0" and "-g" also work as expected and are useful for debugging.
+i have not tried using the "-O3" flag.
+
+Removed svdriv (the SunView driver) from the list of device drivers.  irdriv
+(my IRIS driver) was later added to the list of drivers.
+
+grexecSUN.f was copied into grexecIRIS.f and then modified to call the IRIS 
+driver (irdriv) in place of the SunView driver.
+
+One rather sweeping change.  Routines lib$get_vm and lib$free_vm needed to be
+renamed as the SGI C compiler could not handle the '$' in a routine name.  the
+'$' was replaced with '_' and calls to the routine were modified in the
+following routines:
+     gfdriv.f       imdriv.f      pxdriv.f
+     redriv.f       tedriv.f      tfdriv.f
+     vedriv.f       vvdriv.f
+
+The routine gr_termio.c was rewritten into gr_termioiris.c since the former
+used BSD terminal I/O and the IRIS has no such thing.  
+
+Makefiles in both the `fonts' and `examples' directories were modified to use 
+the gl libraries to do graphics.
+
+List of modified files:
+=======================
+Makefile.IRIS (from Makefile.SUN)
+lib_get_vm.c
+gfdriv.f
+imdriv.f
+pxdriv.f
+redriv.f
+tedriv.f
+tfdriv.f
+vedriv.f
+vvdriv.f
+gr_termioiris.c (from gr_termio.c)
+grexecIRIS.f    (from grexecSUN.f)
+fonts/Makefile.IRIS
+examples/Makefile.IRIS
+
+The driver for SGI's gl has about the same functionality as the SunView driver
+with a few additions (linestyles and line thicknesses are handled in the SGI
+graphics hardware).  When a PGPLOT program is executed it retains control of
+the shell window it was executed from.  This was necessry to allow keyboard input 
+by users.

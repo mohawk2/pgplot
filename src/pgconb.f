@@ -1,7 +1,4 @@
 C*PGCONB -- contour map of a 2D data array, with blanking
-C%void cpgconb(const float *a, int idim, int jdim, int i1, int i2, \
-C% int j1, int j2, const float *c, int nc, const float *tr, \
-C% float blank);
 C+
       SUBROUTINE PGCONB (A, IDIM, JDIM, I1, I2, J1, J2, C, NC, TR, 
      1                   BLANK)
@@ -42,7 +39,6 @@ C 21-Sep-1989 - Derived from PGCONS [TJP].
 C-----------------------------------------------------------------------
       INTEGER  I, IC, ICORN, IDELT(6), J, K, NPT
       INTEGER  IOFF(8), JOFF(8), IENC, ITMP, JTMP, ILO, ITOT
-      LOGICAL  PGNOTO
       REAL     CTR, DELTA, DVAL(5), XX, YY, X(4), Y(4)
       INTRINSIC ABS
       DATA     IDELT/0,-1,-1,0,0,-1/
@@ -51,7 +47,6 @@ C-----------------------------------------------------------------------
 C
 C Check arguments.
 C
-      IF (PGNOTO('PGCONB')) RETURN
       IF (I1.LT.1 .OR. I2.GT.IDIM .OR. I1.GE.I2 .OR.
      1    J1.LT.1 .OR. J2.GT.JDIM .OR. J1.GE.J2) RETURN
       IF (NC.EQ.0) RETURN

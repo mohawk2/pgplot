@@ -1,7 +1,4 @@
 C*PGHI2D -- cross-sections through a 2D data array
-C%void cpghi2d(const float *data, int nxv, int nyv, int ix1, \
-C% int ix2, int iy1, int iy2, const float *x, int ioff, float bias, \
-C% Logical center, float *ylims);
 C+
       SUBROUTINE PGHI2D (DATA, NXV, NYV, IX1, IX2, IY1, IY2, X, IOFF,
      1                   BIAS, CENTER, YLIMS)
@@ -54,117 +51,117 @@ C--
 C 21-Feb-1984 - Keith Shortridge.
 C-----------------------------------------------------------------------
       INCLUDE 'pgplot.inc'
+C
       LOGICAL FIRST,PENDOW,HPLOT,VPLOT
       INTEGER IY,INC,IX,NELMX,IXPT,NOFF
       REAL CBIAS,YNWAS,XNWAS,YN,XN,VTO,VFROM,YLIMWS,YLIM
       REAL PGHIS1
-      LOGICAL PGNOTO
 C
 C Check arguments.
 C
       IF (IX1.GT.IX2) RETURN
-      IF (PGNOTO('PGHI2D')) RETURN
+      IF (PGOPEN.EQ.0) RETURN
       CALL PGBBUF
 C
 C Check Y order.
 C
       IF (IY1.GT.IY2) THEN
-         INC = -1
+          INC = -1
       ELSE
-         INC = 1
+          INC = 1
       END IF
 C
 C Clear limits array.
 C
       NELMX = IX2 - IX1 + 1
       DO 10 IX=1,NELMX
-         YLIMS(IX) = PGYBLC(PGID)
- 10   CONTINUE
+          YLIMS(IX) = YBLC
+   10 CONTINUE
 C
 C Loop through Y values.
 C
       NOFF = 0
       CBIAS = 0.
       DO 200 IY=IY1,IY2,INC
-         YNWAS = CBIAS
-         YLIMWS = YNWAS
-         XNWAS = PGHIS1(X,NELMX,CENTER,1+NOFF)
-         PENDOW = .FALSE.
-         FIRST = .TRUE.
-         IXPT = 1
+          YNWAS = CBIAS
+          YLIMWS = YNWAS
+          XNWAS = PGHIS1(X,NELMX,CENTER,1+NOFF)
+          PENDOW = .FALSE.
+          FIRST = .TRUE.
+          IXPT = 1
 C
 C Draw histogram for this Y value.
 C
-         DO 100 IX=IX1,IX2
-            YN = DATA(IX,IY) + CBIAS
-            XN = PGHIS1(X,NELMX,CENTER,IXPT+NOFF+1)
-            YLIM = YLIMS(IXPT)
+          DO 100 IX=IX1,IX2
+              YN = DATA(IX,IY) + CBIAS
+              XN = PGHIS1(X,NELMX,CENTER,IXPT+NOFF+1)
+              YLIM = YLIMS(IXPT)
 C
 C Given X and Y old and new values, and limits, see which parts of the
 C lines are to be drawn.
 C
-            IF (YN.GT.YLIM) THEN
-               YLIMS(IXPT) = YN
-               HPLOT = .TRUE.
-               VPLOT = .TRUE.
-               VTO = YN
-               VFROM = YLIM
-               IF (YNWAS.GT.YLIMWS) VFROM = YNWAS
-            ELSE
-               HPLOT = .FALSE.
-               IF (YNWAS.GT.YLIMWS) THEN
+              IF (YN.GT.YLIM) THEN
+                  YLIMS(IXPT) = YN
+                  HPLOT = .TRUE.
                   VPLOT = .TRUE.
-                  VFROM = YNWAS
-                  VTO = YLIM
-               ELSE
-                  VPLOT = .FALSE.
-               END IF
-            END IF
+                  VTO = YN
+                  VFROM = YLIM
+                  IF (YNWAS.GT.YLIMWS) VFROM = YNWAS
+              ELSE
+                  HPLOT = .FALSE.
+                  IF (YNWAS.GT.YLIMWS) THEN
+                      VPLOT = .TRUE.
+                      VFROM = YNWAS
+                      VTO = YLIM
+                  ELSE
+                      VPLOT = .FALSE.
+                  END IF
+              END IF
 C
 C Plot the bin.
 C
-            IF (VPLOT) THEN
-               IF (.NOT.PENDOW) THEN
-                  IF (FIRST) THEN
-                     CALL GRMOVA(XNWAS,MAX(VTO,CBIAS))
-                     FIRST = .FALSE.
-                  ELSE
-                     CALL GRMOVA(XNWAS,VFROM)
+              IF (VPLOT) THEN
+                  IF (.NOT.PENDOW) THEN
+                      IF (FIRST) THEN
+                          CALL GRMOVA(XNWAS,MAX(VTO,CBIAS))
+                          FIRST = .FALSE.
+                      ELSE
+                          CALL GRMOVA(XNWAS,VFROM)
+                      END IF
                   END IF
-               END IF
-               CALL GRLINA(XNWAS,VTO)
-               IF (HPLOT) THEN
-                  CALL GRLINA(XN,YN)
-               END IF
-            END IF
-            PENDOW = HPLOT
-            YLIMWS = YLIM
-            YNWAS = YN
-            XNWAS = XN
-            IXPT = IXPT + 1
- 100     CONTINUE
-         IF (PENDOW) CALL GRLINA(XN,MAX(YLIM,CBIAS))
+                  CALL GRLINA(XNWAS,VTO)
+                  IF (HPLOT) THEN
+                       CALL GRLINA(XN,YN)
+                  END IF
+              END IF
+              PENDOW = HPLOT
+              YLIMWS = YLIM
+              YNWAS = YN
+              XNWAS = XN
+              IXPT = IXPT + 1
+  100     CONTINUE
+          IF (PENDOW) CALL GRLINA(XN,MAX(YLIM,CBIAS))
 C
 C If any offset in operation, shift limits array to compensate for it.
 C
-         IF (IOFF.GT.0) THEN
-            DO 110 IX=1,NELMX-IOFF
-               YLIMS(IX) = YLIMS(IX+IOFF)
- 110        CONTINUE
-            DO 120 IX=NELMX-IOFF+1,NELMX
-               YLIMS(IX) = PGYBLC(PGID)
- 120        CONTINUE
-         ELSE IF (IOFF.LT.0) THEN
-            DO 130 IX=NELMX,1-IOFF,-1
-               YLIMS(IX) = YLIMS(IX+IOFF)
- 130        CONTINUE
-            DO 140 IX=1,-IOFF
-               YLIMS(IX) = PGYBLC(PGID)
- 140        CONTINUE
-         END IF
-         CBIAS = CBIAS + BIAS
-         NOFF = NOFF + IOFF
- 200  CONTINUE
+          IF (IOFF.GT.0) THEN
+              DO 110 IX=1,NELMX-IOFF
+                  YLIMS(IX) = YLIMS(IX+IOFF)
+  110         CONTINUE
+              DO 120 IX=NELMX-IOFF+1,NELMX
+                   YLIMS(IX) = YBLC
+  120         CONTINUE
+          ELSE IF (IOFF.LT.0) THEN
+              DO 130 IX=NELMX,1-IOFF,-1
+                  YLIMS(IX) = YLIMS(IX+IOFF)
+  130         CONTINUE
+              DO 140 IX=1,-IOFF
+                  YLIMS(IX) = YBLC
+  140         CONTINUE
+          END IF
+          CBIAS = CBIAS + BIAS
+          NOFF = NOFF + IOFF
+  200 CONTINUE
 C
       CALL PGEBUF
       END

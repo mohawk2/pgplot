@@ -18,16 +18,16 @@ C       the rectangle.
 C--
 C 23-Mar-1988 - [TJP].
 C 18-Jan-1991 - Code moved from GRRECT to GRREC0 so that it can also be
-C               used by GRPXRE.
-C  1-Sep-1994 - suppress driver call [TJP].
-C  4-Dec-1995 - avoid use of real variable as do-loop index [TJP].
+C               used by GRPXRE
+C  8-Nov-2010 - Modified loop with real variables to conform to gfortran. [KS]
 C-----------------------------------------------------------------------
       INCLUDE 'grpckg1.inc'
       REAL    RBUF(6)
       INTEGER NBUF,LCHR
+      INTEGER INDEX, ICOUNT
       CHARACTER*32 CHR
       REAL    XMIN, YMIN, XMAX, YMAX, Y, DY
-      INTEGER LS, LW, I, NLINES
+      INTEGER LS, LW
 C
 C Clip
 C
@@ -42,9 +42,13 @@ C
       IF (XMIN .GT. XMAX) RETURN
       IF (YMIN .GT. YMAX) RETURN
 C
+C Determine device capabilities.
+C
+      CALL GREXEC(GRGTYP, 4,RBUF,NBUF,CHR,LCHR)
+C
 C Use hardware rectangle fill if available.
 C
-      IF (GRGCAP(GRCIDE)(6:6).EQ.'R') THEN
+      IF (CHR(6:6).EQ.'R') THEN
           IF (.NOT.GRPLTD(GRCIDE)) CALL GRBPIC
           RBUF(1) = XMIN
           RBUF(2) = YMIN
@@ -55,7 +59,7 @@ C
 C
 C Else use hardware polygon fill if available.
 C
-      ELSE IF (GRGCAP(GRCIDE)(4:4).EQ.'A') THEN
+      ELSE IF (CHR(4:4).EQ.'A') THEN
           IF (.NOT.GRPLTD(GRCIDE)) CALL GRBPIC
           RBUF(1) = 4
           CALL GREXEC(GRGTYP,20,RBUF,NBUF,CHR,LCHR)
@@ -86,14 +90,17 @@ C
       DY = RBUF(3)
 C
 C Draw horizontal raster lines.
+C (This algorithm is only correct if DY = 1 !)
+C (This DO used to be quite simply DO 40 Y=YMIN,YMAX,DY, but GFORTRAN 
+C complains about this now - loop limits and index must all be integer, so 
+C I've replaced it with the following, which ought to be equivalent.)
 C
-      NLINES = ABS((YMAX-YMIN)/DY)
-      Y = YMIN - DY/2.0
-      DO 40 I=1,NLINES
-         Y = Y + DY
-         GRXPRE(GRCIDE) = XMIN
-         GRYPRE(GRCIDE) = Y
-         CALL GRLIN0(XMAX,Y)
+      ICOUNT = NINT((YMAX - YMIN)/DY) + 1
+      DO 40 INDEX = 1,ICOUNT
+          Y = YMIN + (INDEX - 1)*DY
+          GRXPRE(GRCIDE) = XMIN
+          GRYPRE(GRCIDE) = Y
+          CALL GRLIN0(XMAX,Y)
    40 CONTINUE
 C
 C Restore attributes.

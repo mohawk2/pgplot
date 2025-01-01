@@ -1,0 +1,60 @@
+Here are the instructions for constructing pgplot libraries, example
+programs, and the font data file on an HP9000s730 machine running HPUX
+version 8.07.  I see no reason why they shouldn't also apply to
+other 700 series machines running 8.xx but I make no guarantees.
+The drivers that are included here are nudriv, psdriv, vpdriv,
+cpdriv, vcdriv, tedriv, xwdriv, and x2driv.  It should be simple
+enough to add other drivers but some hacking might be required
+(see summary of changes below).
+
+I was not clever enough to build the binaries in any directory
+other than the source directory.  So the steps to follow are:
+  1. Change directory to ../pgplot/sys_hp.
+  2. Run the script "setup" which moves the Makefile and
+     system-dependent routines to the source directory.
+  3. Change directory to ../pgplot/src.
+  4  Execute in turn:
+       make lib
+       make grfont.dat
+       make prog
+       make oldlib (optional)
+  5. After making sure that everything works (by trying out the
+     example/demo programs), restore the source directory by
+     executing "make clean"
+
+Summary of Changes
+------------------
+ 1. The HPUX compilers don't like routine names involving the '$'
+    character or trailing underscores ('_'); they have to be renamed.
+ 2. Some system routines such as FDATE aren't available and have
+    to be substituted for (see grdate.f).  The fortran routine
+    GETENV is available but is apparently not documented anywhere.
+    It is used in gruser.f as well as in grgenv.f.
+ 3. 'stderr' on HP machines is unit 7, not unit 0.  A few io routines
+    have to be changed accordingly.
+ 4. The HPUX cc compiler doesn't like the multiple declarations of
+    sprintf() that occur in a few routines.
+ 5. Some complex makefile constructs are not recognized by HPUX.
+ 6. Both versions of backing store don't seem to work on the HP 
+    machines.  I had to set both SIGNAL and FORK to 0 in xwdriv.c.
+    Perhaps some X-wizard can fix this.  But the X-window driver
+    works fine without backing store at least on my machine which
+    does not serve any Xterminals.
+ 7. If you want to use the x2driver which pipes pgplot output to
+    an already existing Xwindow, you will have to make 'pgdisp'
+    in the ../pgplot/pgdisp directory.  I found this driver to
+    be extremely slow compared to the xwdriver and would consider
+    using the former only in special circumstances.  However, if
+    you are a bear for punishment, change to the ../sys_hp/pgdisp
+    directory and move it's contents to the ../pgplot/pgdisp
+    directory.  You may want to save the routines that will be
+    overwritten first.  Rename all the pg.* routines by removing
+    the suffix.  Then, "make -f Makefile.hp".
+
+
+    Good luck!
+			      Maurice Clement
+			      Dept of Astronomy
+			      University of Toronto
+			      mclement@apus.astro.utoronto.ca
+			      August 18, 1992

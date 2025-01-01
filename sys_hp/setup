@@ -1,0 +1,19 @@
+#! /bin/csh -f
+
+# Copy system-dependent files to the source directory where 
+# everything can be made together.  "make clean" will restore 
+# the source directory to its original state.
+
+set SRCDIR=/usr/src/pgplot/src
+
+cp Makefile makeclean $SRCDIR
+
+foreach fn (`ls *.f *.c`)
+
+  if ( -f $SRCDIR/$fn ) mv $SRCDIR/$fn $SRCDIR/$fn\.sv
+
+  cp $fn $SRCDIR
+
+end
+
+exit(0)

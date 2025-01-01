@@ -1,5 +1,4 @@
 C*PGEBUF -- end batch of output (buffer)
-C%void cpgebuf(void);
 C+
       SUBROUTINE PGEBUF
 C
@@ -14,10 +13,9 @@ C--
 C 21-Nov-1985 - new routine [TJP].
 C-----------------------------------------------------------------------
       INCLUDE 'pgplot.inc'
-      LOGICAL PGNOTO
 C
-      IF (.NOT.PGNOTO('PGEBUF')) THEN
-          PGBLEV(PGID) = MAX(0, PGBLEV(PGID) - 1)
-          IF (PGBLEV(PGID).EQ.0) CALL GRTERM
+      IF (PGOPEN.NE.0) THEN
+          PGBLEV = MAX(0, PGBLEV - 1)
+          IF (PGBLEV.EQ.0) CALL GRTERM
       END IF
       END

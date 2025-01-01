@@ -1,22 +1,14 @@
-C*PGBEG -- open a graphics device
-C%int cpgbeg(int unit, const char *file, int nxsub, int nysub);
+C*PGBEG -- begin PGPLOT, open output device
 C+
       INTEGER FUNCTION PGBEG (UNIT, FILE, NXSUB, NYSUB)
       INTEGER       UNIT
       CHARACTER*(*) FILE
       INTEGER       NXSUB, NYSUB
 C
-C Note: new programs should use PGOPEN rather than PGBEG. PGOPEN
-C is retained for compatibility with existing programs. Unlike PGOPEN,
-C PGBEG closes any graphics devices that are already open, so it 
-C cannot be used to open devices to be used in parallel.
-C
-C PGBEG opens a graphical device or file and prepares it for
-C subsequent plotting. A device must be opened with PGBEG or PGOPEN
-C before any other calls to PGPLOT subroutines for the device.
-C
-C If any device  is already open for PGPLOT output, it is closed before
-C the new device is opened.
+C Begin PGPLOT, open the plot file.  A call to PGBEG is
+C required before any other calls to PGPLOT subroutines.  If a plot
+C file is already open for PGPLOT output, it is closed before the new
+C file is opened.
 C
 C Returns:
 C  PGBEG         : a status return value. A value of 1 indicates
@@ -26,50 +18,118 @@ C                    written on the standard error unit.
 C                    To test the return value, call
 C                    PGBEG as a function, eg IER=PGBEG(...); note
 C                    that PGBEG must be declared INTEGER in the
-C                    calling program. Some Fortran compilers allow
-C                    you to use CALL PGBEG(...) and discard the
-C                    return value, but this is not standard Fortran.
+C                    calling program.
 C Arguments:
 C  UNIT  (input)   : this argument is ignored by PGBEG (use zero).
 C  FILE  (input)   : the "device specification" for the plot device.
-C                    (For explanation, see description of PGOPEN.)
+C                    Device specifications are installation dependent,
+C                    but usually have the form "device/type" or
+C                    "file/type". If this argument is a
+C                    question mark ('?'), PGBEG will prompt the user
+C                    to supply a string.
 C  NXSUB  (input)  : the number of subdivisions of the view surface in
-C                    X (>0 or <0).
+C                    X.
 C  NYSUB  (input)  : the number of subdivisions of the view surface in
-C                    Y (>0).
-C                    PGPLOT puts NXSUB x NYSUB graphs on each plot
+C                    Y. PGPLOT puts NXSUB x NYSUB graphs on each plot
 C                    page or screen; when the view surface is sub-
 C                    divided in this way, PGPAGE moves to the next
-C                    panel, not the  next physical page. If
-C                    NXSUB > 0, PGPLOT uses the panels in row
-C                    order; if <0, PGPLOT uses them in column order.
+C                    sub-page, not the  next physical page.
 C--
-C 21-Dec-1995 [TJP] - changed for multiple devices; call PGOPEN.
-C 27-Feb-1997 [TJP] - updated description.
+C  1-Jan-1984 [TJP]
+C  8-Aug-1985 [TJP] - add '?' prompting.
+C 31-Dec-1985 [TJP] - fix '?' prompting in batch jobs.
+C 11-Sep-1986 [TJP] - add PGLDEV call.
+C  9-Feb-1988 [TJP] - replace VMS-specific code with GRGCOM.
+C 13-Dec-1990 [TJP] - make error reading input non-fatal.
 C-----------------------------------------------------------------------
-      INTEGER       IER
-      INTEGER       PGOPEN
-
-cpjt      UNIT = 0
-
+      INCLUDE       'pgplot.inc'
+      INTEGER       DEFTYP,GRDTYP,GROPEN,L,LR
+      INTEGER       GRGCOM, IER
+      REAL          DUMMY,DUMMY2,XCSZ
+      CHARACTER*20  DEFSTR
+      CHARACTER*128 REQ
+      LOGICAL JUNK
 C
-C Initialize PGPLOT if necessary.
+C Close the plot-file if it is already open. It is assumed that PGOPEN
+C is initially zero; on some systems, this may require BLOCKDATA.
 C
-      CALL PGINIT
+      IF (PGOPEN.NE.0) CALL PGEND
 C
-C Close the plot-file if it is already open.
+C Open the plot file; default type is given by environment variable
+C PGPLOT_TYPE.
 C
-      CALL PGEND
-C
-C Call PGOPEN to open the device.
-C
-      IER = PGOPEN(FILE)
-      IF (IER.GT.0) THEN
-         CALL PGSUBP(NXSUB, NYSUB)
-         PGBEG = 1
+      CALL GRGENV('TYPE', DEFSTR, L)
+      IF (L.EQ.0) THEN
+          DEFTYP = 0
       ELSE
-         PGBEG = IER
+          CALL GRTOUP(DEFSTR, DEFSTR)
+          DEFTYP = GRDTYP(DEFSTR(1:L))
+      END IF
+      IF (FILE(1:1).EQ.'?') THEN
+   10     IER = GRGCOM(REQ,'Graphics device/type (? to see list): ',LR)
+          IF (IER.NE.1) THEN
+              CALL GRWARN('Error reading device specification')
+              PGBEG = IER
+              RETURN
+          END IF
+          IF (LR.LT.1) GOTO 10
+          IF (REQ(1:1).EQ.'?') THEN
+              CALL PGLDEV
+              GOTO 10
+          END IF
+          PGBEG = GROPEN(DEFTYP,UNIT,REQ,IDENT)
+          IF (PGBEG.NE.1) GOTO 10
+      ELSE
+          PGBEG = GROPEN(DEFTYP,UNIT,FILE,IDENT)
       END IF
 C
-      RETURN
+C Failed to open plot file?
+C
+      IF (PGBEG.NE.1) RETURN
+C
+C Success: determine device characteristics.
+C
+      PGOPEN = 1
+      ADVSET = 0
+      CALL GRSIZE(IDENT,XSZ,YSZ,DUMMY,DUMMY2,XPERIN,YPERIN)
+      CALL GRCHSZ(IDENT,XCSZ,DUMMY,XSP,YSP)
+      NX = MAX(NXSUB,1)
+      NY = MAX(NYSUB,1)
+      XSZ = XSZ/NX
+      YSZ = YSZ/NY
+      NXC = NX
+      NYC = NY
+      CALL GRQTYP(DEFSTR,JUNK)
+C
+C Set the prompt state to ON, so that terminal devices pause between
+C pages; this can be changed with PGASK.
+C
+      CALL PGASK(.TRUE.)
+C
+C If environment variable PGPLOT_BUFFER is defined (any value),
+C start buffering output.
+C
+      PGBLEV = 0
+      CALL GRGENV('BUFFER', DEFSTR, L)
+      IF (L.GT.0) CALL PGBBUF
+C
+C Set default attributes.
+C
+      CALL PGSCI(1)
+      CALL PGSLS(1)
+      CALL PGSLW(1)
+      CALL PGSCH(1.0)
+      CALL PGSCF(1)
+      CALL PGSFS(1)
+C
+C Set the default window (unit square).
+C
+      XBLC = 0.0
+      XTRC = 1.0
+      YBLC = 0.0
+      YTRC = 1.0
+C
+C Set the default viewport.
+C
+      CALL PGVSTD
       END

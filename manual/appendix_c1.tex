@@ -1,0 +1,255 @@
+% PGPLOT manual, 9-May-1988, T. J. Pearson
+%------------------------------------------------------------------------
+% Copyright (c) 1983, 1984, 1985, 1986, 1987, 1988, 1989 by
+% California Institute of Technology.
+% All rights reserved.
+%------------------------------------------------------------------------
+
+\beginappendix{C1}{INSTALLATION INSTRUCTIONS (VMS)}
+
+\beginsection Introduction
+
+PGPLOT consists of four ``layers'' of subroutines. The subroutines in 
+each layer call only subroutines in the same layer or in the next layer 
+down:
+\smallskip
+\item{1.} The top-level PGPLOT subroutines; these routines call only
+other PGPLOT routines.
+\item{2.} The ``primitive'' PGPLOT routines; these are used by the 
+top-level routines and can be called by users' programs. They call
+the routines at the next level to perform graphical output.
+\item{3.} Device-independent support routines. These are responsible
+for things like scaling, windowing, and character-generation.
+\item{4.} Device handler routines: these generate graphical output for 
+specific device types.  There is one device handler 
+subroutine for each supported device type.
+
+Routines at levels 1 and 2 are the only ones that should be referenced 
+directly by a user's program. They are all described fully in Appendix~A.
+
+\beginsection Restoring the Save Set
+
+PGPLOT is usually distributed in the form of a VAX/VMS BACKUP save set
+on magnetic tape.  This save set contains a directory tree: the main
+directory, [PGPLOT], and several subdirectories: [PGPLOT.DRIVERS],
+[PGPLOT.EXAMPLES], [PGPLOT.FONTS], [PGPLOT.MANUAL], and [PGPLOT.SOURCE]. 
+The save set should be restored to a similar directory tree. The following 
+example indicates how the VMS BACKUP command can be used to copy the files into
+directories called [USER.PGPLOT] and [USER.PGPLOT.*]. It is a good
+idea to make sure that these destination directories either do not exist
+or are empty before beginning the BACKUP command. 
+\begintt
+$ MOUNT/FOREIGN MTA0: PGPLOT
+$ BACKUP/LOG/VERIFY MTA0:PGPLOT.BCK/SELECT=[PGPLOT...] -
+        DISK:[USER.PGPLOT...]
+$ DISMOUNT MTA0:
+\endtt
+
+The main directory, [PGPLOT], contains all the files needed to link and 
+run PGPLOT programs. The subdirectories contain the source code, example
+programs, utility programs, and documentation.
+
+The directory [PGPLOT] includes:
+\smallskip
+\item{1.}Object code: the object-module library GRPCKG.OLB, the
+shareable image GRPSHR.EXE, and the shareable-image symbol-table
+library GRPSHR.OLB. 
+\item{2.}Command procedures: LOGICAL.COM and MAKEHELP.COM.  
+These procedures are described below.
+\item{3.}Documentation: PGPLOT.DOC is the text of the subroutine synopses in 
+Appendix~A.  PGPLOT.HLB is a VMS-format HELP library containing the
+same information. 
+\item{4.}Miscellaneous: DOCUMENT.FOR, DOCUMENT.EXE (used in creating
+documentation); GRFONT.DAT (binary representation of the PGPLOT
+character set); GMFPLOT.FOR and GMFPLOT.EXE (meta\-file translator);
+PGATTRIB.FOR (a Fortran include file defining symbolic names for the
+various PGPLOT attribute codes).
+
+The directory [PGPLOT.DRIVERS] contains source code for device-handler 
+subroutines that are {\it not\/} included in the executable version of 
+PGPLOT as distributed. Instructions for incorporating these device 
+handlers in the executable version are given below. 
+Adding support for a new device type requires the addition of a new 
+device handler subroutine. No other changes to PGPLOT are required. For 
+details, consult Appendix~E.
+
+The directory [PGPLOT.EXAMPLES] contains a number of programs for 
+demonstrating and testing PGPLOT. The source code is in files PGEX1\-.FOR, 
+PGEX2\-.FOR, \etc, and executable code in PGEX1.EXE, \etc. The command 
+procedure EXCOMP.COM can be used to recompile and link one or all of the 
+example programs.
+
+The directory [PGPLOT.FONTS] contains some utility programs for 
+manipulating the binary file containing character definitions (font 
+information). This directory can be deleted if you do not want to
+edit the character set.
+
+The directory [PGPLOT.MANUAL] contains the text of this PGPLOT manual
+(in \TeX\ format) and Fortran programs for creating the figures. This 
+directory can be deleted if you do not wish to print copies of the 
+manual, or if you do not have the \TeX\ document formatting program.
+
+The directory [PGPLOT.SOURCE] contains the complete source code for
+PGPLOT, including the device handlers built in to the distribution
+version. PGPLOT.FOR contains the Fortran source code for routines in
+levels 1 and 2; all these routines have names beginning with PG.
+GRPCKG.FOR, GRCHAR.FOR, GRSYMB.FOR, and GRVMS.FOR contain the source code for
+routines in level~3. The file GRVMS.FOR contains {\it 
+system-dependent\/} routines which will have to be rewritten for a 
+different operating system. The various files *DRIVER.FOR contain the source
+code for the level-4 device handlers. All the routines in level~3 have
+names beginning with GR. The files PGPLOT.INC and GRPCKG1.INC are
+referenced by VAX Fortran INCLUDE statements in PGPLOT.FOR and
+GRPCKG.FOR, respectively. The command procedures ADD.COM, BUILD\-.COM,
+COMPILE.COM, and NEWGE.COM are used to rebuild PGPLOT from the source
+code (see below). 
+
+
+\beginsection Logical Names
+
+A number of VMS logical names must be defined before PGPLOT can be used.
+The procedure LOGICAL.COM will define these logical names, but it may be
+necessary to modify it slightly. A possible definition is the following:
+\begintt
+$ DEFINE/SYSTEM PGPLOT_DIR   SYS:[PGPLOT]
+$ DEFINE/SYSTEM LNK$LIBRARY  PGPLOT_DIR:GRPSHR.OLB
+$ DEFINE/SYSTEM PGPLOT_TYPE  PRINTRONIX
+$ DEFINE/SYSTEM PGPLOT_FONT  PGPLOT_DIR:GRFONT.DAT
+$ DEFINE/SYSTEM GRPSHR       PGPLOT_DIR:GRPSHR.EXE
+\endtt
+It is not essential that they be ``system'' logical names.
+\smallskip
+\item{1.} |PGPLOT_DIR|.  This is a logical name pointing to the directory
+containing the PGPLOT files.  The name need not be |PGPLOT_DIR|; 
+another name can be chosen, so long as the other logical names are 
+modified accordingly.
+\item{2.} |LNK$LIBRARY|.  This is optional.  It tells the VMS linker
+to automatically scan GRPSHR.OLB for subroutine references. If 
+|LNK$LIBRARY| is already defined, choose another name like 
+|LNK$LIBRARY_1| (see the VAX/VMS Linker manual).
+\item{3.} |PGPLOT_TYPE|.  This is optional.  It provides a default 
+device type for use by PGPLOT when no device type is provided explicitly 
+by the user.
+\item{4.} |PGPLOT_FONT|.  This is essential.  Whenever a PGPLOT program is 
+run, it attempts to read the character-set definition from the file 
+defined by this logical name. (If it fails, the program will continue, 
+but requests to plot text or graph markers will be ignored.)
+\item{5.} |GRPSHR|.  This logical name must be defined at run-time
+if the shareable-image version of PGPLOT is used (see below).
+
+
+\beginsection The Shareable Image
+
+Programs using the PGPLOT library can be linked in two different ways: 
+\begintt
+$ LINK EXAMPLE,PGPLOT_DIR:GRPSHR/LIB
+$ LINK EXAMPLE,PGPLOT_DIR:GRPCKG/LIB
+\endtt
+Usually the first library (|GRPSHR.OLB|) should be used. When this
+library is used, the subroutines are not included in the |.EXE| file,
+but are fetched from a {\it shareable image\/} when you execute the 
+|RUN|
+command. This makes the |.EXE| file much smaller, and means that the
+program need not be relinked when changes are made to the graphics
+subroutines; but the |.EXE| file can only be run on a machine which has
+a copy of the shareable image. If the second library (|GRPCKG.OLB|) is
+used, the subroutines are included in the |.EXE| file and the program
+can be run on any VAX computer running a compatible version of VMS.  In
+general, the shareable image is to be preferred. 
+
+
+\beginsection Recompiling PGPLOT
+
+To recompile PGPLOT, proceed as follows.
+\smallskip
+\item{1.} In directory |[PGPLOT.SOURCE]|: make sure that the source code 
+for all the device handlers you wish to include is in this directory
+(files |*DRIVER.FOR|). Device handlers that you do not wish to include 
+should be moved to directory |[PGPLOT.DRIVERS]|.
+\item{2.}Execute the DCL
+command procedure |COMPILE.COM|. This compiles all the Fortran files in 
+the directory, and creates a new version of the
+object-module library |GRPCKG.OLB|.  See the comments in the procedure for
+more information. 
+\item{3.}The shareable image, |GRPSHR.EXE|, and shareable-image symbol-table
+library, |GRPSHR.OLB|, can be rebuilt from |GRPCKG.OLB| by executing the
+command procedure |BUILD.COM|.  Again, see the comments in the procedure
+for more information. (Note: do not modify the symbol table defined in 
+|BUILD.COM|; if you do, the resulting programs will not be portable.)
+\item{4.}You can now delete all the object module files (|*.OBJ|) if you 
+wish.
+\item{5.}The new version of PGPLOT consists of three files: |GRPCKG.OLB|,
+|GRPSHR.EXE|, and |GRPSHR.OLB|. It is possible to test the new version by 
+redefining logical name |GRPSHR| to point to the new |GRPSHR.EXE|. If you 
+are satisfied with the new version, rename (or copy) these three files 
+into the main directory, |[PGPLOT]|, superseding the old version.
+
+
+\beginsection Recompiling the Example Programs
+
+The procedure |EXCOMP.COM| in directory |[PGPLOT.EXAMPLES]| can be used to 
+compile and link any of the example programs:
+\begintt
+$ @EXCOMP 7
+$ @EXCOMP
+\endtt
+The first command compiles PGEX7.  The second compiles {\it all\/}
+the example programs.
+
+
+\beginsection Rebuilding the Documentation Files
+
+The files |PGPLOT.DOC| and |PGPLOT.HLB| contain documentation extracted 
+from the PGPLOT source code. The files can be rebuilt by executing the
+procedure |MAKEHELP.COM| in directory |[PGPLOT]|. This procedure also
+updates the \TeX\ version of the documentation included in Appendix~A of 
+the manual.
+
+
+\beginsection Printing the Manual
+
+The \TeX\ source-code for the PGPLOT manual can be found in the
+subdirectory |[PGPLOT.MANUAL]| in a number of files with type |.TEX|.
+These files can be used to make a printable copy of the manual if you
+have the \TeX\ text-formatting program: 
+\begintt
+$ TEX PGPLOT
+\endtt 
+The file |PGPLOT.TEX| contains \TeX\ |\input| commands that reference the
+other |.TEX| files.  Please do not modify the \TeX\ files: send your
+comments and bug reports to the author. 
+
+The figures in the manual were generated using PGPLOT subroutines.  The 
+Fortran programs used to generate them can also be found in the 
+|[PGPLOT.MANUAL]| directory.
+
+
+\beginsection Adding a new PGPLOT routine
+
+The author is happy to receive contributions of new high-level routines 
+for inclusion in PGPLOT.  Some general guidelines should be observed when
+preparing such routines:
+\item{1.} The routine should be written (as far as possible) in standard
+Fortran-77.
+\item{2.} The routine should call only other PGPLOT routines, or special
+support routines provided along with it. It should not use routines from
+other libraries (especially commercial ones!).  
+Note that if it is to be installed in the shareable library, it cannot use 
+common  blocks for communication with the program that calls it.  It 
+may, if necessary, use common blocks to communicate with other PGPLOT
+routines, but this is discouraged.
+\item{3.} It should be modular: that is, it should avoid, as far as 
+possible, making assumptions about the environment it is to run in, or 
+modifying that environment.  In particular: if it changes any attribute
+(\eg, color index) it should save the previous value of that attribute
+(obtained by calling a |PGQ...| routine) and reset it before exiting;
+it should not change the window or viewport, but if it must, it 
+should restore the old values before exiting; it should not call 
+|PGBEGIN| or |PGEND|.
+\item{4.} It should call routine |PGBBUF| at the beginning, and |PGEBUF|
+before exiting, in order to buffer its output.
+\item{5.} It should provide a generally useful function rather than a 
+highly specific one, with as many parameters as possible accessible to 
+the user (\eg, as arguments) rather than fixed in the program. 
+
+\endchapter

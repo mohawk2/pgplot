@@ -1,0 +1,202 @@
+% PGPLOT manual, 31-May-1988, T. J. Pearson
+%------------------------------------------------------------------------
+% Copyright (c) 1983, 1984, 1985, 1986, 1987, 1988, 1989 by
+% California Institute of Technology.
+% All rights reserved.
+%------------------------------------------------------------------------
+
+\beginchapter{5}{ATTRIBUTES}
+
+\beginsection Introduction
+
+The appearance of the primitive elements of a graphical image
+(lines, graph-markers, text, and area-fill) can be changed by specifying
+{\it primitive attributes}.  The attributes, and the corresponding
+routines for changing them, are: 
+
+{\it Color Index\/} and {\it Color Representation:}\quad |PGSCI|, 
+|PGSCR|, and |PGSHLS|.
+
+{\it Line Style:}\quad |PGSLS|.
+
+{\it Line Width:}\quad |PGSLW|.
+
+{\it Character Height:}\quad |PGSCH|.
+
+{\it Character Font:}\quad |PGSCF|.
+
+{\it Fill-area Style:}\quad |PGSFS|. 
+
+The routines to change attributes can be freely intermixed with the
+PGPLOT drawing routines. Once an attribute has been changed by a call to
+the appropriate routine, it remains in effect for all subsequent
+plotting until it is changed again.  In addition to the routines that
+set attributes (|PGSxx|) there are routines for determining the current
+value of each attribute (|PGQxx|). These make it possible to write
+subroutines which change attribute values temporarily but restore the
+old attributes before returning to the calling program. 
+
+
+\beginsection Color Index
+
+This attribute affects all the primitives: lines, graph-markers, text,
+and area-fill, and is controlled by two subroutines: |PGSCI| and
+|PGSCR|. 
+
+Devices differ considerably in their ability to draw in more than one 
+color.  On most hardcopy devices, the default color is black on a white 
+background, while on most CRT devices, it is white (or green) on a black
+background.  Color is selected using an integer parameter called the
+{\it color index}.  Color index 1 is the default color, and color
+index 0 is the background color.  The number of different color indices
+available depends on the device. On most monochrome devices, only color 
+indices 0 and 1 are available, while some color CRT devices may permit color
+indices from 0 to 255.  On some monochrome devices, color index can be 
+used to select different brightnesses (intensities).
+
+Color index 0, the background color, can be used to ``erase'' elements
+from a picture by overwriting them with color index 0.  Note that not 
+all devices are capable of this: e.g., Tektronix storage-tube 
+terminals and pen-plotters cannot erase part of a displayed picture.
+
+To select a new color index for subsequent plotting, use routine |PGSCI|
+(Set Color Index).
+
+Appendix~D lists the capabilities of the devices for plotting in color
+and variable intensity.  The default color index is 1; all devices
+accept this.  Most devices also accept color index 0 (erase), and
+several accept color index up to 15 or more. The maximum color index is
+the number of different colors that can be displayed at once. Some
+devices permit the assignment of colors to color indices to be changed
+(by calling |PGSCR|, see below). 
+
+
+\beginsection Color Representation
+
+Each color index has an associated {\it Color Representation}, which
+defines the associated color and intensity. Color Representation may
+be expressed by a set of three numbers, either the Hue, Lightness, and
+Saturation $(H,L,S)$ components or the Red, Green, and Blue $(R,G,B)$ 
+components. $(R,G,B)$ are quantities in the range 0.0--1.0, with 1.0
+being maximum intensity; if $R=G=B$ the color is a shade of gray. In the
+$(H,L,S)$ system, hue is a cyclic quantity expressed as an angle in
+the range 0--360, while $L$ and $S$ are in the range 0.0--1.0. 
+
+Table \the\chapnum.1 shows how the color indices are defined
+when PGPLOT is started (not all are available on all devices).
+The default assignments of colors to color indices can be changed with
+routine |PGSCR|, which permits one to specify the $(R,G,B)$ values for
+any color index, or |PGSHLS|, which permits one to specify the $(H,L,S)$
+values. Note that color-index 0, the background color, can be 
+redefined in this way.
+
+The effect of |PGSCR| is device-dependent. One some devices, it will be
+ignored. On others, (\eg, Grinnell, VT125) it will change the color of
+lines which have already been drawn in the specified color index, while
+on others (\eg, pen plotters) it will only affect lines drawn after the
+call of |PGSCR|. 
+
+
+\topinsert
+\centerline{\bf Table \the\chapnum.1\quad
+Default Color Representations}
+\medskip
+\centerline{\vbox{\tabskip=0pt \offinterlineskip
+\def\tablerule{\noalign{\hrule}}
+\halign {& \vrule#\tabskip=1em plus 2em&
+  \hfil\strut#\hfil& \vrule#&
+       #\hfil& \vrule#& 
+  \hfil#&      \vrule#&
+  \hfil#& \vrule#\tabskip=0pt\cr
+\tablerule
+height2pt&\omit&&\omit&&\omit&&\omit&\cr
+&{\it Color}&&   \omit&&\omit&&\omit&\cr
+&{\it Index}&& {\it Color}&& $(H,L,S)$\hfil&& $(R,G,B)$\hfil&\cr
+height2pt&\omit&&\omit&&\omit&&\omit&\cr
+\tablerule
+height2pt&\omit&&\omit&&\omit&&\omit&\cr
+& 0&&	Black (background)&&	  0, 0.00, 0.00&&	0.00, 0.00, 0.00&\cr
+& 1&&	White (default)&&	  0, 1.00, 0.00&&	1.00, 1.00, 1.00&\cr
+& 2&&	Red&&			120, 0.50, 1.00&&	1.00, 0.00, 0.00&\cr
+& 3&&	Green&&			240, 0.50, 1.00&&	0.00, 1.00, 0.00&\cr
+& 4&&	Blue&&			  0, 0.50, 1.00&&	0.00, 0.00, 1.00&\cr
+& 5&&	Cyan (Green + Blue)&&	300, 0.50, 1.00&&	0.00, 1.00, 1.00&\cr
+& 6&&	Magenta (Red + Blue)&&	 60, 0.50, 1.00&&	1.00, 0.00, 1.00&\cr
+& 7&&	Yellow  (Red + Green)&&	180, 0.50, 1.00&&	1.00, 1.00, 0.00&\cr
+& 8&&	Red + Yellow (Orange)&&	150, 0.50, 1.00&&	1.00, 0.50, 0.00&\cr
+& 9&&	Green + Yellow&&	210, 0.50, 1.00&&	0.50, 1.00, 0.00&\cr
+&10&&	Green + Cyan&&		270, 0.50, 1.00&&	0.00, 1.00, 0.50&\cr
+&11&&	Blue + Cyan&&		330, 0.50, 1.00&&	0.00, 0.50, 1.00&\cr
+&12&&	Blue + Magenta&&	 30, 0.50, 1.00&&	0.50, 0.00, 1.00&\cr
+&13&&	Red + Magenta&&		 90, 0.50, 1.00&&	1.00, 0.00, 0.50&\cr
+&14&&	Dark Gray&&		  0, 0.33, 0.00&&	0.33, 0.33, 0.33&\cr
+&15&&	Light Gray&&		  0, 0.66, 0.00&&	0.66, 0.66, 0.66&\cr
+&16--255&&	Undefined&&                    &&	                &\cr
+height2pt&\omit&&\omit&&\omit&&\omit&\cr
+\tablerule
+}}}
+\endinsert
+
+
+\beginsection Line Style
+
+Line Style can be, \eg, solid, dashed, or dotted. The
+attribute affects only lines, not the other primitives. It is controlled
+by subroutine |PGSLS|. The default line style is a full, unbroken
+line. To change the line style, use routine |PGSLS|. Line style is
+described by an integer code: 
+\item{1} -- full line,
+\item{2} -- long dashes,
+\item{3} -- dash-dot-dash-dot,
+\item{4} -- dotted,
+\item{5} -- dash-dot-dot-dot.
+
+
+\beginsection Line Width
+
+Line Width affects lines, graph-markers, and text. A thick-nibbed pen is
+simulated by tracing each line with multiple strokes offset in the
+direction perpendicular to the line.  The line width is specified by the
+number of strokes. The default width is one stroke, and the maximum that
+may be specified is 201. The exact appearance of thick lines is
+device-dependent---it depends on the resolution of the device---but on
+hardcopy devices (\eg, QMS Lasergrafix, Versatec) PGPLOT attempts to
+make the line-width increment equal to 0.005~inches. Requesting a
+line-width of 10, say, should give lines that are approximately
+1/20~inch thick. To change the line width, use routine |PGSLW|. 
+
+
+\beginsection Character Height
+
+Character Height affects graph-markers and text.  Character height is 
+specified as a multiple of the default character height; the default
+character height one-fortieth of the height or width of the view surface
+(whichever is less).  To change the character height, use routine 
+|PGSCH|.
+
+
+\beginsection Character Font
+
+Character Font affects text only. Four fonts are available. The default
+font (1) is simple and is the fastest to draw; the others should only be
+used for presentation plots on a high-resolution device (\eg, Versatec
+or laser printer).  To change the character font, use routine |PGSCF|; 
+it is also possible to change the font temporarily by using 
+escape sequences (see \S 4.4). The
+font is defined by an integer code: 
+\item{1} -- normal (simple) font (default),
+\item{2} -- roman font,
+\item{3} -- italic font,
+\item{4} -- script font.
+
+
+\beginsection Fill-Area Style
+
+Fill-Area Style can be hollow (only the outline of the polygon is
+drawn), or solid. The attribute may be extended in future to allow
+hatching and other patterns.  To change the fill-are style, use routine
+|PGSFS|.  The style is defined by an integer code:
+\item{1} -- solid fill (default),
+\item{2} -- hollow (outline only).
+
+\endchapter

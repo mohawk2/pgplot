@@ -1,5 +1,4 @@
 C*PGSLS -- set line style
-C%void cpgsls(int ls);
 C+
       SUBROUTINE PGSLS (LS)
       INTEGER  LS
@@ -18,8 +17,5 @@ C--
 C  8-Aug-1985 - new routine, equivalent to GRSLS [TJP].
 C  3-Jun-1984 - add GMFILE device [TJP].
 C-----------------------------------------------------------------------
-      LOGICAL PGNOTO
-C
-      IF (PGNOTO('PGSLS')) RETURN
       CALL GRSLS(LS)
       END

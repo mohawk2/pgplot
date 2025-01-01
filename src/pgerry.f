@@ -1,11 +1,6 @@
 C*PGERRY -- vertical error bar
-C%void cpgerry(int n, const float *x, const float *y1, \
-C% const float *y2, float t);
 C+
       SUBROUTINE PGERRY (N, X, Y1, Y2, T)
-      INTEGER N
-      REAL X(*), Y1(*), Y2(*)
-      REAL T
 C
 C Plot vertical error bars.
 C This routine draws an error bar only; to mark the data point in
@@ -29,27 +24,26 @@ C variables or expressions, eg:
 C       CALL PGERRY(1,X,Y+SIGMA,Y-SIGMA)
 C--
 C (6-Oct-1983)
-C 31-Mar-1997 - use pgtikl [TJP].
 C-----------------------------------------------------------------------
-      INTEGER  I
-      LOGICAL  PGNOTO
-      REAL     XTIK, YTIK
+      INCLUDE  'pgplot.inc'
+      INTEGER  I,N
+      REAL     T,TIK,X(*),Y1(*),Y2(*)
 C
-      IF (PGNOTO('PGERRY')) RETURN
+      IF (PGOPEN.EQ.0) RETURN
       IF (N.LT.1) RETURN
       CALL PGBBUF
 C
-      CALL PGTIKL(T, XTIK, YTIK)
+      TIK = T*XSP*0.15/XSCALE
       DO 10 I=1,N
-          IF (T.NE.0.0) THEN
-              CALL GRMOVA(X(I)-XTIK,Y1(I))
-              CALL GRLINA(X(I)+XTIK,Y1(I))
+          IF (TIK.NE.0.0) THEN
+              CALL GRMOVA(X(I)-TIK,Y1(I))
+              CALL GRLINA(X(I)+TIK,Y1(I))
           END IF
           CALL GRMOVA(X(I),Y1(I))
           CALL GRLINA(X(I),Y2(I))
-          IF (T.NE.0.0) THEN
-              CALL GRMOVA(X(I)-XTIK,Y2(I))
-              CALL GRLINA(X(I)+XTIK,Y2(I))
+          IF (TIK.NE.0.0) THEN
+              CALL GRMOVA(X(I)-TIK,Y2(I))
+              CALL GRLINA(X(I)+TIK,Y2(I))
           END IF
    10 CONTINUE
       CALL PGEBUF

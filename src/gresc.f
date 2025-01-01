@@ -14,11 +14,10 @@ C
 C 15-May-1985 - new routine [TJP].
 C 26-May-1987 - add GREXEC support [TJP].
 C 19-Dec-1988 - start new page if necessary [TJP].
-C  4-Feb-1997 - RBUF should be an array, not a scalar [TJP].
 C-----------------------------------------------------------------------
       INCLUDE 'grpckg1.inc'
       CHARACTER*(*) TEXT
-      REAL RBUF(1)
+      REAL RBUF
       INTEGER NBUF
 C
 C If no device is currently selected, do nothing.

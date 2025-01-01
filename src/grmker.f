@@ -23,15 +23,11 @@ C X, Y (input, real arrays, dimensioned at least N): the (X,Y)
 C       coordinates of the points to be plotted.
 C--
 C (19-Mar-1983)
-C 20-Jun-1985 - revise to window markers whole [TJP].
+C 20-Jun-1985 [TJP] - revise to window markers whole.
 C  5-Aug-1986 - add GREXEC support [AFT].
 C  1-Aug-1988 - add direct use of Hershey number [TJP].
 C 15-Dec-1988 - standardize [TJP].
 C 17-Dec-1990 - add polygons [PAH/TJP].
-C 12-Jun-1992 - [TJP]
-C 22-Sep-1992 - add support for hardware markers [TJP].
-C  1-Sep-1994 - suppress driver call [TJP].
-C 15-Feb-1994 - fix bug (expanding viewport!) [TJP].
 C-----------------------------------------------------------------------
       INCLUDE 'grpckg1.inc'
       INTEGER  SYMBOL
@@ -42,11 +38,7 @@ C-----------------------------------------------------------------------
       REAL     ANGLE, COSA, SINA, FACTOR, RATIO, X(*), Y(*)
       REAL     XCUR, YCUR, XORG, YORG
       REAL     THETA, XOFF(40), YOFF(40), XP(40), YP(40)
-      REAL     XMIN, XMAX, YMIN, YMAX
-      REAL     XMINX, XMAXX, YMINX, YMAXX
-      REAL     RBUF(4)
-      INTEGER  NBUF,LCHR
-      CHARACTER*32 CHR
+      INTEGER  XMIN, XMAX, YMIN, YMAX
 C
 C Check that there is something to be plotted.
 C
@@ -59,42 +51,6 @@ C
           RETURN
       END IF
 C
-      XMIN = GRXMIN(GRCIDE)
-      XMAX = GRXMAX(GRCIDE)
-      YMIN = GRYMIN(GRCIDE)
-      YMAX = GRYMAX(GRCIDE)
-      XMINX = XMIN-0.01
-      XMAXX = XMAX+0.01
-      YMINX = YMIN-0.01
-      YMAXX = YMAX+0.01
-C
-C Does the device driver do markers (only markers 0-31 at present)?
-C
-      IF (GRGCAP(GRCIDE)(10:10).EQ.'M' .AND.
-     :     SYMBOL.GE.0 .AND. SYMBOL.LE.31) THEN
-          IF (.NOT.GRPLTD(GRCIDE)) CALL GRBPIC
-C         -- symbol number
-          RBUF(1) = SYMBOL
-C          -- scale factor
-          RBUF(4) = GRCFAC(GRCIDE)/2.5
-          NBUF = 4
-          LCHR = 0
-          DO 10 K=1,N
-C             -- convert to device coordinates
-              CALL GRTXY0(ABSXY, X(K), Y(K), XORG, YORG)
-C             -- is the marker visible?
-              CALL GRCLIP(XORG, YORG, XMINX, XMAXX, YMINX, YMAXX, C)
-              IF (C.EQ.0) THEN
-                  RBUF(2) = XORG
-                  RBUF(3) = YORG
-                  CALL GREXEC(GRGTYP,28,RBUF,NBUF,CHR,LCHR)
-              END IF
-   10     CONTINUE
-          RETURN
-      END IF
-C
-C Otherwise, draw the markers here.
-C
 C Save current line-style, and set style "normal".
 C
       CALL GRQLS(LSTYLE)
@@ -103,6 +59,10 @@ C
 C Save current viewport, and open the viewport to include the full
 C view surface.
 C
+      XMIN = GRXMIN(GRCIDE)
+      XMAX = GRXMAX(GRCIDE)
+      YMIN = GRYMIN(GRCIDE)
+      YMAX = GRYMAX(GRCIDE)
       CALL GRAREA(GRCIDE, 0.0, 0.0, 0.0, 0.0)
 C
 C Compute scaling and orientation.
@@ -128,7 +88,7 @@ C Positive symbols.
 C
       DO 380 I=1,N
           CALL GRTXY0(ABSXY, X(I), Y(I), XORG, YORG)
-          CALL GRCLIP(XORG, YORG, XMINX, XMAXX, YMINX, YMAXX, C)
+          CALL GRCLIP(XORG,YORG,XMIN,XMAX,YMIN,YMAX,C)
           IF (C.NE.0) GOTO 380
           VISBLE = .FALSE.
           K = 4
@@ -164,13 +124,13 @@ C
 C         ! negative symbol: filled polygon of radius 8
           NV = MIN(31,MAX(3,ABS(SYMBOL)))
           DO 400 I=1,NV
-              THETA = 3.14159265359*(REAL(2*(I-1))/REAL(NV)+0.5) - ANGLE
+              THETA = 3.141592653*(REAL(2*(I-1))/REAL(NV) + 0.5) - ANGLE
               XOFF(I) = COS(THETA)*FACTOR*RATIO/GRXSCL(GRCIDE)*8.0
               YOFF(I) = SIN(THETA)*FACTOR/GRYSCL(GRCIDE)*8.0
   400     CONTINUE
           DO 420 K=1,N
               CALL GRTXY0(ABSXY, X(K), Y(K), XORG, YORG)
-              CALL GRCLIP(XORG, YORG, XMINX, XMAXX, YMINX, YMAXX, C)
+              CALL GRCLIP(XORG,YORG,XMIN,XMAX,YMIN,YMAX,C)
               IF (C.EQ.0) THEN
                   DO 410 I=1,NV
                       XP(I) = X(K)+XOFF(I)

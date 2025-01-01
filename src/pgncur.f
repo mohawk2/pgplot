@@ -1,5 +1,4 @@
 C*PGNCUR -- mark a set of points using the cursor
-C%void cpgncur(int maxpt, int *npt, float *x, float *y, int symbol);
 C+
       SUBROUTINE PGNCUR (MAXPT, NPT, X, Y, SYMBOL)
       INTEGER MAXPT, NPT
@@ -8,7 +7,7 @@ C+
 C
 C Interactive routine for user to enter data points by use of
 C the cursor.  Routine allows user to Add and Delete points.  The
-C points are returned in order of increasing x-coordinate, not in the
+C points are returned in order of increasing x-ccordinate, not in the
 C order they were entered.
 C
 C Arguments:
@@ -37,22 +36,16 @@ C--
 C 27-Nov-1983
 C  9-Jul-1983 - modified to use GRSCI instead of GRSETLI [TJP].
 C 13-Dec-1990 - changed warnings to messages [TJP].
-C  2-Aug-1995 - [TJP].
 C-----------------------------------------------------------------------
       INCLUDE  'pgplot.inc'
       CHARACTER*1 LETTER
-      LOGICAL  PGNOTO
       INTEGER  PGCURS, I, J, SAVCOL
       REAL     DELTA, XP, YP, XPHYS, YPHYS
       REAL     XMIN, XIP, YIP
-      REAL     XBLC, XTRC, YBLC, YTRC
-
-      J = 0
-
 C
 C Check that PGPLOT is in the correct state.
 C
-      IF (PGNOTO('PGNCUR')) RETURN
+      IF (PGOPEN.EQ.0) RETURN
 C
 C Save current color.
 C
@@ -64,7 +57,6 @@ C
 C
 C Start with the cursor in the middle of the viewport.
 C
-      CALL PGQWIN(XBLC, XTRC, YBLC, YTRC)
       XP = 0.5*(XBLC+XTRC)
       YP = 0.5*(YBLC+YTRC)
 C
@@ -110,12 +102,12 @@ C
           XMIN = 1.E+08
 C         ! Look for point closest in radius.
 C         ! Convert cursor points to physical.
-          XPHYS = PGXORG(PGID) + XP*PGXSCL(PGID)
-          YPHYS = PGYORG(PGID) + YP*PGYSCL(PGID)
+          XPHYS = XORG + XP*XSCALE
+          YPHYS = YORG + YP*YSCALE
           DO 220 I=1,NPT
 C             ! Convert array points to physical.
-              XIP = PGXORG(PGID) + X(I)*PGXSCL(PGID)
-              YIP = PGYORG(PGID) + Y(I)*PGYSCL(PGID)
+              XIP = XORG + X(I)*XSCALE
+              YIP = YORG + Y(I)*YSCALE
               DELTA = SQRT( (XIP-XPHYS)**2 + (YIP-YPHYS)**2 )
               IF (DELTA.LT.XMIN) THEN
                  XMIN = DELTA

@@ -1,5 +1,4 @@
 C*PGQCOL -- inquire color capability
-C%void cpgqcol(int *ci1, int *ci2);
 C+
       SUBROUTINE PGQCOL (CI1, CI2)
       INTEGER  CI1, CI2

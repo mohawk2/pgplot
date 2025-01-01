@@ -1,5 +1,4 @@
 C*PGTEXT -- write text (horizontal, left-justified)
-C%void cpgtext(float x, float y, const char *text);
 C+
       SUBROUTINE PGTEXT (X, Y, TEXT)
       REAL X, Y

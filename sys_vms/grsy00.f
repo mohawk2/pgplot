@@ -1,4 +1,4 @@
-C*GRSY00 -- initialize font definition [VMS]
+C*GRSY00 -- initialize font definition
 C+
       SUBROUTINE GRSY00
 C
@@ -51,12 +51,12 @@ C  5-Jan-1985 - make missing font file non-fatal [TJP].
 C  9-Feb-1988 - change default file name to Unix name; overridden
 C               by environment variable PGPLOT_FONT [TJP].
 C 29-Nov-1990 - move font assignment to GRSYMK.
-C  7-Nov-1994 - look for font file in PGPLOT_DIR if PGPLOT_FONT is
-C               undefined [TJP].
 C-----------------------------------------------------------------------
+      CHARACTER*(*) UNIX
+      PARAMETER  (UNIX='PGPLOT_DIR:grfont.dat')
       INTEGER*2  BUFFER(27000)
       INTEGER    FNTFIL, IER, INDEX(3000), NC1, NC2, NC3
-      INTEGER    L, GRTRIM
+      INTEGER    L
       COMMON     /GRSYMB/ NC1, NC2, INDEX, BUFFER
       CHARACTER*128 FF
 C
@@ -64,20 +64,18 @@ C Read the font file. If an I/O error occurs, it is ignored; the
 C effect will be that all symbols will be undefined (treated as 
 C blank spaces).
 C
-      CALL GRGFIL('FONT', FF)
-      L = GRTRIM(FF)
-      IF (L.LT.1) L = 1
+      CALL GRGENV('FONT', FF, L)
+      IF (L.EQ.0) THEN
+          FF = UNIX
+          L = LEN(UNIX)
+      END IF
       CALL GRGLUN(FNTFIL)
-      OPEN (UNIT=FNTFIL, FILE=FF(1:L), FORM='UNFORMATTED',
-     2      STATUS='OLD', READONLY, IOSTAT=IER)
+      OPEN (UNIT=FNTFIL, FILE=FF(:L), FORM='UNFORMATTED',
+     1      READONLY, STATUS='OLD', IOSTAT=IER)
       IF (IER.EQ.0) READ (UNIT=FNTFIL, IOSTAT=IER) 
      1            NC1,NC2,NC3,INDEX,BUFFER
       IF (IER.EQ.0) CLOSE (UNIT=FNTFIL, IOSTAT=IER)
       CALL GRFLUN(FNTFIL)
-      IF (IER.NE.0) THEN
-          CALL GRWARN('Unable to read font file: '//FF(:L))
-          CALL GRWARN('Use environment variable PGPLOT_FONT to specify '
-     :          //'the location of the PGPLOT grfont.dat file.')
-      END IF
+      IF (IER.NE.0) CALL GRWARN('Unable to read font file: '//FF(:L))
       RETURN
       END

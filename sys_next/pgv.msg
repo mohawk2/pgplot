@@ -1,0 +1,6 @@
+- clear;
+- dopsop: (int) iop at: (int) n1 and: (int) n2;
+- eofill;
+- flush;
+- linewidth: (double) dwidth;
+- setgray: (double) dgray;

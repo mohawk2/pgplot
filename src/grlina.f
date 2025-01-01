@@ -1,3 +1,4 @@
+
 C*GRLINA -- draw a line (absolute, world coordinates)
 C+
       SUBROUTINE GRLINA (X,Y)
@@ -14,7 +15,6 @@ C-----------------------------------------------------------------------
       REAL     X,Y
 C
       IF (GRCIDE.GE.1) THEN
-C         WRITE (*,'(A,2F10.5)') 'GRLINA', X, Y
           CALL GRLIN0( X * GRXSCL(GRCIDE) + GRXORG(GRCIDE),
      1                 Y * GRYSCL(GRCIDE) + GRYORG(GRCIDE) )
       END IF

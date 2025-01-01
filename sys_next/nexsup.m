@@ -1,64 +1,56 @@
-// This is a 'support routine' used by the nedriv.f code.  In brief, this
-// is the main interface between the Fortran and C languages.  It is
-// called from Fortran and uses an Objective C speaker object to send
-// messages to the PGPLOT viewer.
-//
 #import "pgvSpeaker.h"
+#include <dpsclient/dpsclient.h>
+#include <stdlib.h>
 #import <stdio.h>
 
-void mkspeak( id * ispeak);
-id   mySpeak=NULL;
+void myspeak( id idum);
+id   mySpeak;
 
-#ifdef ABSOFT
-void NEXSUP ( int *ifunc,   char *cbuf,   float rtmp[],
-           int len_ifunc, int len_cbuf, int len_rtmp)
-#else
-void nexsup_( int *ifunc, char *cbuf, float rtmp[], int len_cbuf)
-#endif
+void nexsup_( int *ifunc, float *x1, float *x2)
+/* Support routine for NEDRIVER.FOR */
 {
-      int n1, n2, itmp;
-      double d1, d2;
+   double dtmp;
+   int    n1,n2;
 
-      if(mySpeak==NULL) {
-         mkspeak(&mySpeak);
-      }
-         
-      switch (*ifunc) {
-      case 1:
-         [mySpeak getwind: &n1 by: &n2 scale:&d1 color: &itmp];
-         rtmp[0]= (float) n1;
-         rtmp[1]= (float) n2;
-         rtmp[2]= (float) d1;
-         rtmp[3]= (float) itmp;
-         break;
-      case 2:
-         [mySpeak beginp];
-         break;
-      case 3:
-         [mySpeak pscode:cbuf];
-         break;
-      case 4:
-         [mySpeak cursorat: &d1 and: &d2 char: &itmp];
-         rtmp[0]= (float) d1;
-         rtmp[1]= (float) d2;
-         rtmp[2]= (float) itmp;
-         break;
-      case 5:
-         [mySpeak flush];
-         break;
-      case 6:
-         [mySpeak endp];
-         break;
-      case 7:
-         [mySpeak free];
-         mySpeak=NULL;
-         break;
-      default :
-         printf("nexsup--Unknown function code= %d\n",*ifunc);
-         break;
-      }
+   switch (*ifunc) {
+   case 0:
+      mkspeak(&mySpeak);
+//      mySpeak=n1;
+      break;
+   case 1:
+      [mySpeak clear];
+      break;
+   case 2:
+      n1= (long) *x1;
+      n2= (long) *x2;
+      [mySpeak dopsop: dps_moveto at:n1 and:n2];
+      break;
+   case 3:
+      n1= (long) *x1;
+      n2= (long) *x2;
+      [mySpeak dopsop: dps_lineto at:n1 and:n2];
+      break;
+   case 4:
+      n1= (long) *x1;
+      n2= (long) *x2;
+      [mySpeak dopsop: dps_rlineto at:n1 and:n2];
+      break;
+   case 5:
+      [mySpeak flush];
+      break;
+   case 6:
+      dtmp= (double) *x1;
+      [mySpeak setgray: dtmp];
+      break;
+   case 7:
+      [mySpeak eofill];
+      break;
+   case 8:
+      dtmp= (double) *x1;
+      [mySpeak linewidth: dtmp];
+      break;
+   default :
+printf("Oh dear, something has gone a bit wrong in nexsup.\n");
+      break;
+   }
 }
-
-#import "mkspeak.m"
-
-#import "pgvSpeaker.m"

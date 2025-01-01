@@ -1,0 +1,295 @@
+\documentstyle{article} 
+\pagestyle{myheadings}
+
+%------------------------------------------------------------------------------
+\newcommand{\stardoccategory}  {Starlink User Note}
+\newcommand{\stardocinitials}  {SUN}
+\newcommand{\stardocnumber}    {15.2}
+\newcommand{\stardocauthors}   {D L Terrett}
+\newcommand{\stardocdate}      {13 June 1989}
+\newcommand{\stardoctitle}     {PGPLOT --- Graphics Subroutine Library}
+%------------------------------------------------------------------------------
+
+\newcommand{\stardocname}{\stardocinitials /\stardocnumber}
+\markright{\stardocname}
+\setlength{\textwidth}{160mm}
+\setlength{\textheight}{240mm}
+\setlength{\topmargin}{-5mm}
+\setlength{\oddsidemargin}{0mm}
+\setlength{\evensidemargin}{0mm}
+\setlength{\parindent}{0mm}
+\setlength{\parskip}{\medskipamount}
+\setlength{\unitlength}{1mm}
+
+\catcode`\_=12
+
+\begin{document}
+\thispagestyle{empty}
+SCIENCE \& ENGINEERING RESEARCH COUNCIL \hfill \stardocname\\
+RUTHERFORD APPLETON LABORATORY\\
+{\large\bf Starlink Project\\}
+{\large\bf \stardoccategory\ \stardocnumber}
+\begin{flushright}
+\stardocauthors\\
+\stardocdate
+\end{flushright}
+\vspace{-4mm}
+\rule{\textwidth}{0.5mm}
+\vspace{5mm}
+\begin{center}
+{\Large\bf \stardoctitle}
+\end{center}
+\vspace{5mm}
+
+\section{Introduction}
+
+PGPLOT is a high level graphics package for plotting X {\em versus} Y plots,
+functions, histograms, bar charts, contour maps and grey-scale images. Complete
+diagrams can be produced with a minimal number of subroutine calls, but control
+over colour, lines-style, character font, etc.\ is available if required. The
+package was written (by Dr T J Pearson of the Caltech astronomy department)
+with astronomical applications in mind and has become a {\it de facto} standard
+for graphics in astronomy world wide.
+
+The package exists in two version: the original version which uses a low
+level graphics package known as GRPCKG which was also written at Caltech,
+and a version developed by Starlink, in collaboration with Dr Pearson, which
+uses GKS. The two versions have identical subroutine interfaces and
+applications can be moved from one version to the other simply by re-linking.
+It is the GKS version that is distributed and supported by Starlink.
+
+The main source of information on using PGPLOT is the PGPLOT manual (PGPLOT,
+Version 4.7 May 1988, revised June 1989), obtainable
+from your site manager or the Starlink software librarian, which describes the
+original GRPCKG version. The majority of the manual applies equally to both
+versions but when using the GKS version the following sections should be
+ignored and the information in this note used instead:
+\begin{tabbing}
+***\=$\bullet$ Appendix  C**\= \kill
+\>$\bullet$ Section 1.3 \>Linking with PGPLOT \\
+\\
+\>$\bullet$ Section 1.4 \>Graphics Devices \\
+\\
+\>$\bullet$ Section 2.11 \>Compiling and Running the Program \\
+\\
+\>$\bullet$ Appendix C \>Installation Instructions \\
+\\
+\>$\bullet$ Appendix D \>Supported Devices \\
+\\
+\>$\bullet$ Appendix E \>Writing a Device Handler
+\end{tabbing}
+
+\section{Using the GKS version}
+
+There are two ways in which the GKS version of PGPLOT can be used:
+     
+\begin{enumerate}
+\item As a self contained graphics package where {\em all} graphics, including
+opening and closing the workstation, is done with PGPLOT. Programs written in
+this way can be run with other implementations of PGPLOT. Such programs
+are linked with the command:
+\begin{quote}\tt
+\$ LINK {\em prog},PGPLOT_DIR:GRPSHR/LIB
+\end{quote}
+
+\item To plot a picture in the current viewport of an already open GKS
+workstation (see section~\ref{viewport}). Programs using PGPLOT in this way must
+be linked with the PGPLOT object module library ({\tt PGPLOT_DIR:GRPCKG}), GNS
+({\tt GNS_DIR:GNS}) and
+GKS as well as any other graphics packages that are being used. 
+\end{enumerate}
+
+\section{PGPLOT on Starlink}
+
+On Starlink systems, PGPLOT programs will use the GKS version of the library by
+default but the GRPCKG version may also have been installed, either because it
+supports some graphics device that the GKS version does not, or because it is
+needed by software which contains calls to obsolete GRPCKG routines. The
+version being used both when linking and running a program depends on the
+definition of the logical name GRPSHR. For the GKS version the definition
+will be:
+\begin{center}\tt
+"GRPSHR" = "PGPLOT_DIR:GRPSHR.EXE"
+\end{center}
+To use the GRPCKG version the logical name must be re-defined to point the
+directory containing the GRPCKG library (ask your system manager if you
+don't know where this is). Some software systems (eg.\
+FIGARO) may make this re-definition automatically in which case the new
+definition must be de-assigned in order to revert to the GKS version.
+
+\section{Graphics Devices}\label{Graphics_Devices}
+
+Any graphics device supported by GKS can be used with PGPLOT and device
+names are translated using the graphics name service described in SUN/57
+section 2.
+
+If a question mark is typed in response to the prompt from {\tt PGBEGIN}, a
+list of those workstation names defined on your system will be listed on the
+terminal. 
+
+The device name syntax described in the PGPLOT manual is also
+supported; when using this form of device name, the device type is specified
+using a GNS workstation name.
+
+On some hard copy devices the output from a PGPLOT program is a file and
+some further action (such as printing the file) is required to produce a plot.
+If you are unfamiliar with a particular device, consult SUN/83.
+
+\section{Plotting in the current viewport}\label{viewport}
+
+PGPLOT can be used to plot a picture in the current viewport on an already open
+GKS workstation. When used in this way, the second argument to {\tt PGBEGIN}
+(normally the workstation name) is a GKS workstation identifier (encoded as a
+character string). PGPLOT then behaves as if the region of the display surface
+defined by the current viewport is a complete workstation. When {\tt PGEND} is
+called the workstation is not closed but the state of GKS is restored to what
+it was at the time that {\tt PGBEGIN} was called. 
+
+PGPLOT assumes that it has exclusive control over the GKS and so the only
+graphics calls allowed between {\tt PGBEGIN} and {\tt PGEND} are PGPLOT
+routines and GKS inquiry routines. 
+
+The following simple example is a subroutine that uses PGPLOT to draw an X, Y
+plot in an SGS zone.
+
+\begin{verbatim}
+      SUBROUTINE XYPLOT (IZONE, X, Y, N, XLO, XHI, YLO, YHI, ISTAT)
+*++
+*   XYPLOT   Draw X,Y plot in an SGS zone
+*
+*   Description:
+*   
+*      Uses PGPLOT to draw an X,Y plot of the real arrays X & Y in the
+*      region of the display surface defined be the specified SGS zone
+*
+*   Input arguments:
+*   
+*      IZONE    INTEGER         SGS zone identifier
+*      X        REAL(N)         X values of data points
+*      Y        REAL(N)         Y   "    "    "    "
+*      N        INTEGER         Number of data points
+*      XLO      REAL            Lower X axis limit
+*      XHI      REAL            Higher X  "    "
+*      YLO      REAL            Lower Y  "     "
+*      YHI      REAL            Higher Y  "    "
+*                                 
+*   Output arguments:
+*   
+*      ISTAT    INTEGER         SGS status
+*
+*   Side effects:
+*   
+*      The specified SGS zone is selected.
+*++
+      IMPLICIT NONE
+      INTEGER  IZONE, N, ISTAT
+      REAL     X(N), Y(N), XLO, XHI, YLO, YHI
+
+      CHARACTER*10 WKID
+      INTEGER IWKID
+
+*  Select the specified SGS zone
+      CALL SGS_SELZ(IZONE, ISTAT)
+      IF (ISTAT.EQ.0) THEN
+
+*     Inquire the GKS workstation identifier of the current zone
+         CALL SGS_ICURW(IWKID)
+
+*     Encode workstation id as a character string
+         WRITE(UNIT=WKID, FMT='(I10)') IWKID
+      
+*     Open PGPLOT
+         CALL PGBEGIN(0, WKID, 1, 1)
+
+*     Define axis limits
+         CALL PGENV(XLO, XHI, YLO, YHI, 0, 0)
+
+*     Plot the data
+         CALL PGPOINT(N, X, Y, 2)
+      
+*     Close down PGPLOT
+         CALL PGEND
+      END IF
+      
+      END
+\end{verbatim} 
+
+Because other plotting packages may have plotted on the same physical device,
+there are some restrictions when using PGPLOT in this way:
+
+\begin{itemize}
+\item {\tt PGSIZE} cannot be used.
+
+\item {\tt PGPAGE} will never clear the screen. If the display surface has
+been divided into sub-pictures {\tt PGPAGE} will move to the next sub-picture
+in the usual way.
+
+\item On devices with fixed colour tables, the default PGPLOT colour table
+will not be set up by {\tt PGBEGIN} unless the display surface is empty.
+
+\end{itemize}
+
+\section{Example Programs}
+
+The directory {\tt [STARLINK.LIB.PGPLOT.EXAMPLES]} contains a number of example
+programs which demonstrate most of the features of PGPLOT. They can be run
+with the command:
+\begin{quote}\tt
+\$ RUN STARDISK:[STARLINK.LIB.PGPLOT.EXAMPLES]PGEX{\em n}
+\end{quote}
+where {\em n} is between 1 and 23. All the programs prompt for a device
+name. The program source code is stored in the same directory.
+
+\section{Other Differences}
+In general the two versions produce identical results when run on the same
+device but the following differences should be noted:
+\begin{itemize}
+\item The GKS version of {\tt PGPAPER} cannot be used to make the display surface
+larger than the default size provided by {\tt PGBEGIN}.
+\item The GKS version of {\tt PGBEGIN} clears the display surface immediately
+instead of waiting until the first vector is plotted.
+\end{itemize}
+
+\section{Support}
+
+PGPLOT is Starlink supported software and bugs should be reported through the
+usual channels and not by contacting Dr Pearson directly. Problems with the GKS
+specific code will be dealt with by Starlink but all changes to the code which
+is common to the two versions of PGPLOT must be made in collaboration with Dr
+Pearson.
+
+The mixing of calls to PGPLOT and GKS routines is not supported except as
+described in section~\ref{viewport}, and neither
+version supports the calling of GRPCKG routines directly. Existing programs
+that call GRPCKG should be re-written to call the equivalent PGPLOT routines.
+
+\section{Restrictions}
+
+The current version contains the following bugs and restrictions. They will
+be removed in a future release.
+\begin{itemize}
+\item The metafile workstation cannot be used.
+\item {\tt PGCONT} and {\tt PGCONX} occasionally leave gaps in contours and 
+draw jagged contours.
+\item {\tt PGGRAY} occasionally leaves gaps of one pixel between segments of a
+grey scale image. Making a tiny adjustment to the viewport will usually
+eliminate them.
+\end{itemize}
+
+\section{New features}
+The following new features are introduced with this release:
+\begin{itemize}
+\item The ability to use PGPLOT to plot in region of an already open
+workstations.
+\item A new routine for inquiring the range of colour indices available on a
+device ({\tt PGQCOL}).
+\item {\tt PGADVANCE} has been replaced by {\tt PGPAGE} so that PGPLOT can be
+implemented on system that restrict subroutine names to 8 characters. {\tt
+PGADVANCE} has been retained in the library so that existing programs do not
+have to be changed.
+\item {\tt PGGRAY} will plot a ``pseudo grey scale'' plot on devices without a
+true grey scale capability using a random dot algorithm.
+\item PGPLOT now uses the GNS system (SUN/57) for translating device
+names. This allows device names to be abbreviated.
+\end{itemize}
+\end{document}

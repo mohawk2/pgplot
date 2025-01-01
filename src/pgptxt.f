@@ -1,6 +1,4 @@
 C*PGPTXT -- write text at arbitrary position and angle
-C%void cpgptxt(float x, float y, float angle, float fjust, \
-C% const char *text);
 C+
       SUBROUTINE PGPTXT (X, Y, ANGLE, FJUST, TEXT)
       REAL X, Y, ANGLE, FJUST
@@ -34,33 +32,24 @@ C--
 C (2-May-1983)
 C 31-Jan-1985 - convert to Fortran-77 standard...
 C 13-Feb-1988 - correct a PGBBUF/PGEBUF mismatch if string is blank.
-C 16-Oct-1993 - erase background of opaque text.
 C-----------------------------------------------------------------------
       INCLUDE 'pgplot.inc'
-      INTEGER CI, I, L, GRTRIM
+      INTEGER L
       REAL D, XP, YP
-      REAL XBOX(4), YBOX(4)
-      LOGICAL PGNOTO
 C
-      IF (PGNOTO('PGPTXT')) RETURN
+      IF (PGOPEN.EQ.0) RETURN
       CALL PGBBUF
 C
-      L = GRTRIM(TEXT)
+      L = LEN(TEXT)
+   10 IF (TEXT(L:L).NE.' ') GOTO 20
+          L = L-1
+          IF (L.LE.0) GOTO 30
+          GOTO 10
+   20 CONTINUE
       D = 0.0
       IF (FJUST.NE.0.0) CALL GRLEN(TEXT(1:L),D)
-      XP = PGXORG(PGID)+X*PGXSCL(PGID) - D*FJUST*COS(ANGLE/57.29578)
-      YP = PGYORG(PGID)+Y*PGYSCL(PGID) - D*FJUST*SIN(ANGLE/57.29578)
-      IF (PGTBCI(PGID).GE.0) THEN
-          CALL GRQTXT (ANGLE, XP, YP, TEXT(1:L), XBOX, YBOX)
-          DO 25 I=1,4
-              XBOX(I) = (XBOX(I)-PGXORG(PGID))/PGXSCL(PGID)
-              YBOX(I) = (YBOX(I)-PGYORG(PGID))/PGYSCL(PGID)
-   25     CONTINUE
-          CALL PGQCI(CI)
-          CALL PGSCI(PGTBCI(PGID))
-          CALL GRFA(4, XBOX, YBOX)
-          CALL PGSCI(CI)
-      END IF
+      XP = XORG + X*XSCALE - D*FJUST*COS(ANGLE/57.29578)
+      YP = YORG + Y*YSCALE - D*FJUST*SIN(ANGLE/57.29578)
       CALL GRTEXT(.TRUE. ,ANGLE, .TRUE., XP, YP, TEXT(1:L))
-      CALL PGEBUF
+   30 CALL PGEBUF
       END

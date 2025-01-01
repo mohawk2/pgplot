@@ -1,5 +1,4 @@
 C*PGIDEN -- write username, date, and time at bottom of plot
-C%void cpgiden(void);
 C+
       SUBROUTINE PGIDEN
 C
@@ -38,8 +37,8 @@ C
       CALL PGSLW(1)
       CALL PGSCH(0.6)
       CALL GRLEN(TEXT(1:L),D)
-      CALL GRTEXT(.FALSE., 0.0, .TRUE., PGXSZ(PGID)-D-2.0,
-     1            2.0+PGYSZ(PGID)/130.0, TEXT(1:L))
+      CALL GRTEXT(.FALSE., 0.0, .TRUE., XSZ-D-2.0, 2.0+YSZ/130.0,
+     1            TEXT(1:L))
 C
 C Restore attributes.
 C

@@ -1,11 +1,11 @@
 C*PGGRAY -- gray-scale map of a 2D data array
-C%void cpggray(const float *a, int idim, int jdim, int i1, int i2, \
-C% int j1, int j2, float fg, float bg, const float *tr);
 C+
       SUBROUTINE PGGRAY (A, IDIM, JDIM, I1, I2, J1, J2,
      1                   FG, BG, TR)
       INTEGER IDIM, JDIM, I1, I2, J1, J2
-      REAL    A(IDIM,JDIM), FG, BG, TR(6)
+      REAL    A(IDIM,JDIM)
+      REAL    FG, BG
+      REAL TR(6)
 C
 C Draw gray-scale map of an array in current window. The subsection
 C of the array A defined by indices (I1:I2, J1:J2) is mapped onto
@@ -22,23 +22,25 @@ C The background level BG can be either less than or greater than the
 C foreground level FG.  Points in the array that are outside the range
 C BG to FG are assigned shade 0 or 1 as appropriate.
 C
-C PGGRAY uses two different algorithms, depending how many color
-C indices are available in the color index range specified for images.
-C (This range is set with routine PGSCIR, and the current or default
-C range can be queried by calling routine PGQCIR).
+C The algorithm used by PGGRAY is device-dependent.  On devices
+C that have only two color indices (0 and 1), the background color
+C is the color assigned to color index 0, the foreground color
+C is the color assigned to color index 1, and PGGRAY uses a
+C "dithering" algorithm to fill in pixels in the two colors, with
+C the shade (computed as above) determining the faction of pixels
+C that are assigned color index 1.
 C
-C If 16 or more color indices are available, PGGRAY first assigns
-C color representations to these color indices to give a linear ramp
-C between the background color (color index 0) and the foreground color
-C (color index 1), and then calls PGIMAG to draw the image using these
-C color indices. In this mode, the shaded region is "opaque": every
-C pixel is assigned a color.
+C On devices that have more than 16 color indices, PGGRAY may use
+C color indices outside the range 0-15 to provide more than two
+C gray shades.  Note that PGGRAY may change the color representation
+C of these color indices, but it will not change the representation
+C of indices 0-15.
 C
-C If less than 16 color indices are available, PGGRAY uses only
-C color index 1, and uses  a "dithering" algorithm to fill in pixels,
-C with the shade (computed as above) determining the faction of pixels
-C that are filled. In this mode the shaded region is "transparent" and
-C allows previously-drawn graphics to show through.
+C On most devices, the shaded region is "opaque", i.e., it obscures
+C all graphical elements previously drawn in the region. But on
+C devices that do not have erase capability, the background shade
+C is "transparent" and allows previously-drawn graphics to show
+C through.
 C
 C The transformation matrix TR is used to calculate the world
 C coordinates of the center of the "cell" that represents each
@@ -61,52 +63,33 @@ C  I1, I2 (input)  : the inclusive range of the first index
 C                    (I) to be plotted.
 C  J1, J2 (input)  : the inclusive range of the second
 C                    index (J) to be plotted.
-C  FG     (input)  : the array value which is to appear with the
-C                    foreground color (corresponding to color index 1).
-C  BG     (input)  : the array value which is to appear with the
-C                    background color (corresponding to color index 0).
+C  FG     (input)  : the array value which is to appear with shade
+C                    1 ("foreground").
+C  BG     (input)  : the array value which is to appear with shade
+C                    0 ("background").
 C  TR     (input)  : transformation matrix between array grid and
 C                    world coordinates.
 C--
 C  2-Sep-1987: remove device-dependent code to routine GRGRAY (TJP).
 C  7-Jun-1988: change documentation and argument names (TJP).
 C 31-May-1989: allow 1-pixel wide arrays to be plotted (TJP).
-C 17-Mar-1994: pass PG scaling info to lower routines (TJP).
-C 15-Sep-1994: use PGITF attribute (TJP).
-C  8-Feb-1995: use color ramp based on current foreground and background
-C              colors (TJP).
-C  6-May-1996: allow multiple devives (TJP).
 C-----------------------------------------------------------------------
       INCLUDE  'pgplot.inc'
-      REAL PA(6)
-      LOGICAL PGNOTO
 C
 C Check inputs.
 C
-      IF (PGNOTO('PGGRAY')) RETURN
       IF (I1.LT.1 .OR. I2.GT.IDIM .OR. I1.GT.I2 .OR.
      1    J1.LT.1 .OR. J2.GT.JDIM .OR. J1.GT.J2) THEN
           CALL GRWARN('PGGRAY: invalid range I1:I2, J1:J2')
       ELSE IF (FG.EQ.BG) THEN
           CALL GRWARN('PGGRAY: foreground level = background level')
-      ELSE
+      ELSE IF (PGOPEN.NE.0) THEN
 C
 C Call lower-level routine to do the work.
 C
           CALL PGBBUF
-          CALL PGSAVE
-          CALL PGSCI(1)
-          PA(1) = TR(1)*PGXSCL(PGID) + PGXORG(PGID)
-          PA(2) = TR(2)*PGXSCL(PGID)
-          PA(3) = TR(3)*PGXSCL(PGID)
-          PA(4) = TR(4)*PGYSCL(PGID) + PGYORG(PGID)
-          PA(5) = TR(5)*PGYSCL(PGID)
-          PA(6) = TR(6)*PGYSCL(PGID)
-          CALL GRGRAY(A, IDIM, JDIM, I1, I2, J1, J2, FG, BG, PA,
-     :                PGMNCI(PGID), PGMXCI(PGID), PGITF(PGID))
+          CALL GRGRAY(A, IDIM, JDIM, I1, I2, J1, J2, FG, BG, TR)
           CALL PGEBUF
-          CALL PGUNSA
       END IF
 C-----------------------------------------------------------------------
       END
-

@@ -1,3 +1,4 @@
+
 C*GRPAGE -- end picture
 C+
       SUBROUTINE GRPAGE
@@ -21,8 +22,6 @@ C 29-Jan-1985 - add HP2648 terminal [KS/TJP].
 C  5-Aug-1986 - add GREXEC support [AFT].
 C 21-Feb-1987 - fix GREXEC end picture sequence [AFT].
 C 11-Jun-1987 - remove built-in devices [TJP].
-C 11-Feb-1992 - update veiew surface size: it may have changed! [TJP].
-C  5-Jan-1993 - but only if GRSETS has not been called! [TJP]
 C-----------------------------------------------------------------------
       INCLUDE 'grpckg1.inc'
 C
@@ -41,15 +40,10 @@ C
 C
 C End picture.
 C
-      CALL GREPIC
-C
-C Update the view surface size: it may have changed (on windowing 
-C devices)
-C
-      IF (.NOT.GRADJU(GRCIDE)) THEN
-          CALL GREXEC(GRGTYP, 6,RBUF,NBUF,CHR,LCHR)
-          GRXMXA(GRCIDE) = RBUF(2)
-          GRYMXA(GRCIDE) = RBUF(4)
+      IF (GRPLTD(GRCIDE)) THEN
+            RBUF(1) = 1.
+            NBUF = 1
+            CALL GREXEC(GRGTYP,14,RBUF,NBUF,CHR,LCHR)
       END IF
-C
+      GRPLTD(GRCIDE) = .FALSE.
       END

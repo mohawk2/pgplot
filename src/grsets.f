@@ -1,3 +1,4 @@
+
 C*GRSETS -- change size of view surface
 C+
       SUBROUTINE GRSETS (IDENT,XSIZE,YSIZE)
@@ -18,8 +19,7 @@ C               will be used.
 C--
 C (1-Feb-1983)
 C  5-Aug-1986 - add GREXEC support [AFT].
-C  5-Jan-1993 - set GRADJU [TJP].
-C------------------------------------------------------------------------
+C-----------------------------------------------------------------------
       INCLUDE 'grpckg1.inc'
       INTEGER  I, IDENT, J, IX, IY, NBUF,LCHR
       REAL     RBUF(6)
@@ -27,7 +27,6 @@ C------------------------------------------------------------------------
       REAL     XSIZE,YSIZE
 C
       CALL GRSLCT(IDENT)
-C     write (*,*) 'GRSETS: old size', GRXMXA(IDENT), GRYMXA(IDENT)
       CALL GRPAGE
       IF ((XSIZE .LT. 0.0) .OR. (YSIZE .LT. 0.0)) THEN
           CALL GREXEC(GRGTYP, 6,RBUF,NBUF,CHR,LCHR)
@@ -44,11 +43,9 @@ C     write (*,*) 'GRSETS: old size', GRXMXA(IDENT), GRYMXA(IDENT)
           GRXMXA(IDENT) = I
           GRYMXA(IDENT) = J
       END IF
-C     write (*,*) 'GRSETS: new size', GRXMXA(IDENT), GRYMXA(IDENT)
       GRXMIN(IDENT) = 0
       GRXMAX(IDENT) = GRXMXA(IDENT)
       GRYMIN(IDENT) = 0
       GRYMAX(IDENT) = GRYMXA(IDENT)
-      GRADJU(IDENT) = .TRUE.
 C
       END

@@ -1,5 +1,4 @@
 C*PGSCI -- set color index
-C%void cpgsci(int ci);
 C+
       SUBROUTINE PGSCI (CI)
       INTEGER  CI
@@ -30,8 +29,5 @@ C                    default color index (1) is used.
 C--
 C 26-Sep-1985 - new routine [TJP].
 C-----------------------------------------------------------------------
-      LOGICAL PGNOTO
-C
-      IF (PGNOTO('PGSCI')) RETURN
       CALL GRSCI(CI)
       END

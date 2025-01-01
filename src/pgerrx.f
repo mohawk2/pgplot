@@ -1,6 +1,4 @@
 C*PGERRX -- horizontal error bar
-C%void cpgerrx(int n, const float *x1, const float *x2, \
-C% const float *y, float t);
 C+
       SUBROUTINE PGERRX (N, X1, X2, Y, T)
       INTEGER N
@@ -29,27 +27,26 @@ C variables, or expressions, eg:
 C       CALL PGERRX(1,X-SIGMA,X+SIGMA,Y)
 C--
 C (6-Oct-1983)
-C 31-Mar-1997 - use pgtikl [TJP[.
 C-----------------------------------------------------------------------
+      INCLUDE  'pgplot.inc'
       INTEGER  I
-      LOGICAL  PGNOTO
-      REAL     XTIK, YTIK
+      REAL     TIK
 C
-      IF (PGNOTO('PGERRX')) RETURN
+      IF (PGOPEN.EQ.0) RETURN
       IF (N.LT.1) RETURN
       CALL PGBBUF
 C
-      CALL PGTIKL(T, XTIK, YTIK)
+      TIK = T*XSP*0.15/YSCALE
       DO 10 I=1,N
-          IF (T.NE.0.0) THEN
-              CALL GRMOVA(X1(I),Y(I)-YTIK)
-              CALL GRLINA(X1(I),Y(I)+YTIK)
+          IF (TIK.NE.0.0) THEN
+              CALL GRMOVA(X1(I),Y(I)-TIK)
+              CALL GRLINA(X1(I),Y(I)+TIK)
           END IF
           CALL GRMOVA(X1(I),Y(I))
           CALL GRLINA(X2(I),Y(I))
-          IF (T.NE.0.0) THEN
-              CALL GRMOVA(X2(I),Y(I)-YTIK)
-              CALL GRLINA(X2(I),Y(I)+YTIK)
+          IF (TIK.NE.0.0) THEN
+              CALL GRMOVA(X2(I),Y(I)-TIK)
+              CALL GRLINA(X2(I),Y(I)+TIK)
           END IF
    10 CONTINUE
       CALL PGEBUF

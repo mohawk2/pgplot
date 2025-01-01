@@ -1,3 +1,4 @@
+
 C*GRSCR -- set color representation
 C+
       SUBROUTINE GRSCR (CI, CR, CG, CB)
@@ -29,34 +30,32 @@ C  2-Oct-1984 - change use of map tables in Regis [TJP].
 C 11-Nov-1984 - add code for /TK [TJP].
 C  1-Sep-1986 - add GREXEC support [AFT].
 C 21-Feb-1987 - If needed, calls begin picture [AFT].
-C 31-Aug-1994 - suppress call of begin picture [TJP].
-C  1-Sep-1994 - use common data [TJP].
-C 26-Jul-1995 - fix bug: some drivers would ignore a change to the
-C               current color [TJP].
 C-----------------------------------------------------------------------
       INCLUDE 'grpckg1.inc'
-      INTEGER   NBUF, LCHR
+      INTEGER   NBUF, LCHR, CI1, CI2
       REAL      RBUF(6)
       CHARACTER CHR
 C
       IF (GRCIDE.LT.1) THEN
           CALL GRWARN('GRSCR - Specified workstation is not open.')
-      ELSE IF (CR.LT.0.0 .OR. CG.LT.0.0 .OR. CB.LT.0.0 .OR.
+          RETURN
+      END IF
+      IF (CR.LT.0.0 .OR. CG.LT.0.0 .OR. CB.LT.0.0 .OR.
      1    CR.GT.1.0 .OR. CG.GT.1.0 .OR. CB.GT.1.0) THEN
           CALL GRWARN('GRSCR - Colour is outside range [0,1].')
-      ELSE IF (CI.GE.GRMNCI(GRCIDE) .AND. CI.LE.GRMXCI(GRCIDE)) THEN
-C         IF (.NOT.GRPLTD(GRCIDE)) CALL GRBPIC
-          RBUF(1)=CI
-          RBUF(2)=CR
-          RBUF(3)=CG
-          RBUF(4)=CB
-          NBUF=4
-          CALL GREXEC(GRGTYP,21,RBUF,NBUF,CHR,LCHR)
-C         -- If this is the current color, reselect it in the driver.
-          IF (CI.EQ.GRCCOL(GRCIDE)) THEN
-             RBUF(1) = CI
-             CALL GREXEC(GRGTYP,15,RBUF,NBUF,CHR,LCHR)
-          END IF
+          RETURN
       END IF
+      CALL GRQCOL(CI1, CI2)
+      IF (CI.LT.CI1 .OR. CI.GT.CI2) THEN
+          RETURN
+      END IF
+C
+      IF (.NOT.GRPLTD(GRCIDE)) CALL GRBPIC
+      RBUF(1)=CI
+      RBUF(2)=CR
+      RBUF(3)=CG
+      RBUF(4)=CB
+      NBUF=4
+      CALL GREXEC(GRGTYP,21,RBUF,NBUF,CHR,LCHR)
 C
       END

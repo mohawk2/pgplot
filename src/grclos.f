@@ -34,19 +34,23 @@ C for VT240 terminals, which use the color tables for text.
 C
       CALL GRSCI(1)
 C
+C End picture.
+C
+      IF (GRPLTD(GRCIDE)) THEN
+            RBUF(1) = 1.
+            NBUF = 1
+            CALL GREXEC(GRGTYP,14,RBUF,NBUF,CHR,LCHR)
+      END IF
+      GRPLTD(GRCIDE) = .FALSE.
+C
 C Flush buffer.
 C
       CALL GRTERM
-C
-C End picture.
-C
-      CALL GREPIC
 C
 C This plot identifier is no longer in use.
 C Set state to "workstation closed".
 C
       GRSTAT(GRCIDE) = 0
-      GRCIDE = 0
 C
 C Close workstation.
 C

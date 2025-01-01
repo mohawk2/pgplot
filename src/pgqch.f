@@ -1,5 +1,4 @@
 C*PGQCH -- inquire character height
-C%void cpgqch(float *size);
 C+
       SUBROUTINE PGQCH (SIZE)
       REAL SIZE
@@ -13,11 +12,10 @@ C--
 C  5-Nov-1985 - new routine [TJP].
 C-----------------------------------------------------------------------
       INCLUDE  'pgplot.inc'
-      LOGICAL  PGNOTO
 C
-      IF (PGNOTO('PGQCH')) THEN
+      IF (PGOPEN.EQ.0) THEN
           SIZE = 1.0
       ELSE
-          SIZE = PGCHSZ(PGID)
+          SIZE = PGCHSZ
       END IF
       END

@@ -1,5 +1,4 @@
 C*PGUPDT -- update display
-C%void cpgupdt(void);
 C+
       SUBROUTINE PGUPDT
 C
@@ -14,8 +13,8 @@ C Arguments: none
 C--
 C 27-Nov-1986
 C-----------------------------------------------------------------------
-      LOGICAL PGNOTO
+      INCLUDE     'pgplot.inc'
 C
-      IF (PGNOTO('PGUPDT')) RETURN
+      IF (PGOPEN.EQ.0) RETURN
       CALL GRTERM
       END

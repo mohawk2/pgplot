@@ -1,5 +1,4 @@
 C*PGSCR -- set color representation
-C%void cpgscr(int ci, float cr, float cg, float cb);
 C+
       SUBROUTINE PGSCR (CI, CR, CG, CB)
       INTEGER CI
@@ -32,8 +31,5 @@ C  CB     (input)
 C--
 C 5-Nov-1985 - new routine [TJP].
 C-----------------------------------------------------------------------
-      LOGICAL PGNOTO
-C
-      IF (PGNOTO('PGSCR')) RETURN
       CALL GRSCR(CI,CR,CG,CB)
       END

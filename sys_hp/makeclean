@@ -1,0 +1,19 @@
+#! /bin/csh -f
+
+# Restore source directory to its original state
+
+rm -f *.o strings Makefile makeclean pgpack
+
+foreach fn (`ls ../sys_hp/*.f ../sys_hp/*.c`)
+
+  rm -f $fn:t
+
+end
+
+foreach fn (`ls *.sv`)
+
+  mv $fn $fn:r
+
+end
+
+exit(0)

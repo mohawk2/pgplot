@@ -5,21 +5,22 @@ C This program uses the PGPLOT internal routine GRSYXD and must
 C therefore be linked with the non-shareable library.
 C                              T. J. Pearson  1983 Feb 12
 C----------------------------------------------------------------------
-      INTEGER PGBEG, HEIGHT, DEPTH, WIDTH
-      INTEGER          XYGRID(300),I,N,M
-      REAL             XC,YC,X(5),BASE
+      INTEGER PGBEGIN, HEIGHT, DEPTH, WIDTH
+      INTEGER          XYGRID(300)
+      REAL             XC,YC
       LOGICAL          UNUSED,MOVE
+      REAL             X(5)
       CHARACTER*4      TEXT
 C-----------------------------------------------------------------------
-      IF (PGBEG(0,'?',1,1).NE.1) STOP
+      IF (PGBEGIN(0,'?',1,1).NE.1) CALL EXIT
       CALL PGASK(.FALSE.)
-   20 WRITE (*,'(A,$)') ' Symbol number: '
+   20 WRITE (6,'(A,$)') ' Symbol number: '
       M = N
-      READ (*,*,END=30) N
+      READ (5,*,END=30) N
       IF (N.EQ.0) N = M+1
       CALL GRSYXD(N,XYGRID,UNUSED)
       IF (UNUSED) THEN
-          WRITE (*,'(A)') ' Symbol not defined'
+          WRITE (6,'(A)') ' Symbol not defined'
           GOTO 20
       END IF
 C
@@ -36,9 +37,9 @@ C
       CALL PGBOX('G',10.0,0,'G',10.0,0)
       CALL PGSCI(5)
 C
-      DO 15 I=1,5
+      DO I=1,5
          X(I) = XYGRID(I)
-   15 CONTINUE
+      END DO
 C
 C Shift coordinates so baseline is y=0; center is (0,-BASE)
 C
@@ -48,7 +49,7 @@ C
       HEIGHT=X(3)
       DEPTH = X(1)
       WIDTH =X(5)-X(4)
-      WRITE(*,*) N, HEIGHT, DEPTH, WIDTH
+      WRITE(6,*) N, HEIGHT, DEPTH, WIDTH
 C
 C Draw the `bounding box'.
 C
@@ -65,7 +66,7 @@ C
 C
 C Mark the `center' of the character.
 C
-      CALL PGPT(1, 0.0, -BASE, 9)
+      CALL PGPOINT(1, 0.0, -BASE, 9)
 C
 C Write the Hershey number in lower left corner.
 C

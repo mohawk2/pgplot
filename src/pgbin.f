@@ -1,6 +1,4 @@
 C*PGBIN -- histogram of binned data
-C%void cpgbin(int nbin, const float *x, const float *data, \
-C% Logical center);
 C+
       SUBROUTINE PGBIN (NBIN, X, DATA, CENTER)
       INTEGER NBIN
@@ -19,16 +17,15 @@ C  CENTER (input)  : if .TRUE., the X values denote the center of the
 C                    bin; if .FALSE., the X values denote the lower
 C                    edge (in X) of the bin.
 C--
-C 19-Aug-92: change argument check (TJP).
 C-----------------------------------------------------------------------
-      LOGICAL  PGNOTO
+      INCLUDE  'pgplot.inc'
       INTEGER  IBIN
       REAL     TX(4), TY(4)
 C
 C Check arguments.
 C
-      IF (NBIN.LT.2) RETURN
-      IF (PGNOTO('PGBIN')) RETURN
+      IF (NBIN.LT.1) RETURN
+      IF (PGOPEN.EQ.0) RETURN
       CALL PGBBUF
 C
 C Draw Histogram. Centered an uncentered bins are treated separately.

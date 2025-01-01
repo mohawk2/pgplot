@@ -1,0 +1,3 @@
+#!/bin/sh
+tr -d "\015" < $1 > tmp.lis
+mv tmp.lis $1

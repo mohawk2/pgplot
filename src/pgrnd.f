@@ -1,15 +1,14 @@
-C*PGRND -- find the smallest `round' number greater than x
-C%float cpgrnd(float x, int *nsub);
+C*PGRND -- find the smallest "round" number greater than x
 C+
       REAL FUNCTION PGRND (X, NSUB)
       REAL X
       INTEGER NSUB
 C
-C Routine to find the smallest "round" number larger than x, a
+C Rooutine to find the smallest "round" number larger than x, a
 C "round" number being 1, 2 or 5 times a power of 10. If X is negative,
 C PGRND(X) = -PGRND(ABS(X)). eg PGRND(8.7) = 10.0,
 C PGRND(-0.4) = -0.5.  If X is zero, the value returned is zero.
-C This routine is used by PGBOX for choosing  tick intervals.
+CThis routine is used by PGBOX for choosing  tick intervals.
 C
 C Returns:
 C  PGRND         : the "round" number.
@@ -19,7 +18,6 @@ C  NSUB   (output) : a suitable number of subdivisions for
 C                    subdividing the "nice" number: 2 or 5.
 C--
 C  6-Sep-1989 - Changes for standard Fortran-77 [TJP].
-C  2-Dec-1991 - Fix for bug found on Fujitsu [TJP].
 C-----------------------------------------------------------------------
       INTEGER  I,ILOG
       REAL     FRAC,NICE(3),PWR,XLOG,XX
@@ -37,10 +35,10 @@ C
       IF (XLOG.LT.0) ILOG=ILOG-1
       PWR  = 10.0**ILOG
       FRAC = XX/PWR
-      I = 3
-      IF (FRAC.LE.NICE(2)) I = 2
-      IF (FRAC.LE.NICE(1)) I = 1
-      PGRND = SIGN(PWR*NICE(I),X)
+      DO 10 I=1,3
+          IF (FRAC.LE.NICE(I)) GOTO 20
+   10 CONTINUE
+   20 PGRND = SIGN(PWR*NICE(I),X)
       NSUB = 5
-      IF (I.EQ.1) NSUB = 2
+      IF (NICE(I).EQ.2.0) NSUB = 2
       END

@@ -8,15 +8,13 @@ C-----------------------------------------------------------------------
       INTEGER UP, DOWN, LEFT, RIGHT
       PARAMETER (UP=1, DOWN=2, LEFT=3, RIGHT=4)
       INTEGER  MAXEMX, MAXEMY
-      PARAMETER (MAXEMX=100, MAXEMY=100)
+      PARAMETER (MAXEMX=50, MAXEMY=50)
       LOGICAL FLAGS(MAXEMX,MAXEMY,2)
       INTEGER MX, MY, IA, IB, JA, JB, IS, JS, I, J, II, JJ, DIR, SDIR
       REAL Z(MX,*)
       REAL Z0, X, Y, STARTX, STARTY
       EXTERNAL PLOT
 C
-c      MY = 0
-
       I = IS
       J = JS
       DIR = SDIR

@@ -1,6 +1,4 @@
 C*PGBOX -- draw labeled frame around viewport
-C%void cpgbox(const char *xopt, float xtick, int nxsub, \
-C% const char *yopt, float ytick, int nysub);
 C+
       SUBROUTINE PGBOX (XOPT, XTICK, NXSUB, YOPT, YTICK, NYSUB)
       CHARACTER*(*) XOPT, YOPT
@@ -45,9 +43,7 @@ C      viewport (X) or to the right of the viewport (Y).
 C  T : draw major Tick marks at the major coordinate interval.
 C  S : draw minor tick marks (Subticks).
 C  V : orient numeric labels Vertically. This is only applicable to Y.
-C      The default is to write Y-labels parallel to the axis.
-C  1 : force decimal labelling, instead of automatic choice (see PGNUMB).
-C  2 : force exponential labelling, instead of automatic.
+C      The default is to write Y-labels parallel to the axis
 C
 C To get a complete frame, specify BC in both XOPT and YOPT.
 C Tick marks, if requested, are drawn on the axes or frame
@@ -60,9 +56,6 @@ C For a logarithmic axis, the major tick interval is always 1.0. The
 C numeric label is 10**(x) where x is the world coordinate at the
 C tick mark. If subticks are requested, 8 subticks are drawn between
 C each major tick at equal logarithmic intervals.
-C
-C To label an axis with time (days, hours, minutes, seconds) or
-C angle (degrees, arcmin, arcsec), use routine PGTBOX.
 C--
 C 19-Oct-1983
 C 23-Sep-1984 - fix bug in labelling reversed logarithmic axes.
@@ -81,10 +74,6 @@ C  6-Sep-1989 - use Fortran generic intrinsic functions [TJP].
 C 18-Oct-1990 - correctly initialize UTAB(1) [AFT].
 C 19-Oct-1990 - do all plotting in world coordinates [TJP].
 C  6-Nov-1991 - label logarithmic subticks when necessary [TJP].
-C  4-Jul-1994 - add '1' and '2' options [TJP].
-C 20-Apr-1995 - adjust position of labels slightly, and move out
-C               when ticks are inverted [TJP].
-C 26-Feb-1997 - use new routine pgclp [TJP].
 C-----------------------------------------------------------------------
       INCLUDE  'pgplot.inc'
       CHARACTER*20  CLBL
@@ -92,16 +81,14 @@ C-----------------------------------------------------------------------
       LOGICAL  XOPTA, XOPTB, XOPTC, XOPTG, XOPTN, XOPTM, XOPTT, XOPTS
       LOGICAL  YOPTA, YOPTB, YOPTC, YOPTG, YOPTN, YOPTM, YOPTT, YOPTS
       LOGICAL  XOPTI, YOPTI, YOPTV, XOPTL, YOPTL, XOPTP, YOPTP, RANGE
-      LOGICAL  IRANGE, MAJOR, XOPTLS, YOPTLS, PGNOTO
+      LOGICAL  IRANGE, MAJOR, XOPTLS, YOPTLS
       REAL     TAB(9), UTAB(9)
-      INTEGER  I, I1, I2, J, NC, NP, NV, KI, CLIP
+      INTEGER  I, I1, I2, J, NC, NP, NV
       INTEGER  NSUBX, NSUBY, JMAX, XNFORM, YNFORM
       REAL     TIKL, TIKL1, TIKL2, XC, YC
       REAL     XINT, XINT2, XVAL, YINT, YINT2, YVAL
       REAL     PGRND
       REAL     A, B, C
-      REAL     XNDSP, XMDSP, YNDSP, YMDSP, YNVDSP, YMVDSP
-      REAL     XBLC, XTRC, YBLC, YTRC
       INTRINSIC ABS, INDEX, INT, LOG10, MAX, MIN, MOD, NINT, SIGN, REAL
 C
 C Table of logarithms 1..9
@@ -112,9 +99,8 @@ C
       RANGE(A,B,C) = (A.LT.B.AND.B.LT.C) .OR. (C.LT.B.AND.B.LT.A)
       IRANGE(A,B,C) = (A.LE.B.AND.B.LE.C) .OR. (C.LE.B.AND.B.LE.A)
 C
-      IF (PGNOTO('PGBOX')) RETURN
+      IF (PGOPEN.EQ.0) RETURN
       CALL PGBBUF
-      CALL PGQWIN(XBLC, XTRC, YBLC, YTRC)
 C
 C Decode options.
 C
@@ -131,8 +117,6 @@ C
       XOPTT = INDEX(OPT,'T').NE.0
       XOPTP = INDEX(OPT,'P').NE.0 .AND. (.NOT.XOPTI)
       XNFORM = 0
-      IF (INDEX(OPT,'1').NE.0) XNFORM = 1
-      IF (INDEX(OPT,'2').NE.0) XNFORM = 2
       CALL GRTOUP(OPT,YOPT)
       YOPTA = INDEX(OPT,'A').NE.0 .AND. RANGE(XBLC,0.0,XTRC)
       YOPTB = INDEX(OPT,'B').NE.0
@@ -147,33 +131,10 @@ C
       YOPTV = INDEX(OPT,'V').NE.0
       YOPTP = INDEX(OPT,'P').NE.0 .AND. (.NOT.YOPTI)
       YNFORM = 0
-      IF (INDEX(OPT,'1').NE.0) YNFORM = 1
-      IF (INDEX(OPT,'2').NE.0) YNFORM = 2
 C
-C Displacement of labels from edge of box
-C (for X bottom/top, Y left/right, and Y left/right with V option).
+C Remove window.
 C
-      XNDSP = 1.2
-      XMDSP = 0.7
-      YNDSP = 0.7
-      YMDSP = 1.2
-      YNVDSP = 0.7
-      YMVDSP = 0.7
-      IF (XOPTI) THEN
-         XNDSP = XNDSP + 0.3
-         XMDSP = XMDSP + 0.3
-      END IF
-      IF (YOPTI) THEN
-         YNDSP = YNDSP + 0.3
-         YMDSP = YMDSP + 0.3
-         YNVDSP = YNVDSP + 0.3
-         YMVDSP = YMVDSP + 0.3
-      END IF
-C
-C Disable clipping.
-C
-      CALL PGQCLP(CLIP)
-      CALL PGSCLP(0)
+      CALL GRAREA(IDENT,0.,0.,-1.,-1.)
 C
 C Draw box.
 C
@@ -207,7 +168,7 @@ C
 C
 C Length of X tick marks.
 C
-      TIKL1 = PGXSP(PGID)*0.6*(YTRC-YBLC)/PGYLEN(PGID)
+      TIKL1 = XSP*0.6*(YTRC-YBLC)/YLEN
       IF (XOPTI) TIKL1 = -TIKL1
       TIKL2 = TIKL1*0.5
 C
@@ -223,8 +184,7 @@ C
               IF (XINT.LT.0.0) UTAB(J) = 1.0-TAB(J)
    10     CONTINUE
       ELSE IF (XTICK.EQ.0.0) THEN
-          XINT = MAX(0.05, MIN(7.0*PGXSP(PGID)/PGXLEN(PGID), 0.20))
-     1           *(XTRC-XBLC)
+          XINT = MAX(0.05, MIN(7.0*XSP/XLEN, 0.20))*(XTRC-XBLC)
           XINT = PGRND(XINT,NSUBX)
       ELSE
           XINT = SIGN(XTICK,XTRC-XBLC)
@@ -320,8 +280,8 @@ C
               ELSE
                   CALL PGNUMB(I*NV,NP,XNFORM,CLBL,NC)
               END IF
-              IF (XOPTN) CALL PGMTXT('B', XNDSP, XC, 0.5, CLBL(1:NC))
-              IF (XOPTM) CALL PGMTXT('T', XMDSP, XC, 0.5, CLBL(1:NC))
+              IF (XOPTN) CALL PGMTXT('B', 1.2, XC, 0.5, CLBL(1:NC))
+              IF (XOPTM) CALL PGMTXT('T', 0.7, XC, 0.5, CLBL(1:NC))
    90     CONTINUE
       END IF
 C
@@ -333,14 +293,12 @@ C
              DO 301 J=2,5,3
                 XVAL = (I+UTAB(J))*XINT2
                 XC = (XVAL-XBLC)/(XTRC-XBLC)
-                KI = I
-                IF (XTRC.LT.XBLC) KI = KI+1
                 IF (IRANGE(XBLC,XVAL,XTRC)) THEN
-                    CALL PGNUMB(J,NINT(KI*XINT2),XNFORM,CLBL,NC)
+                    CALL PGNUMB(J,NINT(I*XINT2),XNFORM,CLBL,NC)
                     IF (XOPTN) 
-     1                CALL PGMTXT('B', XNDSP, XC, 0.5, CLBL(1:NC))
+     1                CALL PGMTXT('B', 1.2, XC, 0.5, CLBL(1:NC))
                     IF (XOPTM) 
-     1                CALL PGMTXT('T', XMDSP, XC, 0.5, CLBL(1:NC))
+     1                CALL PGMTXT('T', 0.7, XC, 0.5, CLBL(1:NC))
                 END IF
   301       CONTINUE
   401     CONTINUE
@@ -348,7 +306,7 @@ C
 C
 C Length of Y tick marks.
 C
-      TIKL1 = PGXSP(PGID)*0.6*(XTRC-XBLC)/PGXLEN(PGID)
+      TIKL1 = XSP*0.6*(XTRC-XBLC)/XLEN
       IF (YOPTI) TIKL1 = -TIKL1
       TIKL2 = TIKL1*0.5
 C
@@ -364,8 +322,7 @@ C
               IF (YINT.LT.0.0) UTAB(J) = 1.0-TAB(J)
   100     CONTINUE
       ELSE IF (YTICK.EQ.0.0) THEN
-          YINT = MAX(0.05, MIN(7.0*PGXSP(PGID)/PGYLEN(PGID), 0.20))
-     1           *(YTRC-YBLC)
+          YINT = MAX(0.05, MIN(7.0*XSP/YLEN, 0.20))*(YTRC-YBLC)
           YINT = PGRND(YINT,NSUBY)
       ELSE
           YINT  = SIGN(YTICK,YTRC-YBLC)
@@ -462,16 +419,16 @@ C
                   CALL PGNUMB(I*NV,NP,YNFORM,CLBL,NC)
               END IF
               IF (YOPTV) THEN
-                  IF (YOPTN) CALL PGMTXT('LV',YNVDSP,YC,1.0,CLBL(1:NC))
-                  IF (YOPTM) CALL PGMTXT('RV',YMVDSP,YC,0.0,CLBL(1:NC))
+                  IF (YOPTN) CALL PGMTXT('LV',0.7,YC,1.0,CLBL(1:NC))
+                  IF (YOPTM) CALL PGMTXT('RV',1.2,YC,0.0,CLBL(1:NC))
               ELSE
-                  IF (YOPTN) CALL PGMTXT('L',YNDSP,YC,0.5,CLBL(1:NC))
-                  IF (YOPTM) CALL PGMTXT('R',YMDSP,YC,0.5,CLBL(1:NC))
+                  IF (YOPTN) CALL PGMTXT('L',0.7,YC,0.5,CLBL(1:NC))
+                  IF (YOPTM) CALL PGMTXT('R',1.2,YC,0.5,CLBL(1:NC))
               END IF
   180     CONTINUE
       END IF
 C
-C Extra Y labels for log axes.
+C Extra X labels for log axes.
 C
       IF (YOPTLS) THEN
           CALL PGBOX1(YBLC, YTRC, YINT2, I1, I2)
@@ -479,29 +436,27 @@ C
             DO 302 J=2,5,3
                 YVAL = (I+UTAB(J))*YINT2
                 YC = (YVAL-YBLC)/(YTRC-YBLC)
-                KI = I
-                IF (YBLC.GT.YTRC) KI = KI+1
                 IF (IRANGE(YBLC,YVAL,YTRC)) THEN
-                    CALL PGNUMB(J,NINT(KI*YINT2),YNFORM,CLBL,NC)
+                    CALL PGNUMB(J,NINT(I*YINT2),YNFORM,CLBL,NC)
                     IF (YOPTV) THEN
                     IF (YOPTN) 
-     1                CALL PGMTXT('LV', YNVDSP, YC, 1.0, CLBL(1:NC))
+     1                CALL PGMTXT('LV', 0.7, YC, 1.0, CLBL(1:NC))
                     IF (YOPTM) 
-     1                CALL PGMTXT('RV', YMVDSP, YC, 0.0, CLBL(1:NC))
+     1                CALL PGMTXT('RV', 1.2, YC, 0.0, CLBL(1:NC))
                     ELSE
                     IF (YOPTN) 
-     1                CALL PGMTXT('L', YNDSP, YC, 0.5, CLBL(1:NC))
+     1                CALL PGMTXT('L', 0.7, YC, 0.5, CLBL(1:NC))
                     IF (YOPTM) 
-     1                CALL PGMTXT('R', YMDSP, YC, 0.5, CLBL(1:NC))
+     1                CALL PGMTXT('R', 1.2, YC, 0.5, CLBL(1:NC))
                     END IF
                 END IF
   302       CONTINUE
   402     CONTINUE
       END IF
 C
-C Enable clipping.
+C Restore window: interior of box.
 C
-      CALL PGSCLP(CLIP)
+      CALL GRAREA(IDENT,XOFF,YOFF,XLEN,YLEN)
 C
       CALL PGEBUF
       END

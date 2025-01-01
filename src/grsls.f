@@ -23,7 +23,6 @@ C  5-Aug-1986 - add GREXEC support [AFT].
 C 21-Feb-1987 - If needed, calls begin picture [AFT].
 C 19-Jan-1987 - fix bug in GREXEC call [TJP].
 C 16-May-1989 - fix bug for hardware line dash [TJP].
-C  1-Sep-1994 - do not call driver to get size and capabilities [TJP].
 C-----------------------------------------------------------------------
       INCLUDE 'grpckg1.inc'
       INTEGER I, L, IDASH, NBUF,LCHR
@@ -51,7 +50,8 @@ C
 C Inquire if hardware dash is available.
 C
       IDASH=0
-      IF(GRGCAP(GRCIDE)(3:3).EQ.'D') IDASH=1
+      CALL GREXEC(GRGTYP, 4,RBUF,NBUF,CHR,LCHR)
+      IF(CHR(3:3).EQ.'D') IDASH=1
 C
 C Set up for hardware dash.
 C
@@ -72,7 +72,8 @@ C
               GRDASH(GRCIDE) = .TRUE.
               GRIPAT(GRCIDE) = 1
               GRPOFF(GRCIDE) = 0.0
-              TMP = GRYMXA(GRCIDE)/1000.
+              CALL GREXEC(GRGTYP, 6,RBUF,NBUF,CHR,LCHR)
+              TMP=RBUF(4)/1000.
               DO 10 L=1,8
                   GRPATN(GRCIDE,L) = PATERN(L,I)*TMP
    10         CONTINUE

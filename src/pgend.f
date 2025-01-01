@@ -1,25 +1,27 @@
-C*PGEND -- close all open graphics devices
-C%void cpgend(void);
+C*PGEND -- terminate PGPLOT
 C+
       SUBROUTINE PGEND
 C
-C Close and release any open graphics devices. All devices must be
-C closed by calling either PGCLOS (for each device) or PGEND before
-C the program terminates. If a device is not closed properly, some
-C or all of the graphical output may be lost.
+C Terminate PGPLOT, close the plot file, release the graphics
+C device.  If the call to PGEND is omitted, some or all of the plot
+C may be lost. If the environment parameter PGPLOT_IDENT is defined 
+C (with any value), and the device is a hardcopy device, an
+C identifying label is written on the plot (by calling PGIDEN: q.v.).
 C
 C Arguments: none
 C--
-C 22-Dec-1995 [TJP] - revised to call PGCLOS for each open device.
-C 25-Feb-1997 [TJP] - revised description.
+C 10-Sep-1990 - adjust position of identification label.
 C-----------------------------------------------------------------------
       INCLUDE 'pgplot.inc'
-      INTEGER I
+      LOGICAL INTER
+      CHARACTER*16 DEFSTR
+      INTEGER L
 C
-      DO 10 I=1,PGMAXD
-         IF (PGDEVS(I).EQ.1) THEN
-            CALL PGSLCT(I)
-            CALL PGCLOS
-         END IF
- 10   CONTINUE
+      IF (PGOPEN.NE.0) THEN
+          CALL GRQTYP(DEFSTR,INTER)
+          CALL GRGENV('IDENT', DEFSTR, L)
+          IF (L.NE.0 .AND. (.NOT.INTER)) CALL PGIDEN
+          CALL GRCLOS
+          PGOPEN = 0
+      END IF
       END

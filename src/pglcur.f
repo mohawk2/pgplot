@@ -1,5 +1,4 @@
 C*PGLCUR -- draw a line using the cursor
-C%void cpglcur(int maxpt, int *npt, float *x, float *y);
 C+
       SUBROUTINE PGLCUR (MAXPT, NPT, X, Y)
       INTEGER MAXPT, NPT
@@ -32,19 +31,15 @@ C--
 C  5-Aug-1984 - new routine [TJP].
 C 16-Jul-1988 - correct error in delete operation [TJP].
 C 13-Dec-1990 - change warnings to messages [TJP].
-C  3-Sep-1992 - fixed erase first point bug under Add option [JM/TJP].
-C  7-Sep-1994 - use PGBAND [TJP].
-C  2-Aug-1995 - remove dependence on common block [TJP].
 C-----------------------------------------------------------------------
-      LOGICAL  PGNOTO
+      INCLUDE  'pgplot.inc'
       CHARACTER*1 LETTER
-      INTEGER  PGBAND, I, SAVCOL, MODE
-      REAL     XP, YP, XREF, YREF
-      REAL     XBLC, XTRC, YBLC, YTRC
+      INTEGER  PGCURS, I, SAVCOL
+      REAL     XP, YP
 C
 C Check that PGPLOT is in the correct state.
 C
-      IF (PGNOTO('PGLCUR')) RETURN
+      IF (PGOPEN.EQ.0) RETURN
 C
 C Save current color.
 C
@@ -65,7 +60,6 @@ C
 C Start with the cursor in the middle of the box,
 C unless lines have already been drawn.
 C
-      CALL PGQWIN(XBLC, XTRC, YBLC, YTRC)
       IF (NPT.GT.0) THEN
           XP = X(NPT)
           YP = Y(NPT)
@@ -76,12 +70,8 @@ C
 C
 C Loop over cursor inputs.
 C
-      MODE = 0
-  100 XREF = XP
-      YREF = YP
-      IF (PGBAND(MODE,1,XREF,YREF,XP,YP,LETTER).NE.1) RETURN
+  100 IF (PGCURS(XP,YP,LETTER).NE.1) RETURN
       CALL GRTOUP(LETTER,LETTER)
-      MODE = 1
 C
 C A (ADD) command:
 C
@@ -91,14 +81,16 @@ C
               GOTO 100
           END IF
           NPT = NPT+1
+          IF (NPT.EQ.1) THEN
+            CALL GRSCI(0)
+            CALL PGPT(1,X(1),Y(1),1)
+            CALL GRSCI(SAVCOL)
+          END IF
           X(NPT) = XP
           Y(NPT) = YP
           IF (NPT.EQ.1) THEN
-C           -- first point: draw a dot
             CALL GRMOVA(X(NPT),Y(NPT))
-            CALL PGPT(1,X(NPT),Y(NPT),1)
           ELSE
-C           -- nth point: draw from (n-1) to (n)
             CALL GRLINA(X(NPT),Y(NPT))
           END IF
           CALL GRTERM
@@ -111,29 +103,22 @@ C
             GOTO 100
           END IF
           IF (NPT.GT.1) THEN
-C           -- delete nth point: erase from (n-1) to (n)
             CALL GRMOVA(X(NPT-1),Y(NPT-1))
             CALL GRSCI(0)
             CALL GRLINA(X(NPT),Y(NPT))
             CALL GRSCI(SAVCOL)
             CALL GRMOVA(X(NPT-1),Y(NPT-1))
             CALL GRTERM
-          ELSE IF (NPT.EQ.1) THEN
-C           -- delete first point: erase dot
-            CALL GRSCI(0)
-            CALL PGPT(1,X(NPT),Y(NPT),1)
-            CALL GRSCI(SAVCOL)
           END IF
           NPT = NPT-1
           IF (NPT.EQ.0) THEN
             XP = 0.5*(XBLC+XTRC)
             YP = 0.5*(YBLC+YTRC)
           ELSE
-            XP = X(NPT)
-            YP = Y(NPT)
+              XP = X(NPT)
+              YP = Y(NPT)
           END IF
           IF (NPT.EQ.1) THEN
-C           -- delete 2nd point: redraw dot at first point
             CALL PGPT(1,X(1),Y(1),1)
           END IF
 C

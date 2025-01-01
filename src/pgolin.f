@@ -1,5 +1,4 @@
 C*PGOLIN -- mark a set of points using the cursor
-C%void cpgolin(int maxpt, int *npt, float *x, float *y, int symbol);
 C+
       SUBROUTINE PGOLIN (MAXPT, NPT, X, Y, SYMBOL)
       INTEGER MAXPT, NPT
@@ -36,18 +35,15 @@ C X (eXit)   - leave subroutine.
 C--
 C  4-Nov-1985 - new routine (adapted from PGNCUR) - TJP.
 C 13-Dec-1990 - change warnings to messages [TJP].
-C  7-Sep-1994 - use PGBAND [TJP].
-C  2-Aug-1995 - remove dependence on common block [TJP].
 C-----------------------------------------------------------------------
-      LOGICAL  PGNOTO
+      INCLUDE  'pgplot.inc'
       CHARACTER*1 LETTER
-      INTEGER  PGBAND, SAVCOL
-      REAL     XP, YP, XREF, YREF
-      REAL     XBLC, XTRC, YBLC, YTRC
+      INTEGER  PGCURS, SAVCOL
+      REAL     XP, YP
 C
 C Check that PGPLOT is in the correct state.
 C
-      IF (PGNOTO('PGOLIN')) RETURN
+      IF (PGOPEN.EQ.0) RETURN
 C
 C Save current color.
 C
@@ -56,7 +52,6 @@ C
 C Put current points on screen.  Position cursor on last point,
 C or in middle viewport if there are no current points.
 C
-      CALL PGQWIN(XBLC, XTRC, YBLC, YTRC)
       IF (NPT.NE.0) THEN
           CALL PGPT(NPT,X,Y,SYMBOL)
           XP = X(NPT)
@@ -68,9 +63,7 @@ C
 C
 C Loop over cursor inputs.
 C
-  100 XREF = XP
-      YREF = YP
-      IF (PGBAND(0,1,XREF,YREF,XP,YP,LETTER).NE.1) RETURN
+  100 IF (PGCURS(XP,YP,LETTER).NE.1) RETURN
       IF (LETTER.EQ.CHAR(0)) RETURN
       CALL GRTOUP(LETTER,LETTER)
 C

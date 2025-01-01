@@ -4,8 +4,6 @@ C+
       INTEGER MAXPT, NPT
       REAL    X(*), Y(*)
       INTEGER SYMBOL
-C
-C See description of PGNCUR.
 C--
       CALL PGNCUR (MAXPT, NPT, X, Y, SYMBOL)
       END

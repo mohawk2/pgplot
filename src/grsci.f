@@ -34,11 +34,11 @@ C  5-Aug-1986 - add GREXEC support [AFT].
 C 21-Feb-1987 - delays setting color if picture not open [AFT].
 C 11-Jun-1987 - remove built-in devices [TJP].
 C 31-May-1989 - add check for valid color index [TJP].
-C  1-Sep-1994 - use common data [TJP].
 C-----------------------------------------------------------------------
       INCLUDE 'grpckg1.inc'
-      INTEGER  IC, COLOR, IC1, IC2, NBUF,LCHR
-      REAL     RBUF(6)
+      INTEGER  IC,COLOR, IC1, IC2
+      INTEGER NBUF,LCHR
+      REAL    RBUF(6)
       CHARACTER*1 CHR
 C
 C Error if no workstation is open.
@@ -50,8 +50,7 @@ C
 C
 C Use color index 1 if out of range.
 C
-      IC1 = GRMNCI(GRCIDE)
-      IC2 = GRMXCI(GRCIDE)
+      CALL GRQCOL(IC1, IC2)
       COLOR = IC
       IF (COLOR.LT.IC1 .OR. COLOR.GT.IC2) COLOR = 1
 C

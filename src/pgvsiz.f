@@ -1,5 +1,4 @@
 C*PGVSIZ -- set viewport (inches)
-C%void cpgvsiz(float xleft, float xright, float ybot, float ytop);
 C+
       SUBROUTINE PGVSIZ (XLEFT, XRIGHT, YBOT, YTOP)
       REAL XLEFT, XRIGHT, YBOT, YTOP
@@ -29,20 +28,18 @@ C--
 C 13-Dec-1990  Make errors non-fatal [TJP].
 C-----------------------------------------------------------------------
       INCLUDE  'pgplot.inc'
-      LOGICAL  PGNOTO
 C
-      IF (PGNOTO('PGVSIZ'))  RETURN
+      IF (PGOPEN.EQ.0)  RETURN
       IF (XLEFT.GE.XRIGHT .OR. YBOT.GE.YTOP) THEN
           CALL GRWARN('PGVSIZ ignored: invalid arguments')
           RETURN
       END IF
 C
-      PGXLEN(PGID) = (XRIGHT-XLEFT)*PGXPIN(PGID)
-      PGYLEN(PGID) = (YTOP-YBOT)*PGYPIN(PGID)
-      PGXVP(PGID)  = XLEFT*PGXPIN(PGID)
-      PGYVP(PGID)  = YBOT*PGYPIN(PGID)
-      PGXOFF(PGID) = PGXVP(PGID) + (PGNXC(PGID)-1)*PGXSZ(PGID)
-      PGYOFF(PGID) = PGYVP(PGID) + 
-     1                (PGNY(PGID)-PGNYC(PGID))*PGYSZ(PGID)
+      XLEN = (XRIGHT-XLEFT)*XPERIN
+      YLEN = (YTOP-YBOT)*YPERIN
+      XVP  = XLEFT*XPERIN
+      YVP  = YBOT*YPERIN
+      XOFF = XVP + (NXC-1)*XSZ
+      YOFF = YVP + (NY-NYC)*YSZ
       CALL PGVW
       END

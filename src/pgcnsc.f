@@ -25,22 +25,20 @@ C       to move then pen to (X,Y); if K is 1, it is to draw a line from
 C       the current position to (X,Y).
 C
 C NOTE:  the intervals (IA,IB) and (JA,JB) must not exceed the
-C dimensions of an internal array. These are currently set at 100.
+C dimensions of an internal array. These are currently
+C set at 50.
 C--
 C 17-Sep-1989 - Completely rewritten [TJP]. The algorithm is my own,
 C               but it is probably not original. It could probably be
 C               coded more briefly, if not as clearly.
-C  1-May-1994 - Modified to draw contours anticlockwise about maxima,
-C               to prevent contours at different levels from
-C               crossing in degenerate cells [TJP].
 C-----------------------------------------------------------------------
       INTEGER UP, DOWN, LEFT, RIGHT
       PARAMETER (UP=1, DOWN=2, LEFT=3, RIGHT=4)
       INTEGER  MAXEMX, MAXEMY
-      PARAMETER (MAXEMX=100, MAXEMY=100)
+      PARAMETER (MAXEMX=50, MAXEMY=50)
 C
       LOGICAL FLAGS(MAXEMX,MAXEMY,2), RANGE
-      INTEGER I, J, II, JJ, DIR
+      INTEGER I, J, II, JJ
       REAL Z1, Z2, Z3, P, P1, P2
 C
 C The statement function RANGE decides whether a contour at level P
@@ -54,7 +52,7 @@ C Check for errors.
 C
       IF ( (IB-IA+1) .GT. MAXEMX .OR.  (JB-JA+1) .GT. MAXEMY ) THEN
           CALL GRWARN('PGCNSC - array index range exceeds'//
-     1                ' built-in limit of 100')
+     1                ' built-in limit of 50')
           RETURN
       END IF
 C
@@ -89,11 +87,7 @@ C Note that (if the algorithm is implemented correctly) all unclosed
 C contours must begin and end at the edge of the array. When one is
 C found, call PGCN01 to draw the contour, telling it the correct
 C starting direction so that it follows the contour into the array
-C instead of out of it. A contour is only started if the higher
-C ground lies to the left: this is to enforce the direction convention
-C that contours are drawn anticlockwise around maxima. If the high
-C ground lies to the right, we will find the other end of the contour
-C and start there.
+C instead of out of it.
 C
 C Bottom edge.
 C
@@ -101,9 +95,8 @@ C
       JJ = J-JA+1
       DO 26 I=IA,IB-1
           II = I-IA+1
-          IF (FLAGS(II,JJ,1) .AND. (Z(I,J).GT.Z(I+1,J)))
-     1          CALL PGCN01(Z, MX, MY, IA, IB, JA, JB,
-     2                      Z0, PLOT, FLAGS, I, J, UP)
+          IF (FLAGS(II,JJ,1)) CALL PGCN01(Z, MX, MY, IA, IB, JA, JB,
+     1                                    Z0, PLOT, FLAGS, I, J, UP)
    26 CONTINUE
 C
 C Right edge.
@@ -112,9 +105,8 @@ C
       II = I-IA+1
       DO 27 J=JA,JB-1
           JJ = J-JA+1
-          IF (FLAGS(II,JJ,2) .AND. (Z(I,J).GT.Z(I,J+1)))
-     1          CALL PGCN01(Z, MX, MY, IA, IB, JA, JB,
-     2                      Z0, PLOT, FLAGS, I, J, LEFT)
+          IF (FLAGS(II,JJ,2)) CALL PGCN01(Z, MX, MY, IA, IB, JA, JB,
+     1                                    Z0, PLOT, FLAGS, I, J, LEFT)
    27 CONTINUE
 C
 C Top edge.
@@ -123,9 +115,8 @@ C
       JJ = J-JA+1
       DO 28 I=IB-1,IA,-1
           II = I-IA+1
-          IF (FLAGS(II,JJ,1) .AND. (Z(I+1,J).GT.Z(I,J)))
-     1          CALL PGCN01(Z, MX, MY, IA, IB, JA, JB,
-     2                      Z0, PLOT, FLAGS, I, J, DOWN)
+          IF (FLAGS(II,JJ,1)) CALL PGCN01(Z, MX, MY, IA, IB, JA, JB,
+     1                                    Z0, PLOT, FLAGS, I, J, DOWN)
    28 CONTINUE
 C
 C Left edge.
@@ -134,9 +125,8 @@ C
       II = I-IA+1
       DO 29 J=JB-1,JA,-1
           JJ = J-JA+1
-          IF (FLAGS(II,JJ,2)  .AND. (Z(I,J+1).GT.Z(I,J)))
-     1          CALL PGCN01(Z, MX, MY, IA, IB, JA, JB,
-     2                      Z0, PLOT, FLAGS, I, J, RIGHT)
+          IF (FLAGS(II,JJ,2)) CALL PGCN01(Z, MX, MY, IA, IB, JA, JB,
+     1                                    Z0, PLOT, FLAGS, I, J, RIGHT)
    29 CONTINUE
 C
 C Now search the interior of the array for a crossing point, which will
@@ -145,19 +135,17 @@ C eliminated). It is sufficient to search just the horizontal crossings
 C (or the vertical ones); any closed contour must cross a horizontal
 C and a vertical gridline. PGCN01 assumes that when it cannot proceed
 C any further, it has reached the end of a closed contour. Thus all
-C unclosed contours must be eliminated first.
+C unclosed contours must be eliminated first. In this case the starting
+C direction supplied to PGCN01 is not important. (It could be set, say,
+C to circle maxima clockwise and minima anticlockwise, but that
+C refinement is not needed here.)
 C
       DO 40 I=IA+1,IB-1
           II = I-IA+1
           DO 30 J=JA+1,JB-1
               JJ = J-JA+1
-              IF (FLAGS(II,JJ,1)) THEN
-                  DIR = UP
-                  IF (Z(I+1,J).GT. Z(I,J)) DIR = DOWN
-                  CALL PGCN01(Z, MX, MY, IA, IB, JA, JB,
-     1                        Z0, PLOT, FLAGS, I, J, DIR)
-
-              END IF
+              IF (FLAGS(II,JJ,1)) CALL PGCN01(Z, MX, MY, IA, IB, JA, JB,
+     1                                    Z0, PLOT, FLAGS, I, J, UP)
    30     CONTINUE
    40 CONTINUE
 C

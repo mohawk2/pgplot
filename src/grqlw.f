@@ -1,3 +1,4 @@
+
 C*GRQLW -- inquire current line width
 C+
       SUBROUTINE GRQLW (IWIDTH)

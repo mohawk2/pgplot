@@ -1,5 +1,4 @@
 C*PGDRAW -- draw a line from the current pen position to a point
-C%void cpgdraw(float x, float y);
 C+
       SUBROUTINE PGDRAW (X, Y)
       REAL X, Y

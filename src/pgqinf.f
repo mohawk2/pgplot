@@ -1,5 +1,4 @@
 C*PGQINF -- inquire PGPLOT general information
-C%void cpgqinf(const char *item, char *value, int *value_length);
 C+
       SUBROUTINE PGQINF (ITEM, VALUE, LENGTH)
       CHARACTER*(*) ITEM, VALUE
@@ -33,36 +32,25 @@ C   'TERMINAL'  * - is the current device the user's interactive
 C                   terminal? ('YES' or 'NO').
 C   'CURSOR'    * - does the current device have a graphics cursor?
 C                   ('YES' or 'NO').
-C   'SCROLL'    * - does current device have rectangle-scroll
-C                   capability ('YES' or 'NO'); see PGSCRL.
 C
 C Arguments:
 C  ITEM  (input)  : character string defining the information to
 C                   be returned; see above for a list of possible
 C                   values.
 C  VALUE (output) : returns a character-string containing the
-C                   requested information, truncated to the length 
-C                   of the supplied string or padded on the right with 
-C                   spaces if necessary.
+C                   requested information.
 C  LENGTH (output): the number of characters returned in VALUE
-C                   (excluding trailing blanks).
+C                   (VALUE is padded with spaces to the length
+C                   supplied).
 C--
 C 18-Feb-1988 - [TJP].
 C 30-Aug-1988 - remove pseudo logical use of IER.
-C 12-Mar-1992 - change comments for clarity.
-C 17-Apr-1995 - clean up some zero-length string problems [TJP].
-C  7-Jul-1995 - get cursor information directly from driver [TJP].
-C 24-Feb-1997 - add SCROLL request.
 C-----------------------------------------------------------------------
       INCLUDE 'pgplot.inc'
-      INTEGER IER, L1, GRTRIM
+      INTEGER IER, L1
       LOGICAL INTER, SAME
       CHARACTER*8 TEST
       CHARACTER*64 DEV1
-C
-C Initialize PGPLOT if necessary.
-C
-      CALL PGINIT
 C
       CALL GRTOUP(TEST,ITEM)
       IF (TEST.EQ.'USER') THEN
@@ -72,28 +60,29 @@ C
           CALL GRDATE(VALUE, LENGTH)
           IER = 1
       ELSE IF (TEST.EQ.'VERSION') THEN
-          VALUE = 'v5.2.2'
-          LENGTH = 6
+          VALUE = 'v4.9E'
+          LENGTH = 5
           IER = 1
       ELSE IF (TEST.EQ.'STATE') THEN
-          IF (PGID.LT.1 .OR. PGID.GT.PGMAXD) THEN
-             VALUE = 'CLOSED'
-             LENGTH = 6
-          ELSE IF (PGDEVS(PGID).EQ.0) THEN
-             VALUE = 'CLOSED'
-             LENGTH = 6
+          IF (PGOPEN.EQ.0) THEN
+              VALUE = 'CLOSED'
+              LENGTH = 6
           ELSE
-             VALUE = 'OPEN'
-             LENGTH = 4
+              VALUE = 'OPEN'
+              LENGTH = 4
           END IF
           IER = 1
-      ELSE IF (PGID.LT.1 .OR. PGID.GT.PGMAXD) THEN
-          IER = 0
-      ELSE IF (PGDEVS(PGID).EQ.0) THEN
+      ELSE IF (PGOPEN.EQ.0) THEN
           IER = 0
       ELSE IF (TEST.EQ.'DEV/TYPE') THEN
           CALL GRQDT(VALUE)
-          LENGTH = GRTRIM(VALUE)
+          LENGTH = LEN(VALUE)
+   10     IF (LENGTH.GT.0) THEN
+             IF (VALUE(LENGTH:LENGTH).EQ.' ') THEN
+                 LENGTH = LENGTH - 1
+                 GOTO 10
+             END IF
+          END IF
           IER = 0
           IF (LENGTH.GT.0) IER = 1
       ELSE IF (TEST.EQ.'DEVICE' .OR. TEST.EQ.'FILE') THEN
@@ -101,11 +90,7 @@ C
           IER = 1
       ELSE IF (TEST.EQ.'TERMINAL') THEN
           CALL GRQDEV(DEV1, L1)
-          IF (L1.GE.1) THEN
-             CALL GRTTER(DEV1(1:L1), SAME)
-          ELSE
-             SAME = .FALSE.
-          END IF
+          CALL GRTTER(DEV1(1:L1), SAME)
           IF (SAME) THEN
               VALUE = 'YES'
               LENGTH = 3
@@ -116,7 +101,13 @@ C
           IER = 1
       ELSE IF (TEST.EQ.'TYPE') THEN
           CALL GRQTYP(VALUE,INTER)
-          LENGTH = GRTRIM(VALUE)
+          LENGTH = LEN(VALUE)
+   30     IF (LENGTH.GT.0) THEN
+             IF (VALUE(LENGTH:LENGTH).EQ.' ') THEN
+                 LENGTH = LENGTH - 1
+                 GOTO 30
+             END IF
+          END IF
           IER = 0
           IF (LENGTH.GT.0) IER = 1
       ELSE IF (TEST.EQ.'HARDCOPY') THEN
@@ -130,18 +121,8 @@ C
           END IF
           IER = 1
       ELSE IF (TEST.EQ.'CURSOR') THEN
-          CALL GRQCAP(DEV1)
-          IF (DEV1(2:2).EQ.'N') THEN
-              VALUE = 'NO'
-              LENGTH = 2
-          ELSE
-              VALUE = 'YES'
-              LENGTH = 3
-          END IF
-          IER = 1
-      ELSE IF (TEST.EQ.'SCROLL') THEN
-          CALL GRQCAP(DEV1)
-          IF (DEV1(11:11).NE.'S') THEN
+          CALL GRQTYP(VALUE,INTER)
+          IF (.NOT.INTER) THEN
               VALUE = 'NO'
               LENGTH = 2
           ELSE
@@ -153,10 +134,7 @@ C
           IER = 0
       END IF
       IF (IER.NE.1) THEN
-         VALUE = '?'
-         LENGTH = 1
-      ELSE IF (LENGTH.LT.1) THEN
-         LENGTH = 1
-         VALUE = ' '
+          VALUE = '?'
+          LENGTH = 1
       END IF
       END

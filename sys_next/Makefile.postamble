@@ -1,0 +1,9 @@
+demo: demo.o mkspeak.o pgvSpeaker.o pgvListener.o
+	cc ${CFLAGS} -o demo demo.o mkspeak.o\
+		pgvSpeaker.o pgvListener.o -lNeXT_s
+
+pgvSpeaker.h pgvListener.h pgvSpeaker.m pgvListener.m: pgv.msg
+	msgwrap pgv.msg
+
+clean::
+	rm -f pgvListener.* pgvSpeaker.* demo

@@ -1,6 +1,4 @@
 C*PGENV -- set window and viewport and draw labeled frame
-C%void cpgenv(float xmin, float xmax, float ymin, float ymax, \
-C% int just, int axis);
 C+
       SUBROUTINE PGENV (XMIN, XMAX, YMIN, YMAX, JUST, AXIS)
       REAL XMIN, XMAX, YMIN, YMAX
@@ -8,7 +6,7 @@ C+
 C
 C Set PGPLOT "Plotter Environment".  PGENV establishes the scaling
 C for subsequent calls to PGPT, PGLINE, etc.  The plotter is
-C advanced to a new page or panel, clearing the screen if necessary.
+C advanced to a new (sub-)page, clearing the screen if necessary.
 C If the "prompt state" is ON (see PGASK), confirmation
 C is requested from the user before clearing the screen.
 C If requested, a box, axes, labels, etc. are drawn according to
@@ -38,7 +36,7 @@ C      AXIS = 10 : draw box and label X-axis logarithmically;
 C      AXIS = 20 : draw box and label Y-axis logarithmically;
 C      AXIS = 30 : draw box and label both axes logarithmically.
 C
-C For other axis options, use routine PGBOX. PGENV can be persuaded to
+C For other axis options, use routine PGBOX. PGENV can be pursuaded to
 C call PGBOX with additional axis options by defining an environment
 C parameter PGPLOT_ENVOPT containing the required option codes. 
 C Examples:
@@ -53,12 +51,9 @@ C 31-Dec-1985 [TJP] - remove automatic PGBEG call.
 C 29-Aug-1989 [TJP] - remove common block; no longer needed.
 C-----------------------------------------------------------------------
       INTEGER      L
-      LOGICAL      PGNOTO
       CHARACTER*10 XOPTS, YOPTS, ENVOPT, TEMP
 C
-      IF (PGNOTO('PGENV')) RETURN
-C
-C Start a new picture: move to a new panel or page as necessary.
+C Start a new picture: move to a new subpage or page as necessary.
 C
       CALL PGPAGE
 C

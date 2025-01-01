@@ -1,8 +1,9 @@
+
 C*GRCLIP -- clip a point against clipping rectangle
 C+
       SUBROUTINE GRCLIP (X,Y,XMIN,XMAX,YMIN,YMAX,C)
       REAL X,Y
-      REAL XMIN,XMAX,YMIN,YMAX
+      INTEGER XMIN,XMAX,YMIN,YMAX
       INTEGER C
 C
 C GRPCKG (internal routine): support routine for the clipping algorithm;
@@ -14,18 +15,17 @@ C Arguments:
 C--
 C (11-Feb-1983)
 C Revised 20-Jun-1985 (TJP); use floating arithmetic
-C Revised 12-Jun-1992 (TJP); clip exactly on the boundary
 C-----------------------------------------------------------------------
 C
       C = 0
-      IF (X.LT.XMIN) THEN
+      IF (X.LT.XMIN-0.5) THEN
           C = 1
-      ELSE IF (X.GT.XMAX) THEN
+      ELSE IF (X.GT.XMAX+0.5) THEN
           C = 2
       END IF
-      IF (Y.LT.YMIN) THEN
+      IF (Y.LT.YMIN-0.5) THEN
           C = C+4
-      ELSE IF (Y.GT.YMAX) THEN
+      ELSE IF (Y.GT.YMAX+0.5) THEN
           C = C+8
       END IF
       END

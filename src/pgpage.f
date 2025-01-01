@@ -1,18 +1,12 @@
 C*PGPAGE -- advance to new page
-C%void cpgpage(void);
 C+
       SUBROUTINE PGPAGE
 C
-C Advance plotter to a new page or panel, clearing the screen if
+C Advance plotter to a new (sub-)page, clearing the screen if
 C necessary. If the "prompt state" is ON (see PGASK), confirmation is
-C requested from the user before clearing the screen. If the view
-C surface has been subdivided into panels with PGBEG or PGSUBP, then
-C PGPAGE advances to the next panel, and if the current panel is the
-C last on the page, PGPAGE clears the screen or starts a new sheet of
-C paper.  PGPAGE does not change the PGPLOT window or the viewport
-C (in normalized device coordinates); but note that if the size of the
-C view-surface is changed externally (e.g., by a workstation window
-C manager) the size of the viewport is changed in proportion.
+C requested from the user before clearing the screen.  For an
+C explanation of sub-pages, see PGBEG.  PGPAGE does not change the
+C window or the position of the viewport relative to the (sub-)page.
 C
 C Arguments: none
 C--
@@ -25,71 +19,46 @@ C               of GRPCKG.
 C  9-Feb-1988 - move prompting into routine GRPROM.
 C 11-Apr-1989 - change name to PGPAGE.
 C 10-Sep-1990 - add identification labelling.
-C 11-Feb-1992 - check if device size has changed.
-C  3-Sep-1992 - allow column ordering of panels.
-C 17-Nov-1994 - move identification to drivers.
-C 23-Nov-1994 - fix bug: character size not getting reset.
-C 23-Jan-1995 - rescale viewport if size of view surface  has changed.
-C  4-Feb-1997 - bug fix; character size was not correctly indexed by
-C               device ID.
 C-----------------------------------------------------------------------
       INCLUDE      'pgplot.inc'
       CHARACTER*16 STR
-      LOGICAL      INTER, PGNOTO
-      REAL DUM1, DUM2, XS, YS, XVP1, XVP2, YVP1, YVP2
+      INTEGER      L
+      LOGICAL      INTER
 C
-      IF (PGNOTO('PGPAGE')) RETURN
+      IF (PGOPEN.EQ.0) RETURN
 C
-      IF (PGROWS(PGID)) THEN
-        PGNXC(PGID) = PGNXC(PGID) + 1
-        IF (PGNXC(PGID).GT.PGNX(PGID)) THEN
-          PGNXC(PGID) = 1
-          PGNYC(PGID) = PGNYC(PGID) + 1
-          IF (PGNYC(PGID).GT.PGNY(PGID)) PGNYC(PGID) = 1
-        END IF
-      ELSE
-        PGNYC(PGID) = PGNYC(PGID) + 1
-        IF (PGNYC(PGID).GT.PGNY(PGID)) THEN
-          PGNYC(PGID) = 1
-          PGNXC(PGID) = PGNXC(PGID) + 1
-          IF (PGNXC(PGID).GT.PGNX(PGID)) PGNXC(PGID) = 1
-        END IF
-      END IF
-      IF (PGNXC(PGID).EQ.1 .AND. PGNYC(PGID).EQ.1) THEN
-          IF (PGADVS(PGID).EQ.1 .AND. PGPRMP(PGID)) THEN
-              CALL GRTERM
-              CALL GRPROM
-          END IF
-          CALL GRPAGE
-          IF (.NOT.PGPFIX(PGID)) THEN
-C             -- Get current viewport in NDC.
-              CALL PGQVP(0, XVP1, XVP2, YVP1, YVP2)
-C             -- Reset view surface size if it has changed
-              CALL GRSIZE(PGID, XS,YS, DUM1,DUM2,
-     1                    PGXPIN(PGID), PGYPIN(PGID))
-              PGXSZ(PGID) = XS/PGNX(PGID)
-              PGYSZ(PGID) = YS/PGNY(PGID)
-C             -- and character size
-              CALL PGSCH(PGCHSZ(PGID))
-C             -- and viewport
-              CALL PGSVP(XVP1, XVP2, YVP1, YVP2)
-          END IF
+      NXC = NXC + 1
+      IF (NXC.GT.NX) THEN
+          NXC = 1
+          NYC = NYC + 1
+          IF (NYC.GT.NY) THEN
+              NYC = 1
+              IF (ADVSET.EQ.1) THEN
+                  CALL GRQTYP(STR,INTER)
+                  CALL GRGENV('IDENT', STR, L)
+                  IF (L.NE.0 .AND. (.NOT.INTER)) CALL PGIDEN
+              END IF
+              IF (ADVSET.EQ.1 .AND. PROMPT) THEN
+                  CALL GRTERM
+                  CALL GRPROM
+              END IF
+              CALL GRPAGE
 C
 C If the device is interactive, call GRBPIC to clear the page.
 C (If the device is not interactive, GRBPIC will be called
 C automatically before the first output; omitting the call here
 C ensures that a blank page is not output.)
 C
-          CALL GRQTYP(STR,INTER)
-          IF (INTER) CALL GRBPIC
+              CALL GRQTYP(STR,INTER)
+              IF (INTER) CALL GRBPIC
+          END IF
       END IF
-      PGXOFF(PGID) = PGXVP(PGID) + (PGNXC(PGID)-1)*PGXSZ(PGID)
-      PGYOFF(PGID) = PGYVP(PGID) + 
-     1               (PGNY(PGID)-PGNYC(PGID))*PGYSZ(PGID)
+      XOFF = XVP + (NXC-1)*XSZ
+      YOFF = YVP + (NY-NYC)*YSZ
 C
 C Window the plot in the new viewport.
 C
       CALL PGVW
-      PGADVS(PGID) = 1
+      ADVSET = 1
       CALL GRTERM
       END

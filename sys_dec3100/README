@@ -1,0 +1,99 @@
+Date: Fri, 6 Oct 89 23:49:51 PDT
+From: anthony@csvax.caltech.edu (Lawrence Anthony)
+Subject: pgplot on decstation 3100
+
+tim
+
+what follows is a brief sketch of what is involved in porting pgplot
+to the decstation 3100.  i have included the files that i have
+modified (usually only very slightly).  
+
+lawrence
+
+*****************
+log file for attempt to install pgplot on a decstation (ultrix 3.1 / uws 2.1)
+=============================================================================
+
+ftp'd (binary mode) tar image of pgplot from shakespeare cluster over
+to decstation (ulysses.caltech.edu or 192.33.14.32).
+
+extracted all files from tar image into /usr/new/pgplot.
+
+used Makefile.SUN as a starting point for a possible makefile for the
+decstation (copied as Makefile.3100).  ran make on Makefile.3100 in
+/usr/new/pgplot.
+
+the warning "dummy procedure not declared EXTERNAL.  Code may be wrong."
+was given for lines 45 and 46 of pgfunt.f, line 55 of pgfunx.f, and
+line 52 of pgfuny.f.  warning ignored after checking the appropriate
+source files.
+
+the warning "local variable k never used." was given for line 288 of
+grsy00.f.  this was traced to an implicit do loop involving the variable
+k.  possible bug in compiler.
+
+cpp gave the following error messages for svdriv.c:
+	line 336: cannot find suntool/sunview.h
+	line 337: cannot find suntool/canvas.h
+solved by removing the sunview driver list from the list of drivers for
+the decstation.
+
+the error "impossible element in concatenation" was given for line 146
+of tedriv.f and line 238 of vtdriv.f.  possible bug in compiler.  solved
+by modifying the relevant lines to not use string concatenation.
+
+the following declaration errors were given for the file vtdriv.f:
+	line 141: declaration error for cursor:
+		impossible parameter conversion with character
+	line 142: declaration error for vteras:
+		impossible parameter conversion with character
+	line 143: declaration error for vthome:
+		impossible parameter conversion with character
+problem traced to usage of char() function (presumably not a built-in
+function) in parameter statements.  solved by rewriting the parameter
+statements to not use char().
+
+various unresolved externals occuring at link time were traced to the
+presence of the cgdriver in the list of drivers for the decstation.
+solved by removing the cgdriver reference from the list.
+
+grexec3100.f (based on grexecSUN.f) was modified to not call cgdriv
+and svdriv.
+
+there seems to be a problem with the use of the isatty function in the
+files grgcom.f and grprom.f.  here, isatty is declared to return logical.
+in fact, there are two isatty functions: one in /usr/lib/libU77.a that
+returns logical and one in /usr/lib/libc.a that returns integer.  the
+wrong routine is probably being linked.  i suspect that changing the
+order of invocation of the various libraries may solve the problem but
+i have not experimented with it.  a temporary workaround is to replace
+the conditional involving isatty with one that always returns .true.
+this works okay when using pgplot interactively.  i have not tested it
+in batch mode.
+
+it is necessary to compile the fortran source code with a -static flag.
+this declares all function variables to be static (equivalent to the
+save command) instead of automatic.  this is especially important for
+the various drivers which implicitly rely upon the function variables
+being static.
+
+the compile flags used were "-O2 -static -u" for f77 and "-O2" for cc.
+"-O0" and "-g" also work as expected and are useful for debugging.
+i have not tried using the "-O3" flag.
+
+lawrence anthony
+237 keck, x4474
+
+*****************
+
+the list of modified files is as follows:
+
+Makefile.3100
+grexec3100.f
+tedriv.f
+vtdriv.f
+grvt03.f
+grgcom.f
+grprom.f
+fonts/Makefile.3100
+examples/Makefile.3100

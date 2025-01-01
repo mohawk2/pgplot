@@ -1,0 +1,6 @@
+Dispatch.o : Dispatch.m Dispatch.h PGObject.h PGView.h pgvListener.h \
+  sername.h 
+PGObject.o : PGObject.m PGObject.h 
+PGView.o : PGView.m PGView.h 
+pgvListener.o : pgvListener.m pgvListener.h 
+pgview_main.o : pgview_main.m 

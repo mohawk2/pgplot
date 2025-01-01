@@ -19,7 +19,7 @@ C--
 C 19-Jan-1988
 C-----------------------------------------------------------------------
       INTEGER LIB$GETDVI
-      INTEGER I, IER
+      INTEGER I, IER, LENGTH
       EXTERNAL DVI$_FULLDEVNAM
 C
       STRING = ' '

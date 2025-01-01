@@ -1,5 +1,4 @@
 C*PGQCI -- inquire color index
-C%void cpgqci(int *ci);
 C+
       SUBROUTINE PGQCI (CI)
       INTEGER  CI
@@ -14,11 +13,5 @@ C                    that index is not available on the output device.
 C--
 C  5-Nov-1985 - new routine [TJP].
 C-----------------------------------------------------------------------
-      LOGICAL PGNOTO
-C
-      IF (PGNOTO('PGQCI')) THEN
-         CI = 1
-      ELSE
-         CALL GRQCI(CI)
-      END IF
+      CALL GRQCI(CI)
       END

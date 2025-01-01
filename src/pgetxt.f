@@ -1,5 +1,4 @@
 C*PGETXT -- erase text from graphics display
-C%void cpgetxt(void);
 C+
       SUBROUTINE PGETXT
 C

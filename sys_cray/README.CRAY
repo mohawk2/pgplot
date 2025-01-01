@@ -1,0 +1,203 @@
+Date: Mon, 3 Sep 90 17:29:43 PDT
+From: jn@surya.caltech.edu (Jose Navarro)
+
+I was able to compile pgplot on the Cray after making the following
+changes:
+
+
+PGPLOT Changes for the CRAY
+--------------------------
+
+**  pgplot/Makefile.CRAY
+
+	FFLAGC=-Wf"-o novector -i64"
+	(this is the correct way to pass arguments from cf77 to cft77)
+
+	PG_ROUTINES
+	    add: 	pgpage.o pgcn01.o pgconb.o
+	    remove: 	pgcnit.o pgcnnc.o pgcnre.o pgcnsa.o pgcnxv.o
+
+	GR_ROUTINES
+	    add:	grqcol.o
+
+	SYSTEM_ROUTINES
+	    remove:	grchkt.o
+
+**  pgplot/examples/Makefile.CRAY
+
+	FFLAGC=-Wf"-o novector -i64"
+
+**  pgplot/pgadvance.f
+    pgplot/examples/pgdemo2.f
+    pgplot/examples/pgdemo2.vf
+
+	change PGADNVACE into PGADVANC
+	(routine names cannot have more than 8 characters)
+
+**  cp pgplot/makeconvex pgplot/makecray
+
+**  pgplot/makecray
+
+	change Makefile.CONVEX to Makefile.CRAY
+
+**  emulate.c
+    tedriv.f
+
+	change SLEEP() to PGSLEEP()
+
+**  emulate.c
+    cgdriv.f
+    grgenv.f
+
+	change GETENV() to PGGETENV()
+
+**  if you do not have access to /usr/lib and /usr/local/lib you will have
+    put libpgplot.a libpgobs.a and grfont.dat somewhere in your area. Then
+    you must change the hardwired path UNIX in pgplot/grsy00.f from
+    /usr/local/lib/grfont.dat to some other path like ~/lib.
+
+	change 		PARAMETER  (UNIX='/usr/local/lib/grfont.dat')
+	to		PARAMETER  (UNIX='/users/u8/u8166/lib/grfont.dat')
+
+**  it is now possible to compile pgplot
+
+	cd pgplot
+	makecray
+	mv libpgplot.a libpgobs.a fonts/grfont.dat /users/u8/u8166/lib
+	examples/pgdemo1
+	examples/pgdemo2
+
+-------------------------------------------------------------------------------
+
+I.  Notes on implementing /TEK4014 device in PGPLOT on Cray-2 and Cray Y-MP
+    832 at NASA Ames (by D. L. Meier, 14 MARCH 1989)
+
+The following files in this directory come originally from Bob Sault 
+<bobs@castor.astro.uiuc.edu> 16-DEC-1988.
+
+    emulate.c
+    gr_termio.c
+    grte01.f
+    grte02.f
+    grte04.f
+    tedriv.f
+
+
+These files, and others in the pgplot and pgplot/examples and pgplot/fonts
+directories, were modified by Dave Meier at JPL <dlm@hamlet.caltech.edu> to
+port PGPLOT to the Cray-2 and CRay Y-MP at NASA Ames.  The compiler used 
+is cf77.  Cf77 calls cft77 for the compile step.  In addition, it performs 
+the link step, placing the executable into the file named with the '-o' 
+switch and uses the '-O' switch for optimization (unlike cft77 which uses 
+'-o').  Cf77 is the compiler of choice (as opposed to cft or cf) as it is 
+the only one supported on the newer Cray Y-MPs.
+
+The changes necessary were as follows:
+
+    1.  Makefile differences:
+
+	a.  Use cf77 with 64-bit integers ('-i64' switch).  This is
+	    necessary as 64-bit integers are the only type which are
+	    common between C (64-bit and 32-bit integers) and cf77
+	    FORTRAN (64-bit and 46-bit integers).  Indeed, on the
+	    Cray Y-MP, only 64-bit integers are available in FORTRAN.
+	    Note that in cf77 FORTRAN there are no BYTE or INTEGER*1,
+	    INTEGER*2, or even INTEGER*4 variables -- only INTEGER*8!
+
+	b.  As PGPLOT does I/O, it is probably best not to vectorize
+	    the code, only optimize.
+
+	c.  Only 1 driver is supported at present:  /TEK4014.
+
+	d.  Ranlib is not necessary.
+
+    2.  PGADVANCE is too long a name;  it was changed to PGADVANC in
+	all routines including demo main programs.
+
+    3.  DO WHILE and END DO are VAX extensions not supported in cf77.
+	The DO WHILE statements were changed to normal DO loops with
+	10**6 passes and IF/GOTO combinations.
+
+    4.  It was found that character reads into strings more than 152
+	characters long would give an error in cf77.  Therefore the
+	string REQ in PGBEGIN was reduced to 152 characters.  Otherwise,
+	the routine GRGCOM would fail when reading the name of the graphics
+	output file.
+
+    5.  The routine TEDRIV needed several variables declared static
+        ('SAVE').  Apparently in cf77 variables which are not arguments to a
+	routine or are in common are declared automatic (placed on the
+	stack).  Such variables have arbitrary initial values and lose their
+	values after each call.  To be safe, BUFLEV was also initialized to
+	zero.
+
+
+As Cray UNICOS FORTRAN matures, it may be possible to relax some of the
+above (2 - 4, especially; 5 is just good programming).  Release 5.0 is
+due at Ames shortly (March 1989).
+
+Most of the example demos run with these changes.  There are still problems
+with the cursor demos PGEX15 and PGEX18.  The cursor does indeed appear 
+(a Mac II with Versaterm was used), but the character read does not appear 
+to get a valid character.  BEWARE!  As PGEX18 never reads an 'X', the program 
+can never be exited.  The UNICOS process must be aborted some other way.
+
+II.  Notes added concerning UNICOS 4.0 on the Cray X-MP 18 at JPL
+     (D. L. Meier, 20 JUNE 1989)
+
+For some reason, the encoded string length in the FORTRAN string pointer
+is not the same on the JPL Cray X-MP 18 running UNICOS 4.0 as it is on
+the NASA Ames Cray-2 and Cray Y-MP 832 running UNICOS 5.0.  The difference
+is that the string length is "pointer & 0x1FFFFFFF00000000 >> 33" instead
+of "0x1FFFFFF800000000 >> 35".  The following change was made to emulate.c
+in order to allow PGPLOT to find the FONT file, determine PGENV options,
+etc.:
+
+********************
+emulate.c
+10:    /* Worked on Ames Crays (Cray-2 and Y/MP 832) UNICOS 5.0
+11:    #define len(string) ((string & 0x1FFFFFF800000000) >> 35 )
+12:    */
+13:    /* Works on JPL Cray (X/MP 18) UNICOS 4.0 */ 
+14:    #define len(string) ((string & 0x1FFFFFFF00000000) >> 33 )
+15:
+**********
+emulate.1
+10:    #define len(string) ((string & 0x1FFFFFF800000000) >> 35 )
+11:
+********************
+
+III.  Notes added on implementation of other graphics drivers on the
+      JPL cray (D. L. Meier, 29 JUNE 1989)
+
+In addition to the /TEK4010 driver, the following devices were added to the
+JPL Cray implementation of PGPLOT:
+
+	/NULL		--  no changes necessary.
+
+	/PS and /VPS	--  no changes necessary.
+
+	/RETRO		--  implementation very similar to /TE driver,
+			    using calls to GROTERM, GRWTERM, etc. in
+			    gr_termio.c to write out an integer buffer.
+
+	/VT125		--  implementation also similar to /TE driver,
+			    using gr_termio of integer buffer instead of 
+			    WRITE statements of character buffer; GRVT03 
+			    now converts CHARACTER*1024 buffer to
+			    INTEGER IBUF(1030) before calling GRWTERM
+			    (potentially slow, but the Cray does not seem
+			    to mind); made other changes compatible with
+			    FORTRAN 77 without VAX extensions, including
+			    SAVE statements, more primitive initialization
+			    of constant character strings, and more limited
+			    passing of character strings.
+
+
+A few changes were made in the "gr_termio.c" routine, fixing a bug in
+GRREAD() so now cursor routines in both /TE and /RE work, and lengthened
+MAXBUF so the buffer will not overflow for the /VT device.
+
+Finally, the JPL Cray complains loudly when redundant routines are found by
+the linker.  I therefore removed all redundancies between PSDRIVER and
+VPDRIVER and between TEDRIVER and REDRIVER in Makefile.CRAY.

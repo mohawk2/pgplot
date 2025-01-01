@@ -1,5 +1,4 @@
 C*PGLAB -- write labels for x-axis, y-axis, and top of plot
-C%void cpglab(const char *xlbl, const char *ylbl, const char *toplbl);
 C+
       SUBROUTINE PGLAB (XLBL, YLBL, TOPLBL)
       CHARACTER*(*) XLBL, YLBL, TOPLBL

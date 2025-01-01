@@ -8,7 +8,7 @@ C line width, etc.)
 C-----------------------------------------------------------------------
       INCLUDE 'grpckg1.inc'
       REAL RBUF(2)
-      INTEGER NBUF, LCHR
+      INTEGER NBUF, LCHR, ITHICK, IDASH
       CHARACTER*20 CHR
 C
       GRPLTD(GRCIDE) = .TRUE.
@@ -23,13 +23,18 @@ C         -- set color index
           NBUF = 1
           CALL GREXEC(GRGTYP,15,RBUF,NBUF,CHR,LCHR)
 C         -- set line width
-          IF (GRGCAP(GRCIDE)(5:5).EQ.'T') THEN
+          CALL GREXEC(GRGTYP, 4,RBUF,NBUF,CHR,LCHR)
+          ITHICK = 0
+          IF (CHR(5:5).EQ.'T') ITHICK = 1
+          IF (ITHICK.EQ.1) THEN
               RBUF(1) = ABS(GRWIDT(GRCIDE))
               NBUF = 1
               CALL GREXEC(GRGTYP,22,RBUF,NBUF,CHR,LCHR)
           END IF
 C         -- set hardware dashing
-          IF (GRGCAP(GRCIDE)(3:3).EQ.'D') THEN
+          IDASH = 0
+          IF (CHR(3:3).EQ.'D') IDASH = 1
+          IF (IDASH.EQ.1) THEN
               RBUF(1) = GRSTYL(GRCIDE)
               NBUF = 1
               CALL GREXEC(GRGTYP,19,RBUF,NBUF,CHR,LCHR)

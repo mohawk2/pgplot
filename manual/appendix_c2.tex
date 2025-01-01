@@ -1,0 +1,369 @@
+% PGPLOT manual, T. J. Pearson    29-MAY-1989
+%------------------------------------------------------------------------
+% Copyright (c) 1983, 1984, 1985, 1986, 1987, 1988, 1989 by
+% California Institute of Technology.
+% All rights reserved.
+%------------------------------------------------------------------------
+
+\beginappendix{C2}{INSTALLATION INSTRUCTIONS (UNIX)}
+
+\beginsection Introduction
+
+All UNIX systems are different, so the installation procedure described 
+here may not work on your system, and some editing and debugging may be 
+required.  Please read all the installation instructions before
+attempting to install PGPLOT. I first describe the installation
+procedure which I have used on our systems (Convex and Sun); I hope it
+will work on other Berkeley-derived UNIX systems. If you have trouble
+with the installation, you should read Section~C.3, which is
+intended to provide sufficient background information for you to adapt
+PGPLOT to a different system. 
+
+The UNIX version of PGPLOT is distributed in source form on a `tar' tape
+(usually a 9-track, 1600-bpi tape).
+
+\beginsection Basic Installation
+
+The following installation procedure has been run on a Convex C-1
+running Version 6.2 or 7.0 of the Convex operating system with Fortran
+compiler FC Version 4.1 or 5.0, and on Sun-3 and Sun-4 workstations
+running SunOS Release 4.0 with Sun Fortran Release 1.1. It does {\it
+not\/} work with earlier versions of the Convex Fortran compiler, the
+Sun operating system, or the Sun Fortran compiler. 
+
+\bigskip\noindent
+1. Copy the files from the distribution tape to your disk. The files
+are organized in three directories: |pgplot|, |pgplot/examples|, and 
+|pgplot/fonts|. To copy the files from the `tar' tape, you should first
+change your default directory to the {\it parent\/} directory of 
+|pgplot|, and use a command like the following:
+\begintt
+tar xv pgplot
+\endtt
+This will create a |pgplot| directory in your current directory and 
+install the PGPLOT files in it. (If you already have a |pgplot| 
+directory, remove it first.) If you are not using `tar' but are copying 
+the files from another system, make sure that you put the files in the
+correct directories.
+
+\bigskip\noindent
+2. Compile the PGPLOT subroutines and create the PGPLOT object library.
+Change your default directory to PGPLOT and then use `make' to do the 
+compilation. The distribution tape contains two `makefiles', one for
+Convex (|Makefile.CONVEX|) and one for Sun (|Makefile.SUN|). You can
+rename the appropriate file to |Makefile|, or use the |-f| option of 
+`make':
+\begintt
+cd pgplot
+make -f Makefile.SUN
+\endtt
+If all goes well, you should get no error messages from the compilation.
+(The SUN Fortran compiler issues an incorrect warning message that |MOD|
+is an unused variable when compiling |grre04| and |grte04|; you can 
+ignore this message.)
+
+\bigskip\noindent
+3. Build the binary font file.  The font file (read at run time by 
+PGPLOT programs) is distributed in an ASCII text form in file 
+|grfont.txt| and must be converted to binary form before use. This is
+done using the `makefile' in the |fonts| directory; again there are
+separate versions for Convex and Sun: 
+\begintt
+cd fonts
+make -f Makefile.SUN grfont.dat
+\endtt
+This compiles a program |pgpack| to do the conversion and then runs it.
+It should display a message like the following:
+\begintt
+Characters defined:   996
+Array cells used:   26732
+\endtt
+You now need to define an environment variable that defines the location 
+of the binary font file, e.g.:
+\begintt
+setenv PGPLOT_FONT /usr/name/pgplot/fonts/grfont.dat
+\endtt
+Substitute the appropriate path for |/usr/name/pgplot|; or while you are 
+in the |fonts| directory, type
+\begintt
+setenv  PGPLOT_FONT `pwd`/grfont.dat
+\endtt
+The |fonts| directory also contains utility programs |pgunpack| and
+|pgdchar| that you will need only if you plan to modify the font file (not
+recommended). 
+
+\bigskip\noindent
+4. Compile the test and demonstration programs in the |examples| 
+directory. Again there there are separate `makefiles' for Convex 
+and Sun:
+\begintt
+cd ../examples
+make -f Makefile.SUN
+\endtt
+At this point, you may run out of disk space (if you haven't done 
+already) as the executable programs are rather large. If necessary, you
+can compile the programs one at a time, e.g.:
+\begintt
+make -f Makefile.SUN pgdemo1
+\endtt
+to compile program |pgdemo1|. The two demonstration programs
+|pgdemo1| and |pgdemo2| each generate several screens (pages) 
+illustrating the use of PGPLOT subroutines. There is also a general test 
+program, |pgex17|, described in Appendix~E, and two test programs for 
+the cursor routines, |pgex15| and |pgex18|.
+
+\bigskip\noindent
+5. Run at least one of the test programs, e.g. |pgdemo1|.
+\begintt
+pgdemo1
+\endtt
+The program will prompt for a device specification. Type a question mark 
+|?| to get a list of available device handlers. Read the PGPLOT manual
+for details of device specifications, and the remainder of this 
+Appendix for notes on the available device handlers. Run the program 
+once for each device that you wish to test. I hope that all will go 
+well; if not, read the next section. The commonest problem is that
+you get graphs with no text. This implies that the program cannot read 
+the font file (you should also get a message to this effect). Check the
+definition of |PGPLOT_FONT| (see above).
+
+\bigskip\noindent
+6.  If everything so far looks all right, you can move the files to 
+their final destinations (this may require superuser privilege and the 
+cooperation of your system manager). You need to keep two files: the
+object library |pgplot/libpgplot.a| and the binary font file
+|pgplot/fonts/grfont.dat|. Everything else can be deleted if you want to
+conserve disk space; it can always be recovered from the distribution
+tape.  The object library should (ideally) be moved to the directory
+where the loader expects to find libraries; usually |/usr/lib|: 
+\begintt
+cd pgplot
+cp libpgplot.a /usr/lib
+\endtt
+You can then use |-lpgplot| with |ld| or your Fortran compiler to
+link a program with the PGPLOT library.  The location of the font file 
+is arbitrary, but as distributed, PGPLOT expects to find it in 
+|/usr/local/lib/grfont.dat|:
+\begintt
+cd fonts
+cp grfont.dat /usr/local/lib
+\endtt
+If you want to put it in some other location, you can {\it either\/} 
+define |PGPLOT_FONT| every time you use a PGPLOT program (see above), 
+{\it or\/} modify the default location by editing file |pgplot/grsy00.f|
+and recompiling (see step 2). (Note that if you modify any PGPLOT
+routine, you will have to remodify it each time you install a new
+version of PGPLOT.) 
+
+\bigskip\noindent
+7. Finally, you should attempt to compile and link a PGPLOT program
+of your own. On Convex:
+\begintt
+fc -o program program.f -lpgplot
+\endtt
+On Sun:
+\begintt
+f77 -o program program.f -lpgplot -lsuntool -lcgi77 -lcgi\
+    -lsunwindow -lpixrect -lm
+\endtt
+Note that the Sun version requires all the above libraries to be 
+included, in the order indicated (assuming that the /SUNVIEW and /CGI
+device handlers are included, as they are in the distribution tape).
+
+\beginsection Advanced Installation
+
+This section addresses problems that you may encounter trying to install 
+PGPLOT on a different UNIX system, and indicates what options are open 
+to you to solve them.
+
+Examine the `makefiles' in the |pgplot| directory and make sure that you 
+understand what they do. In particular, you may need to change the 
+definitions of the Fortran compiler and compilation switches.
+
+The subroutines are organized into several groups in the `makefile':
+\smallskip
+\item{1.} PG routines.  These are the top level PGPLOT routines that 
+can be called by application programs, plus a few internal routines.
+They are identical to the VMS version, and are written in standard
+Fortran-77 (I believe) with two exceptions; the |INCLUDE| statement and
+the use of subroutines names longer than 6~characters. The former can be
+avoided by use of a preprocessor or by hand-editing the code to replace
+each |INCLUDE| statement with the text of the included file; the latter
+is fundamental to PGPLOT, but you might try truncating names to 6
+characters. 
+
+\item{2.} GR routines.  These are internal routines. They are also 
+supposed to be standard Fortran-77, but there are a few problems.
+As in the PG routines, some subroutine names are longer than 
+6~characters, and the |INCLUDE| statement is used. A large array
+|BUFFER| used in |grsy00.f| and |grsyxd.f| is declared |INTEGER*2| to save 
+space both internally and in the binary font file (the array is just
+a copy of the disk file); if you change it to |INTEGER|, you must make
+the same change in the |pgpack| program in the |fonts| directory.
+Routine |grgrps.f| uses a hexadecimal format code (|Z2.2|) which is
+non-standard.
+
+\item{3.} Drivers.  Each device handler is a subroutine with a name
+like |xxdriv| (for device |xx|). The `makefile' lists the additional
+subroutines required for each handler. The |DRIVERS| macro lists all
+the device handlers to be included in the final library. You customize 
+PGPLOT by changing the list assigned to |DRIVERS|.  The device handlers
+are not written in standard Fortran-77, although I have tried to adhere 
+to the standard where possible.  Please let me know what problems you 
+have.  Some of the handlers call on subroutines written in C rather than 
+Fortran. The conventions for writing a C subroutine to be called from a 
+Fortran program are different on different systems (it may not even be 
+possible). Thus you may need to do a lot of work to get each handler
+going. But note that you don't need to have {\it all\/} the handlers
+running in order to test PGPLOT.  It is sufficient to include just the
+null device handler, which is written in standard Fortran-77. (See below 
+for notes on each handler.)
+
+\item{4.} Dispatch routine. The routine |grexec| must be modified to 
+include the list of device handlers you wish to include in PGPLOT.
+Two different versions are provided on the distribution tape; one for 
+Convex and one for Sun.
+It is a simple multi-way |GOTO| (|CASE| statement), one branch for
+each handler. Eventually this routine will be assembled automatically 
+during the installation procedure, but at present you must edit it by 
+hand.
+
+\item{5.} System routines. These routines, called from all levels of 
+PGPLOT, encapsulate various operating-system dependent functions.
+If you have trouble with these routines, you will need to write new
+versions. I hope that the internal comments are sufficient to explain 
+what each routine is supposed to do.  The version distributed calls
+on a number of Fortran library functions which are normally part of 
+Berkeley-UNIX but which may not be present in other varieties (e.g.,
+|getenv|, |getlog|, |hostnm|).
+
+\item{6.} Obsolete routines.  This group includes a number of routines
+that are no longer an official part of PGPLOT, but they may be called
+by some old PGPLOT application programs.  If you have such programs,
+I recommend you rewrite them, but if necessary you can compile an 
+additional library containing these routines by the command
+|make -f Makefile.SUN libpgobs.a|~.
+
+\beginsection Device Handlers
+
+The UNIX version of PGPLOT is distributed with a much smaller set of 
+device handlers than the VMS version.  If you modify any of the device 
+handlers or write new ones, please (a) try to keep them as portable as 
+possible, and (b) send copies to me so that I can include them in future 
+distributions. See Appendix~E for instructions on writing a device 
+handler.
+
+\beginsub{Null device}
+The null device handler is |nudriv|. Use device specification |/NULL|. 
+Output sent to the null device is discarded; i.e., PGPLOT produces no
+output.  This device handler is fully portable. 
+
+\beginsub{SunView} (Sun only)
+File |svdriv| is a first attempt at a handler for Sun workstations running
+SunView, from Brian M. Sutin (sutin@astro.umd.edu). It is written in C. 
+Programs which use it must be linked with several libraries (in order): 
+\begintt
+-lsuntool -lsunwindow -lpixrect
+\endtt
+Use device specification |/SUNVIEW|. Please let me know if you have any 
+problems with this handler, or make improvements to it.
+
+\beginsub{Sun-CGI} (Sun only)
+File |cgdriv| is another handler for Sun workstations running
+SunView, from Allyn Tennant. It only works with color workstations, but
+could probably be easily modified for monochrome workstations. It calls
+on the Sun CGI routines, and hence programs which use it must be linked
+with several libraries (in order): 
+\begintt
+-lcgi77 -lcgi -lsunwindow -lpixrect -lm
+\endtt
+Use device specification |/CGI|. PGPLOT creates a window on the screen,
+or uses the whole screen if you are not running SunView. There is no
+cursor available with this handler. The window is closed when your 
+program exits, so it is not possible to overlay one plot on top of 
+another by using the undocumented |/APPEND| qualifier.
+
+\beginsub{IVAS} (Convex only)
+The handler for the IIS IVAS image display (|ivdriv|, device 
+specification |/IVAS|) calls C routines to do most of the work.  It is
+self-contained (no other libraries are required), but will require a
+compatible version of the Convex device driver for the interface board. 
+
+\beginsub{Imagraph} (Convex only)
+This is a handler for the Imagraph image display (|tvdriv|, device
+specification |/IMAGRAPH|). The board is an AGC SERIES VME-1280-10 board
+(IMAgraph Corporation, 800 West Cummings Park, Woburn, Massachusetts
+01801), and utilizes a Hitachi HD63484 Advanced CRT Controller (ACRTC)
+as graphics engine. It is configured with $1024 \times 1024$ 8-bit pixels
+(image frame memory) plus a 2-bit pixel overlay. The device handler is
+self-contained (no other libraries are required), but it will require
+the Caltech Convex device driver for the interface board
+(contact Judy Cohen for more information). 
+
+\beginsub{Tektronix terminals and emulators}
+The basic Tektronix-4010 handler is |tedriv| (|/TEK|). Extensions for
+use with Retrographics terminals and Graph\-On terminals are provided in
+files |redriv| (|/RETRO|) and |gfdriv| (|/GF|), respectively. The code for
+these handlers is fairly standard, with the exception of C routines in
+|gr_term_io.c| for writing to the terminal. As control characters must
+be output, the terminal is put in `cbreak' mode during output.  The
+|tedriv| handler works with the Sun Tektronix emulator |tektool|. The 
+cursor works with these device handlers on the Convex but not on Suns:
+I would appreciate suggestions for fixing this problem.
+
+\beginsub{PostScript printers}
+The PostScript handlers (|psdriv| for landscape mode, |vpdriv| for 
+portrait mode) adhere fairly closely to standard Fortran-77, and so 
+should be easily ported to different systems.
+The files that they create do not display correctly in the Sun
+|psview| PostScript preview program owing to what I assume is a bug in
+Sun's implementation of PostScript. The PostScript handlers can 
+optionally insert a control-D (end-of-file) character at the beginning
+and end of the PostScript file, which may be needed by some PostScript 
+printers. To enable this option, define the environment variable
+|PGPLOT_PS_EOF| (with any value).
+
+\beginsub{REGIS terminals (e.g., DEC VT125)}
+The REGIS device handler is in file |vtdriv|; specify a device type
+of |/VT125|.  It is fairly close to standard Fortran-77. The default
+output device is the user's terminal, but a disk file can also be 
+specified. The display should be satisfactory on VT125 terminals; later
+DEC terminals (like VT240, VT340) do not have separate memories for text
+and graphics, and this leads to problems with programs that interleave
+text and graphical output. At present, the cursor is not implemented. 
+
+\beginsub{Other devices} (Convex only)
+The basic installation procedure installs some additional drivers in the
+Convex version of PGPLOT, but these have not been tested in other
+versions. Imagen printers: |imdriv|; Printronix printers: |pxdriv|; QMS
+printers: |qmdriv| and |vqdriv|; Versatec printers: |vedriv| and
+|vvdriv|.
+
+\beginsection Special Notes: Sun
+
+The Sun Fortran compiler treats the `backslash' character (|\|) 
+as a special escape character in literal character strings. This means 
+that any programs that try to make use of the PGPLOT escape-character 
+mechanism, which also uses backslash, will have problems.  Until Sun 
+provides a way to disable this annoying behavior of the compiler, the
+solution is to replace each occurrence of |\| by |\\|. This does not
+cause problems within the PGPLOT library (there are no literal |\|
+characters), but it does affect the example programs and many
+application programs.  The `makefile' in the |examples| directory passes
+the example programs through the Sun filter |f77cvt| which performs this
+substitution (among other things).
+
+\beginsection Acknowledgments
+
+I am grateful to Jon Danskin of Convex Computer Corporation for the 
+initial port of PGPLOT to Convex-UNIX, Allyn Tennant (NASA Marshall) for 
+providing the Sun-CGI device handler, Brian Sutin (University of 
+Maryland) for the SunView device handler, Neil Killeen (University of 
+Illinois) for comments on the Sun implementation, and Judy Cohen 
+(Caltech) for providing time on Sun-3 and Sun-4 workstations. 
+
+\bigskip
+\rightline{T. J. Pearson}
+\rightline{29 May 1989}
+
+\endchapter

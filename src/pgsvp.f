@@ -1,5 +1,4 @@
 C*PGSVP -- set viewport (normalized device coordinates)
-C%void cpgsvp(float xleft, float xright, float ybot, float ytop);
 C+
       SUBROUTINE PGSVP (XLEFT, XRIGHT, YBOT, YTOP)
       REAL XLEFT, XRIGHT, YBOT, YTOP
@@ -27,16 +26,13 @@ C--
 C 13-Dec-1990  Make errors non-fatal [TJP].
 C-----------------------------------------------------------------------
       INCLUDE  'pgplot.inc'
-      LOGICAL  PGNOTO
-      REAL     XS, YS
 C
-      IF (PGNOTO('PGSVP'))  RETURN
+      IF (PGOPEN.EQ.0)  RETURN
       IF (XLEFT.GE.XRIGHT .OR. YBOT.GE.YTOP) THEN
           CALL GRWARN('PGSVP ignored: invalid arguments')
           RETURN
       END IF
 C
-      XS = PGXSZ(PGID)/PGXPIN(PGID)
-      YS = PGYSZ(PGID)/PGYPIN(PGID)
-      CALL PGVSIZ(XLEFT*XS, XRIGHT*XS, YBOT*YS, YTOP*YS)
+      CALL PGVSIZ(XLEFT*XSZ/XPERIN, XRIGHT*XSZ/XPERIN,
+     1             YBOT*YSZ/YPERIN, YTOP*YSZ/YPERIN)
       END

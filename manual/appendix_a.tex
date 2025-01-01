@@ -1,0 +1,147 @@
+% PGPLOT manual, 16-MAY-1989, T. J. Pearson
+%------------------------------------------------------------------------
+% Copyright (c) 1983, 1984, 1985, 1986, 1987, 1988, 1989 by
+% California Institute of Technology.
+% All rights reserved.
+%------------------------------------------------------------------------
+
+\beginappendix{A}{SUBROUTINE DESCRIPTIONS}
+
+\beginsection Introduction
+
+This appendix includes a classified list of all the PGPLOT subroutines,
+and then gives detailed instructions for the use of each routine in
+Fortran programs. The subroutine descriptions are in alphabetical order.
+
+\beginsection Arguments
+
+The subroutine descriptions indicate the data type of each argument. When
+arguments are described as ``input'', they may be replaced with constants
+or expressions in the |CALL| statement, but make sure that the constant
+or expression has the correct data type. 
+
+\item{1.} |INTEGER| arguments: these should be declared |INTEGER| or
+|INTEGER*4| in the calling program, not |INTEGER*2|. 
+
+\item{2.} |REAL| arguments: these should be declared |REAL| or |REAL*4|
+in the calling program, not |REAL*8| or |DOUBLE PRECISION|. 
+
+\item{3.} |CHARACTER| arguments: any valid Fortran |CHARACTER| variable
+may be used (declared |CHARACTER*|$n$ for some integer $n$). 
+
+
+\beginsection Classified List
+
+Note: all routine names begin with the letters ``PG''. Most (but 
+unfortunately not all) routine names are six characters or less, to 
+conform to Fortran-77 standards.
+
+{\parindent=0pt\obeylines
+
+\beginsub{Control routines}
+
+PGADVANCE -- see PGPAGE
+PGASK -- control new page prompting
+PGBBUF -- begin batch of output (buffer)
+PGBEGIN -- begin PGPLOT, open output device
+PGEBUF -- end batch of output (buffer)
+PGEND -- terminate PGPLOT
+PGPAGE -- advance to a new page or clear screen
+PGPAPER -- change the size of the view surface
+PGUPDT -- update display
+
+\beginsub{Windows and viewports}
+
+PGBOX -- draw labeled frame around viewport
+PGENV -- set window and viewport and draw labeled frame
+PGVPORT -- set viewport (normalized device coordinates)
+PGVSIZE -- set viewport (inches)
+PGVSTAND -- set standard (default) viewport
+PGWINDOW -- set window
+PGWNAD -- set window and adjust viewport to same aspect ratio
+
+\beginsub{Primitive drawing routines}
+
+PGDRAW -- draw a line from the current pen position to a point
+PGLINE -- draw a polyline (curve defined by line-segments)
+PGMOVE -- move pen (change current pen position)
+PGPOINT -- draw one or more graph markers
+PGPOLY -- fill a polygonal area with shading
+PGRECT -- draw a rectangle, using fill-area attributes
+
+\beginsub{Text}
+
+PGLABEL -- write labels for x-axis, y-axis, and top of plot
+PGMTEXT -- write text at position relative to viewport
+PGPTEXT -- write text at arbitrary position and angle
+PGTEXT -- write text (horizontal, left-justified)
+
+\beginsub{Attribute setting}
+
+PGSCF -- set character font
+PGSCH -- set character height
+PGSCI -- set color index
+PGSCR -- set color representation
+PGSFS -- set fill-area style
+PGSHLS -- set color representation using HLS system
+PGSLS -- set line style
+PGSLW -- set line width
+
+\beginsub{Higher-level drawing routines}
+
+PGBIN -- histogram of binned data
+PGCONS -- contour map of a 2D data array (fast algorithm)
+PGCONT -- contour map of a 2D data array (contour-following)
+PGCONX -- contour map of a 2D data array (non-rectangular)
+PGERRX -- horizontal error bar
+PGERRY -- vertical error bar
+PGFUNT -- function defined by X = F(T), Y = G(T)
+PGFUNX -- function defined by Y = F(X)
+PGFUNY -- function defined by X = F(Y)
+PGGRAY -- gray-scale map of a 2D data array
+PGHI2D -- cross-sections through a 2D data array
+PGHIST -- histogram of unbinned data
+
+\beginsub{Interactive graphics (cursor)}
+
+PGCURSE -- read cursor position
+PGLCUR -- draw a line using the cursor
+PGNCURSE -- mark a set of points using the cursor
+PGOLIN -- mark a set of points using the cursor
+
+\beginsub{Inquiry routines}
+
+PGQCF -- inquire character font
+PGQCH -- inquire character height
+PGQCI -- inquire color index
+PGQCR -- inquire color representation
+PGQFS -- inquire fill-area style
+PGQINF -- inquire PGPLOT general information
+PGQLS -- inquire line style
+PGQLW -- inquire line width
+PGQVP -- inquire viewport size and position
+PGQWIN -- inquire window boundary coordinates
+
+\beginsub{Utility routines}
+
+PGETXT -- erase text from graphics display
+PGIDEN -- write username, date, and time at bottom of plot
+PGLDEV -- list available device types
+PGNUMB -- convert a number into a plottable character string
+PGRND -- find the smallest ``round'' number greater than x
+PGRNGE -- choose axis limits
+}
+
+\beginsection Subroutine Synopses
+
+The following pages give descriptions of all the PGPLOT subroutines
+in alphabetical order.  These descriptions have been extracted from
+comments in the Fortran source code.  (For an up-to-date version
+of these decriptions, look at the file |PGPLOT.DOC| in the PGPLOT
+directory.)
+
+\raggedbottom
+\vfill\eject
+
+\input routines
+\endchapter

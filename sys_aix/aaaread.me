@@ -1,36 +1,47 @@
-pgplot/sys_aix
 
-The *.conf files in this directory are for use with IBM RS/6000
-machines running AIX. PGPLOT has been tested with AIX 3.2.5 and
-xlf 3.2.
+                   PGPLOT on an IBM RS/6000 machine
 
-xlf_cc.conf
+                        Allyn F. Tennant
+                   Marshall Space Flight Center
+                          1991-Jul-02
 
-Problems:
+MAKE PGPLOT
+To make PGPLOT under AIX, you should first copy makefile.aix to the
+pgplot directory.  Next cd to that directory and type:
 
-(1) xlf complains about DATA initialization of variables in COMMON
-in routines gropen and pgbeg, but it appears to do the correct thing.
-You can ignore these messages.
+make -f makefile.aix
 
-(2) Some PGPLOT device drivers, e.g., lxdriv, use non-standard ENCODE
-statements that xlf rejects. These can be replaced with in-memory
-WRITE statements if necessary. I have not done this because I have no
-way to test that the modified drivers still work. Let me know if you
-do change these drivers successfully.
+This should make the library, the font file, and the example programs.
 
-g77_gcc.conf
 
-This configuration file has not been tested extensively: feedback is
-requested.
+TESTED DRIVERS
+Currently only a minimum set of device drivers have been tested.  The
+drivers known to work under AIX are
 
-If make fails, make any necessary changes in the configuration file
-and rerun makemake.  This configuration file does not make a shared
-library (libpgplot.so) because I don't know the necessary commands
-for an AIX system.
- 
-Note that not all drivers can be compiled with g77. If you encounter
-compilation errors for file *driv.f, edit the drivers.list file to
-deselect the line referring to this driver and rerun makemake.
+/Null The null device works anywhere/anytime.
 
-Tim Pearson
-13 Aug 1998
+/Postscipt and /VPostscript  Create Postscript files.
+
+/Retrographics A Tektronix type terminal emulator.
+
+/Xwindow The original X Window driver.  With this driver the window
+will disappear when the program exits.  Note to get this driver to
+run under AIX, you must use the FORK implementation of backing store.
+You will need to edit the top of xwdriv.c and ensure that following
+are defined:
+
+#define SIGNAL 0
+#define FORK   1
+
+If you fail to do this you will get an 'alarm clock' error.
+
+/Xdisp For use with the Figaro display server pgdisp.
+
+/Zstem  A PC VT100/VT200 terminal emulator used here at MSFC.  This
+driver can be used with other terminal emulators as it sometimes
+correctly toggles the screen to Tektronix mode when /retro fails (xterm
+from MIT, not the IBM version, works this way).  Since these other
+emulators usually do not support color commands, garbage characters
+(such as L1) will appear on the screen.  If you use this emulator and
+will never use the color, then you should edit zsdriv.f and disable
+the color function code.

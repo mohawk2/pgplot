@@ -1,0 +1,242 @@
+% PGPLOT manual, 16-MAY-1989, T. J. Pearson
+%------------------------------------------------------------------------
+% Copyright (c) 1983, 1984, 1985, 1986, 1987, 1988, 1989 by
+% California Institute of Technology.
+% All rights reserved.
+%------------------------------------------------------------------------
+
+\beginchapter{3}{WINDOWS AND VIEWPORTS}
+
+\beginsection  Introduction
+
+This chapter is concerned with positioning a graph on the screen or
+hardcopy page, and controlling its scale.  In simple applications, the
+position and scale of the graph are controlled more-or-less
+automatically by the routine |PGENV|, but in order to obtain complete
+control of positioning and scaling, it is necessary to understand the
+concepts of the {\it View Surface}, the {\it Window}, and the {\it
+Viewport}, and two coordinate systems: {\it World Coordinates\/} and {\it
+Device Coordinates}. 
+
+A simple PGPLOT picture might be a two-dimensional graph showing the
+dependence of one variable on another. A typical graph has data points,
+represented by error bars or special markers such as dots or diamonds,
+possibly connected by lines, or perhaps plotted on the same scale as a
+theoretical model drawn as a smooth curve. The graph must be labeled
+with two axes to indicate the coordinate scales. 
+
+The programmer must describe to PGPLOT the various elements of
+the graph in terms of rectangular Cartesian coordinates.  The only
+limitation on the coordinates is that they be represented as
+floating-point (|REAL*4|) numbers; otherwise we are totally free to
+choose the meaning of the coordinates. For example, in a graph showing
+the temporal variation of a radio source, the abscissa ($x$-coordinate)
+might be Epoch (in years) and the ordinate ($y$-coordinate) Flux Density
+(in Jy). 
+
+In accordance with common practice in graphics programming, these
+coordinates, chosen by the programmer, are termed {\it world
+coordinates\/}. PGPLOT maps a selected rectangular region of the
+world-coordinate space (termed the {\it window\/}) onto a specified
+rectangle (termed the {\it viewport\/}) on the {\it view surface\/} (the
+screen of an interactive display or a sheet of paper on a hardcopy
+plotter).  The program must make calls to PGPLOT routines to define both
+the window and the viewport. For complete descriptions of the routines 
+and their arguments, refer to Appendix A.
+
+
+\beginsection Selecting a View Surface
+
+The first thing a graphics program must do is to tell PGPLOT what
+device it is going to use. This is done by calling routine |PGBEGIN|.
+For example, to create a plot file for the Versatec printer: 
+\begintt
+CALL PGBEGIN (0, 'PLOTFILE.LIS/VERSATEC', 1, 1)
+\endtt
+Equally important, when all plotting has been completed, it is necessary 
+to call |PGEND| to flush any pending plot requests: 
+\begintt
+CALL PGEND
+\endtt
+Note that only one device can be used at a time.  If |PGBEGIN| is called 
+while a plot is in progress, the old plot is closed and a new one is 
+begun.
+
+After calling |PGBEGIN| the program has access to a {\it view surface}.  For
+interactive devices, this is the full screen of the device. For hardcopy
+devices, it is a standard page, usually $10 (x) \times 8.5 (y)$ inches on
+a device used in ``landscape'' mode (\eg, device types |/VE| and |/QMS|),
+or $8.5 (x) \times 10 (y)$ inches a device used in ``portrait'' mode 
+(\eg, device types |/VV| and |/VQMS|).
+
+On some devices, it is possible to plot on a larger piece of paper than 
+the standard page; see the description of routine |PGPAPER|, which must 
+be called immediately after |PGBEGIN| to change the size of the view 
+surface. The different devices differ not only in the size of the
+view surface, but also in its {\it aspect ratio\/} (height/width).
+|PGPAPER| can be called to ensure that a plot has the same aspect ratio
+no matter what device it is plotted on. 
+
+After completing a graph, it is possible to advance to a new page to start a
+new graph (without closing the plot file) by calling |PGPAGE|:
+\begintt
+CALL PGPAGE
+\endtt
+This clears the screen on interactive devices, or gives a new piece of
+paper on hardcopy devices. It does not change the viewport or window.
+
+The last two arguments of |PGBEGIN| (|NX| and |NY|) can be used to
+sub-divide the view surface into smaller pieces called sub-pages, each
+of which can then be used separately. The view-surface is divided into
+$NX$ (horizontally) by $NY$ (vertically) sub-pages. When the view
+surface has been subdivided in this way, |PGPAGE| moves the plotter
+to the next sub-page, and only clears the screen or loads a new piece of
+paper if there are no sub-pages left on the current page.
+
+In addition to selecting the view surface, |PGBEGIN| also defines a 
+default viewport and window.  It is good practice, however, to define 
+the viewport and window explicitly as described below.
+
+
+\beginsection Defining the Viewport
+
+A {\it viewport} is a rectangular portion of the plotting surface onto which
+the graph is mapped. PGPLOT has a default viewport which is centered on
+the plotting surface and leaves sufficient space around it for
+annotation.  The application program can redefine the viewport by
+calling routine |PGVPORT| or |PGVSIZE|. 
+
+|PGVPORT| defines the viewport in a device-independent manner, using a
+coordinate system whose coordinates run from 0 to 1 in both $x$
+and $y$. This coordinate system is called {\it normalized device
+coordinate space\/}. For example, if we wish to divide the view surface
+into four quadrants and map a different plot onto each quadrant, we can
+define a new viewport before starting each plot.  |PGVPORT| has the
+format: 
+\begintt
+CALL PGVPORT (XMIN, XMAX, YMIN, YMAX)
+\endtt
+For example, to map the viewport onto the upper left quadrant of the
+view surface:
+\begintt
+CALL PGVPORT (0.0, 0.5, 0.5, 1.0)
+\endtt
+(Note that this does not leave room around the edge of the viewport for
+annotation.)
+
+|PGVSIZE| defines the viewport in absolute coordinates (inches); it
+should only be used when it is known how big the view surface is and a
+definite plot scale is required.  The arguments are the same as for
+|PGVPORT|, but measured in inches from the bottom left corner of the
+view surface. For example: 
+\begintt
+CALL PGVSIZE (1.5, 9.5, 1.5, 6.5)
+\endtt
+defines a rectangular viewport 8 by 5 inches, offset 1.5 inches from the
+bottom and left edges of the view surface.
+
+|PGVSTAND| defines a standard viewport, the size of which depends
+on the particular device being used, and on the current character size
+(it uses the whole view surface excluding a margin of four character 
+heights all around):
+\begintt
+CALL PGVSTAND
+\endtt
+This is the default viewport set up by |PGBEGIN|.
+
+Note that the viewport must be defined {\it before\/} calling any routines
+that would actually generate a display. The viewport may, however, be
+changed at any time: this will affect the appearance of objects drawn
+later in the program. 
+
+
+\beginsection Defining the Window
+
+The program defines the {\it window} by calling routine |PGWINDOW|, whose
+arguments specify the world-coordinate limits of the window
+along each coordinate axis. \eg: 
+\begintt
+CALL PGWINDOW (1975.0, 1984.0, 5.0, 20.0)
+\endtt
+specifies that the $x$-axis (epoch) is going to run (left to right) from
+1975 to 1984, and the $y$-axis (flux density) is going to run (bottom to
+top) from 5 to 20~Jy. Note that the arguments are floating-point numbers
+(Fortran |REAL| variables or constants), and require decimal points. If
+the order of either the $x$ pair or the $y$ pair is reversed, the
+corresponding axis will point in the opposite sense, \ie, right to left
+for $x$ or top to bottom for $y$. PGPLOT uses the window specification
+to construct a mapping that causes the image of the window to coincide
+with the viewport on the view surface. Furthermore, PGPLOT ``clips''
+lines so that only those portions of objects that lie within the window
+are displayed on the view surface. 
+
+Like the viewport, the window must be defined before drawing any
+objects. The window can be defined either before or after the viewport:
+the effect will be the same.  The default window, set up by |PGBEGIN|,
+has $x$~limits 0.0--1.0 and $y$~limits 0.0--1.0.
+
+If the ratio of the sides of the window does not equal the ratio of 
+the sides of the viewport, the mapping of the world coordinates onto 
+the view surface results in an image whose shape is compressed in either 
+$x$ or $y$.  One way to avoid this compression is to carefully choose
+the viewport to have the same aspect ratio as the window.  Routine
+|PGWNAD| can do this: it defines the window and simultaneously adjusts
+the viewport to have the same aspect ratio as the window.  The new 
+viewport is the largest that can fit inside the old one, and is centered 
+in the old one.
+
+
+\beginsection Annotating the Viewport
+
+For a simple graph, it is usually necessary to draw a frame around
+the viewport and label the frame with tick marks and numeric labels.
+This can be done with the routine |PGBOX|.  For
+our sample graph, the call might be:
+\begintt
+CALL PGBOX ('BCTN', 0.0, 0, 'BCNST', 0.0, 0)
+\endtt
+Another routine, |PGLABEL|, provides text labels for the bottom, left
+hand side, and top of the viewport:
+\begintt
+CALL PGLABEL ('Epoch', 'Flux Density (Jy)',
+              'Variation of 3C345 at 10.7 GHz')
+\endtt
+The first two arguments provide explanations for the two axes; the
+third provides a title for the whole plot. Note that unlike all the
+other plotting routines, the lines and characters drawn by |PGBOX| and
+|PGLABEL| are not clipped at the boundaries of the window.  |PGLABEL|
+actually calls a more general routine, |PGMTEXT|, which
+can be used for plotting labels at any point relative to the viewport.
+
+The amount of space needed outside the viewport for annotation
+depends on the exact options specified in |PGBOX|; usually four
+character heights will be sufficient, and this is the amount allowed
+when the standard viewport (created by |PGVSTAND|) is used. The character
+height can be changed by using routine |PGSCH|.
+
+
+\beginsection Routine PGENV
+
+Having to specify calls to |PGPAGE|, |PGVPORT|, |PGWINDOW|, and
+|PGBOX| is excessively cumbersome for drawing simple graphs. Routine
+|PGENV| (for PGplot ENVironment) combines all four of these in one
+subroutine, using the standard viewport, and a limited set of the
+capabilities of |PGBOX|.  For example, the graph described above could
+be initiated by the following call: 
+\begintt
+CALL PGENV (1975.0, 1984.0, 5.0, 20.0, 0, 0)
+\endtt
+which is equivalent to the following series of calls:
+\begintt
+CALL PGPAGE
+CALL PGVSTAND
+CALL PGWINDOW (1975.0, 1984.0, 5.0, 20.0)
+CALL PGBOX ('BCNST', 0.0, 0, 'BCNST', 0.0, 0)
+\endtt
+|PGENV| uses the standard viewport.  The first four arguments define the
+world-coordinate limits of the window. The fifth argument can be 0 or 1; 
+it is 1, |PGENV| calls |PGWNAD| instead of |PGWINDOW| so that the plot
+has equal scales in $x$ and $y$. The sixth argument controls the amount
+of annotation.
+
+\endchapter

@@ -1,0 +1,2498 @@
+
+
+                          The Figaro X11 Display Server
+                          User's and Programmer's Guide
+
+                             Samuel N. Southard, Jr.
+
+                                 December 2, 1991
+
+                          Last Revised: March 19, 1992
+
+
+1.  Introduction
+
+The Figaro X11 display server (figdisp) is designed to provide all features 
+truly necessary in a display while being as fast as possible.  Since all the 
+nicest features are worthless if the display is slow, the primary emphasis 
+is on speed.  Of course, "fast" depends on the CPU, memory configuration, etc. 
+of the machine on which you are running Figaro.  Figdisp is adequate on a
+SPARCstation with at least 16 MB of memory.  Figdisp requires an 8-bit visual
+for bitmap graphics (line graphics can use any depth visual).  Most displays
+which have more than 8 bits (the Sun 24-bit GS board, for example) support
+8-bit visuals, so figdisp will work on those displays as well.  Pgdisp, the
+line-graphics only version of figdisp, will work on any visual (including
+read-only visuals).
+
+Figdisp is compatible with both public domain X11 and OpenWindows.  Figdisp 
+is known to work on the following configurations:
+
+	Sun 4 series (cgtwo, cgsix, cgtwelve, and bwtwo) running OpenWindows
+		2.0 or 3.0 with the olwm window manager (all visuals for
+		pgdisp, all 8-bit visuals for figdisp).
+
+	NCD 14c (8-bit color) running xdm with the olwm window manager (all
+		visuals for pgdisp, all 8-bit visuals for figdisp).
+
+If you have another configuration on which pgdisp or figdisp runs, please send 
+a message to sns@deimos.caltech.edu (Internet), sns@citdeimo (Bitnet), or
+DEIMOS::SNS (DECnet/Span).
+
+
+2.  User's Guide
+
+2.1.  Starting Figdisp
+
+Before starting figdisp, both the Figaro and the X11 environment must be set 
+up.  The X11 environment consists of setting the DISPLAY environment variable 
+appropriately.  For example:
+
+% setenv DISPLAY :0
+
+or
+
+% setenv DISPLAY lo-fan:0.0
+
+The first example would cause the display to appear on the local machine.  
+Other values which can be used to accomplish this are "unix:0.0" and
+"lhost:0.0", where lhost is the name of the local host.
+
+The second example would cause the display to appear on the machine "lo-fan," 
+which could be the either local machine or another machine running an X11
+server.  Note that the remote machine can be any machine which is running an
+X11R4 server, not just a Sun.  This method is know to work on DECstations.
+
+See the X11 documentation for a more detailed description of DISPLAY.  Multiple 
+copies of figdisp/pgdisp may be running at any given time.  The only limit is
+your machine's memory.
+
+Once the display environment variable set, simply typing the line
+
+% figdisp [options] &
+
+or
+
+% pgdisp [options] &
+
+will start the display server.  The options are optional and are discussed in
+Customizing Figdisp.  If you are using Figaro, the "&" is not necessary -
+figdisp is aliased to do the correct thing.
+
+If you wish to start up a second copy of figdisp or pgdisp, type the line
+
+% figdisp -id # [options] &
+
+or
+
+% pgdisp -id # [options] &
+
+# represents any integer.  Note that there can not be a copy of figdisp and a
+copy of pgdisp running on the same screen with the same id.
+
+The Figaro environment is initially set up by the figlnm.com and figaro.com 
+scripts.  See the Sun Figaro release notice for details on setting up the
+Figaro environment.
+
+Figdisp is the default display for TVPCKG, so if you only use TVPCKG routines
+you do not need to do anything else.  If for some reason this gets changed, the
+command
+
+% setenv TV_DEVICE FIGDISP
+
+will tell TVPCKG to use figdisp.
+
+If you have multiple copies of figdisp running, the FIGDISP environment
+variable determines which one will be used.  By default, it is set to 0.  If
+you wish to use a different copy of figdisp, use the command
+
+% setenv FIGDISP #
+
+# should be the same as one of the id numbers used to start a copy of figdisp.
+
+If the routines you want to use PGPLOT to do line graphics, you will need use 
+the SOFT command to tell PGPLOT to use figdisp.  For example:
+
+% soft /xdisp
+
+or
+
+% soft /xd
+
+The full name of the PGPLOT device which corresponds to figdisp (or pgdisp) 
+is '/xdisp', as shown by the first example.  The second example shows the
+minimum string necessary to cause line graphics output to appear in figdisp.
+You must have already set up the figaro environment (using the figlnm.com and
+figaro.com scripts) before running SOFT.  If you wish to use a copy of pgdisp
+other than the default, use the command
+
+% soft #/xdisp
+
+# should be the same as one of the id numbers used to start a copy of pgdisp or
+figdisp.
+
+2.2.  Using Figdisp
+
+Figdisp has several output windows: one for bitmap graphics, one for line
+graphics, one for displaying data values (called the "patch" window), one for
+displaying where the visible portion of the image fits into the total image
+(called the "location" window), one for displaying the current color map, and
+one for displaying the FWHM and center of a specified point (called the
+"seeing" window).  The pgdisp program is identical to figdisp, except that it
+only supports line graphics. The line graphics window does not appear until it
+is necessary, but the bitmap graphics window is always displayed.  When
+iconized, the bitmap graphics window is labeled "bitmap" and the line graphics
+window is labeled "figdisp" if the program running is figdisp and "pgdisp" if
+the program running is pgdisp.
+
+Table 1 lists the keys and mouse buttons used to access the various features. 
+Note that these are only defaults - the key to access any function can be 
+configured by the user.  The default set of keys is based on the Sun keyboard 
+- L1 is the same as F11 and R1 is the same as F21.
+
+When figdisp is started it prints out a short message informing the user of the
+help key and referring him to the manual for information about the various ways
+to customize figdisp.  This message can be disabled (see the figdisp.showhelp
+resource).
+
+Button/key	Feature
+-------------------------------------------------------------------------------
+Left button	Pan the image
+
+Middle button	Display an arbitrary line plot.
+
+Right button	Manipulate the color look-up tables.
+
+F2		Increase X and Y zoom factors.
+
+F3		Reset X and Y zoom factors to 1.
+
+F4		Decrease X and Y zoom factors.
+
+F5		Help.
+
+F6		Track cursor
+
+F7		Re-center
+
+F8		Toggle the display of the location window.
+
+F9		Quit.
+
+F10		Toggle the display of the color map window.
+
+L1		Display the patch window.  Pressing this button again inside
+		the patch window dismisses it.
+
+L2		Display a row plot in the line graphics window.  The way in
+		which this plot is generated (left to right, etc) can be
+		configured by the user.
+
+L3		Print a copy of the image.
+
+L4		Print a copy of the portion of the image visible on the main
+		screen.
+
+L6		Inhibit keystroke interpretations until L6 is pressed again.
+
+L8		Invert the color look-up tables.
+
+L9		Calculate the center and FWHM of a star near the cursor.
+
+L10		Display a column plot in the line graphics window.  The way in
+		which this plot is generated (left to right, etc) can be
+		configured by the user.
+
+,		Decrease the line plot line width.
+
+.		Increase the line plot line width.
+
+/		Reset the number of pixels averages together to one (only the
+		central pixel is used).
+
+R7		Increase the X zoom factor.
+
+R9		Decrease the X zoom factor.
+
+R13		Increase the Y zoom factor.
+
+R15		Decrease the Y zoom factor.
+
+			Table 1.  Figdisp commands
+
+2.2.1.  The bitmap window
+
+The bitmap graphics window was designed to make common image manipulation tasks 
+easily accessible.  It supports may functions, all of which are available from 
+the mouse or keyboard; there are no menus.  This window can be resized
+arbitrarily, without relation to the image size.  If the display server is
+actually doing something (such as reading a new image) while the user resizes
+the image, the image will look odd until figdisp gets a chance to take care of
+the resize.  The initial size is determined by the figdisp.bm.geometry resource.
+
+The portion of the image visible in the bitmap window can be changed with the 
+left mouse button.  Pressing it will move the point under the cursor to the 
+center of the window.
+
+Pressing and holding the right mouse button allows the user to dynamically 
+change the color map.  The X position in the bitmap window controls the offset 
+into the color look-up tables and the Y position controls the slope.  The
+algorithm used is identical to the Figaro TVTRANS routine (used by the CPOS T
+function).  Releasing the right button within 10 pixels of the point where it
+was depressed causes the offset and slope to be reset.
+
+The X and Y zoom factors can be increased, decreased, and reset (F2 (controlled 
+by the figdisp.zoomIn resource), F4 (figdisp.zoomOut), and F3
+(figdisp.zoomNorm)) together.  They can also be increased or decreased
+independently (R7 (figdisp.x.zoomIn) and R9 (figdisp.x.zoomOut) for X, R13
+(figdisp.y.zoomIn) and R15 (figdisp.y.zoomOut) for Y).  It is not possible to
+use zoom, resize, pan, or any combination of them to cause the entire image to
+go out of the displayed area.
+
+Pressing F5 (figdisp.help) produces a message describing the function of each 
+of the buttons and keys, as well some general information about the display 
+server.  The message is updated to reflect any changes the user has made to 
+the key interpretations.
+
+Pressing F6 (figdisp.cursor) causes this window's title to change to display 
+the cursor location in the image, the data value at that location, and the X
+and Y zoom factors (if not 1).  This information is updated as the cursor is
+moved.  Pressing F6 again causes the window's title to return to the default.
+
+Pressing F7 (figdisp.recenter) moves the point at the center of the image to 
+the center of the window.
+
+Pressing F8 (figdisp.showLoc) causes the "location" window to appear.  Pressing 
+F8 again causes the location window to disappear.
+
+Pressing F9 (figdisp.quit) causes the display server to exit.
+
+Pressing F10 (figdisp.showCmap) causes the color map window to appear.
+Pressing F10 again causes the color map window to disappear.
+
+Pressing L1 (figdisp.showPatch) causes the "patch" window, which contains the 
+numerical values of the points around the cursor, to appear.  Pressing L1 again 
+updates the points in the patch window to reflect the new cursor position. 
+Pressing L1 inside the patch window causes it to disappear.
+
+Pressing L3 (figdisp.imagePs) produces a PostScript copy of the entire image. 
+If the figdisp.psFile resource is set to "direct" (the default), the output 
+goes directly to the printer specified by the figdisp.printer resource.  If the
+figdisp.printer resource is set to "PRINTER" the output is sent to the printer
+specified by the environment variable PRINTER.  Otherwise, it is sent to the
+specified printer.  If the figdisp.psFile resource is not set to direct, a file
+of the form "figdisp.psFile-#" is produced, where # is a sequence number.  For
+example, if figdisp.psFile is spectra.ps, the output file of the first L3 press
+will be in spectra.ps-0, the second will be in spectra.ps-1, etc.
+Figdisp.psFile set to something other than direct takes precedence over the 
+setting of figdisp.printer.  Note that the file specification is relevant to 
+the directory in which figdisp was started.
+
+Pressing L4 (figdisp.windowPs) produced a PostScript copy of the portion of 
+the image visible in the bitmap graphics window.  The same resources as in 
+figdisp.imagePs are used to specify the output destination.
+
+Pressing L6 (figdisp.inhibit) inhibits the interpretation of all keystrokes 
+until L6 is pressed again.  This is useful if you have changed the keys figdisp 
+uses to perform various functions and a client program needs to see that
+keystroke.  For example, if you change the figdisp.quit key to be "q" and the
+program (ICUR, for example) needs to see a "q", you would press the sequence
+"L6qL6".
+
+Pressing L8 (figdisp.invertCmap) inverts the color map.
+
+Pressing L9 (figdisp.showSee) near a star calculates the X and Y center and 
+FWHM of the star and displays it in the "seeing" window.  Pressing L9 again 
+in the bitmap window updates the contents of the seeing window to reflect the 
+new cursor position.  Pressing L9 inside the seeing window causes it to
+disappear.
+
+2.2.2.  Line plots
+
+Figdisp has the ability to take a row, column, or arbitrary line in the bitmap 
+window and produce a plot of the data values along that line.  In addition 
+to simply using the points along a line, figdisp uses a line width to simulate 
+a slit in a spectrograph.  All the data values at a given point along the line 
+(for example, all the values in a column of the specified width in a row plot) 
+are averaged to produce a data point.  All labels are in the font specified 
+by the figdisp.font resource.
+
+The line width is decreased by pressing "," (figdisp.decreaseSlit), increased 
+by pressing "." (figdisp.increaseSlit), and reset to 1 by pressing "/"
+(figdisp.resetSlit).  The line width starts out as 1 (only the central pixel is
+used).  Each increase causes the number of pixels averaged together, not
+including the central pixel, to go up by a power of two.  For example, the
+line width starts out at 1.  The first increase makes the line width 3 (2^1+1),
+the second increase makes the line width 5 (2^2+1), and so on.  Decreasing the
+line width works in the same way.  The line width can not be decreased to be
+less than 1.
+
+Pressing L2 (figdisp.row) in the bitmap or location windows produces a line 
+plot of the row specified by the cursor position.  The plot is labeled "Row 
+Plot, Y=y" or "Row Plot, Average of Rows y to z", depending on the current 
+line width.  The horizontal axis is labeled "Column" and the vertical axis 
+is labeled "Data".  The values along each axis are periodically labeled.
+
+Two resources, figdisp.row.ascending and figdisp.row.leftToRight, determine how
+the row plot is produced.  If figdisp.row.ascending is True (the default) the
+plot will always go from lower to higher transformed X values (see the 
+figdisp_cscale() command).  If figdisp.row.leftToRight is True (the default) 
+the plot will always go from the left side to the right side of the image.  If
+neither of the resources are true, the plot will go from higher to lower raw
+(X windows) X values, which is from right to left.  If figdisp.row.ascending is
+True it takes precedence over figdisp.row.leftToRight.
+
+Pressing L10 (figdisp.col) in the bitmap or location windows produces a line 
+plot of the column specified by the cursor position.  The plot is labeled
+"Column Plot, X=x" or "Column plot, Average of Columns x to z", depending on
+the current line width.  The horizontal axis is labeled "Row" and the vertical
+axis is labeled "Data".  The values along each axis are periodically labeled.
+
+As with a row plot, two resources, figdisp.col.ascending and
+figdisp.col.bottomToTop, determine how the column plot is produced.  If
+figdisp.col.ascending is True (the default), the plot will always go from
+lower to higher transformed Y values.  If figdisp.col.bottomToTop is True (the
+default), the plot will always go from the bottom to the top of the image.  If
+neither of the resources are true, the plot will go from lower to higher raw Y
+values, which is from top to bottom.  If figdisp.col.ascending is True it takes
+precedence over figdisp.col.bottomToTop.
+
+In addition to row and column plots, figdisp can produce a plot of the data 
+values along an arbitrary line.  Press the middle mouse button to select the 
+first end point and release it to select the second end point.  Between the 
+selection of the two points a line will appear showing you the line which will 
+be used for the plot.  The plot will be labeled "Starting X: x, Starting Y: 
+y, Slope: m" or "Starting X: x, Starting Y: y, Slope: m, Average of z Pixels", 
+depending on the current line width.  The slope is calculated such that a line 
+going up from the leftmost end point, regardless of the order in which the 
+points were picked, has a positive slope.
+
+If the absolute value of the slope is greater than 1, the row number is used 
+for the horizontal axis, which is labeled "Row".  Otherwise, the column number 
+is used and the horizontal axis is labeled "Column".  The vertical axis is 
+always labeled "Data".
+
+The generation of arbitrary line plots is also controlled by two resources, 
+figdisp.line.leftToRight (not to be confused with figdisp.row.leftToRight) 
+and figdisp.line.ascending.  If figdisp.line.ascending is True (the default 
+is False), the plot will go from lower to higher values of the coordinate used 
+for the horizontal axis.  If figdisp.line.leftToRight is True (the default 
+is False), the leftmost point is used as the starting point and the user
+specified end points are flipped if necessary.  Otherwise, the order in which
+the user specifies the points is preserved.  If figdisp.line.ascending is True
+it takes precedence over figdisp.line.leftToRight.
+
+2.2.3.  The line graphics window
+
+The line graphics window was designed to address the needs of PGPLOT and
+supplied everything necessary to do so.  It uses a default of 16 colors (2 if
+on a monochrome screen or it can't get 16 colors for some reason), but this can
+be changed with the lineColors resource.  See the section on Color Allocation
+for a description of how this works.  The only other feature provided is a
+cursor.  This is sufficient to support all PGPLOT requirements.
+
+The line graphics window can be resized arbitrarily.  The initial size is
+determined by the figdisp.lg.geometry resource.  Since PGPLOT and the above
+mentioned line plot utilities automatically scale to use the entire window, the
+line graphics window should not be resized while a program is accessing it.  If 
+this is done, the display server will not crash, but the output will look odd.
+
+The line graphics window title is updated to show the position of the cursor 
+when the cursor is in the line graphics window.
+
+The line plot utilities over-write anything in the line graphics window. 
+
+2.2.4.  The "patch" window
+
+The "patch" window contains a numerical display of data values around a given 
+point.  This point is initially selected by pressing L1 (figdisp.showPatch) 
+in either the bitmap or location windows.  When this happens, the patch window 
+appears (or is updated if it was already visible).  The chosen point is
+displayed in reverse video.  All numbers are displayed in the font specified by
+figdisp.font.
+
+The patch window is initially sized so that an 11x11 grid of points is shown, 
+but it can be resized arbitrarily.  It can be dismissed by pressing L1 inside 
+the patch window.  If any mouse button is pressed inside the patch window, 
+the point under the cursor is moved to the center of the patch window.
+
+2.2.5.  The "location" window
+
+The "location" window shows how the portion of the image visible in the bitmap 
+window relates to the entire image.  This window always displays a scaled copy 
+of the entire image, with a red line around the portion visible in the bitmap 
+window.  Many of the bitmap window functions (such as row and column plots) 
+are available in the location window.  This includes the ability to click the 
+left mouse button on a point to move that point to the center of the bitmap 
+window.
+
+The initial size of the location window is determined by
+figdisp.locationgeometry.  Unlike most of the other windows, there are
+restrictions on how much the user can resize the location window.
+Specifically, the location window can never be larger than 1/2 the image size
+in either X or Y.  Figdisp will also change the size of the location window so
+that the X and Y dimensions of the image are an integral multiple (or as close
+as possible) of the X and Y dimensions of the location window.  If the resource
+figdisp.forceSquare is True (the default is False), figdisp will resize the
+location window so that the scaling factors between the location window and the
+image are the same for both X and Y.  For example, by default the location
+window can be 1/3 the width of the image and 1/2 the height.  If
+figdisp.forceSquare is True, the location window would be either 1/3 the width
+and 1/3 the height or 1/2 the width and 1/2 the height.
+
+The location window is dismissed by pressing F8 again.
+
+2.2.6.  The color map window
+
+The color map window contains a representation of the entire color map, as 
+affected by the transfer function (right mouse button) and the look-up table 
+inversion (the figdisp.invert key).  Every row in the color map window is
+identical.  The leftmost column is the color map entry for a raw data value of
+0 and the rightmost column is the color map entry for a raw data value of 65535
+(16 bit data) or 255 (8 bit data).
+
+The color map window can be resized arbitrarily.  The initial size is
+determined by figdisp.cmapgeometry.
+
+2.2.7.  The "seeing" window
+
+The seeing window is produced by pressing L9 (figdisp.showSee) near a star in
+the bitmap or location windows.  Figdisp will then compute the X and Y center 
+and FWHM and display them in the seeing window, using the font specified by 
+figdisp.font.  This window can not be resized.  It is dismissed by pressing 
+L9 while the cursor is inside the seeing window.
+
+2.2.8.  Color Allocation
+
+Figdisp tries to avoid flashing when moving to and from its windows.  At the 
+same time, figdisp tries to use as many colors as the user likes.  The following 
+steps are used to achieve this goal:
+
+Step 1. Figdisp will try to place both bitmap and line graphics in the default
+	color map, if the default color map is not read-only.  If this is
+	possible, no flashing will occur.
+
+Step 2. Figdisp will try to place both bitmap and line graphics in the same
+	private color map.  If this is possible, some flashing may occur when
+	moving from a non-figdisp window to a figdisp window (or back), but no
+	flashing will occur when moving between figdisp windows.
+
+Step 3. Figdisp will try to put bitmap graphics in the default color map and
+	line graphics in a private color map.  If this is possible, no flashing
+	will occur when moving to or from a bitmap graphics window, but flashing
+	may occur when moving to or from a line graphics window.
+
+Step 4. Figdisp will try to put bitmap graphics in a private color map and line
+	graphics in the default color map.  If this is possible, no flashing
+	will occur when moving to or from a line graphics window, but flashing
+	may occur when moving to or from the bitmap graphics window.
+
+Step 5. Figdisp will try to put bitmap and line graphics in two separate
+	private color maps.  If this is possible, flashing may occur when
+	moving to or from any figdisp window.
+
+Step 6. If the user has requested more than 16 line graphics colors, figdisp
+	will reduce the number of line graphics colors to 16 and try steps 1-5
+	again.
+
+Step 7. Figdisp will try to get a private color map for bitmap graphics.  If
+	this is not possible, figdisp will exit.  If this is possible, flashing
+	may occur when moving to and from a bitmap graphics window.
+
+Step 8. Figdisp will try to get a read-only color map for line graphics with
+	the user requested number of colors.  If this is possible, requests to
+	change the LUT entry for a line graphics color will be ignored.
+	Flashing may occur when moving to and from a line graphics window.
+
+Step 9. If the user requested more than 16 colors, figdisp will try to get a
+	read-only color map with 16 colors.
+
+Step 10. Finally, figdisp will use 2 colors, BlackPixel and WhitePixel, for
+	line graphics.
+
+Whenever figdisp tries to place bitmap graphics in the default color map it 
+uses a user specified maximum (figdisp.bm.maxcolors) and minimum number of 
+colors (figdisp.bm.mincolors).  If it is unable to allocate the maximum number 
+of colors, it decreases the number of colors and tries again, until it reaches 
+the minimum number of colors.  If it can not get at least the minimum number 
+of colors, it gives up on that step.  A similar method is used (with the
+figdisp.bm.private.maxcolors and figdisp.bm.private.mincolors resources) when
+figdisp tries to place bitmap graphics in a private color map.
+
+Since figdisp uses the bitmap window's title bar to display data values, if it
+has to use a private color map it tries to copy the first few (controlled by
+the figdisp.saveColors resource) colors to the private color map.  This means
+that for the display server to work with a private color map, it must be able
+to allocate at least figdisp.bm.private.mincolors+figdisp.saveColors color
+cells in the private color map.  If it is not able to do so and the ability 
+to view numeric data values is unimportant, figdisp.saveColors should be
+reduced (by the user and/or system manager).  If the ability to view numeric
+data values is important and the extra few color map entries are not very
+important, figdisp.bm.private.mincolors should be reduced.  If both are
+important, you need display which supports more colors.  The default value for
+figdisp.saveColors is 6, which seems to work under OpenWindows 3.0.  This will
+probably have to be changed for other window managers and X display servers.
+
+Finally, the user may want to start up other X programs after he starts
+figdisp.  If those programs must use the default color map and figdisp has used
+up all available color map entries in the default color map, those programs
+will not be able to run.  To avoid this, change the value of the
+figdisp.saveColors resource.  Figdisp makes sure that, if it uses the default
+color map, at least figdisp.saveColors color map entries are available for
+other programs.
+
+Figdisp initializs the bitmap graphics window to contain a 16-bit per pixel 
+test pattern which ranges from 0 to 65535.  It sets the bitmap graphics window 
+to contain a linear grey scale with data value 0 corresponding to black and 
+data value 65535 corresponding to white.
+
+The line graphics window is cleared when figdisp begins.  The first 16 LUT 
+table entries (or as many of them as possible, if the user requested fewer 
+than 16 colors) are set as specified in table 2 (possible values range from 
+0 to 65535).  If the line graphics window is using more than 16 colors, the 
+colors above index 15 are initialized to a greyscale with data value 15
+corresponding to black (for the purposes of the greyscale - data value 15 is
+still assigned as specified in table 2) and the maximum data value
+corresponding to white.  If line graphics are attempted on a greyscale screen,
+all color components are set to the same value, specifically 0.30*red+
+0.59*green+0.11*blue, where red, green, and blue are the requested values.
+
+Color Index	Red Component	Green Component	Blue Component
+--------------------------------------------------------------
+0		0		0		0
+
+1		65535		65535		65535
+
+2		65535		0		0
+
+3		0		65535		0
+
+4		0		0		65535
+
+5		0		65535		65535
+
+6		65535		0		65535
+
+7		65535		65535		0
+
+8		65535		32768		0
+
+9		32768		65535		0
+
+10		0		65535		32768
+
+11		0		32768		65535
+
+12		32768		0		65535
+
+13		65535		0		32768
+
+14		21845		21845		21845
+
+15		43690		43690		43690
+
+Table 2.  Figdisp line graphics initial color map entries.
+
+2.2.9.  Window Managers
+
+Figdisp has two aspects which cause it's behavior to depend on the window
+manager. The first of these is how figdisp decide which color map to use and
+has already been discussed.  The second is the extensive use of the mouse
+buttons, which interacts with how the window manager determines input focus.
+
+Most window managers have two methods of determining which window gets input 
+focus: click-to-type, in which the user must click on the window he wants to 
+get input, and follow-pointer, in which the window under the pointer gets
+input.  If the user has specified click-to-type, before he can pan the image,
+manipulate the LUTs, or any other mouse controlled function, he must click on
+the figdisp window.  If this click is done inside the figdisp window, instead
+of on the border, figdisp will also get this click and will processes it, which
+will result in the image being panned (if the left mouse button is used).
+
+There are at least two ways around this.  The first is to use follow-pointer 
+focus.  The way to do this varies from window manager to window manager.  For 
+the OpenLook Window Manager, the line
+
+OpenWindows.SetInput:     followmouse
+
+should be placed into the user's ~/.Xdefaults file or olwm should be started 
+with the -f or -follow flag.  For the Motif window manager, the line
+
+Mwm*keyboardFocusPolicy:        pointer
+
+accomplishes the same thing.
+
+The second way to prevent unwanted panning in figdisp is by telling the window 
+manager not to pass the select event (clicking on the window) to the program 
+(figdisp).  This is accomplished in the Motif window manager by adding the line
+
+Mwm*passSelectButton:     false
+
+to the user's ~/.Xdefaults file.
+
+Note that for changes to the .Xdefaults file to take affect, the resource
+database must be updated and the window manager must be re-started.  The
+easiest way to do this is to exit X windows and start it up again.
+
+2.3.  Customizing Figdisp
+
+Figdisp allows the user to customize everything about how it interacts with the
+user.  Table 3 contains the list of command line options and the corresponding 
+X resources that figdisp recognizes.  Every resource is prefaced by the name of
+the program (i.e. a listing of .display means the resource is figdisp.display 
+if the program was started up as figdisp or and pgdisp.display if the program 
+was started up as pgdisp).  A detailed discussion of the effects of each of 
+these resources has been given in preceeding sections.
+
+Command Line Option	X resource	Default	Notes
+-------------------------------------------------------------------------------
+-display disp		.display	none	The display on which the
+						display server should run.
+
+-id #			.id		0	The id number of this copy of
+						figdisp or pgdisp.  An
+						arbitrary number of copies of
+						figdisp/pgdisp may be run at
+						the same time, as long as each
+						one's id number is unique.
+
+-geometry WxH[+x+y]			512x512	This flag corresponds to
+						.bm.geometry in figdisp and
+						.lg.geometry in pgdisp
+
+-bmGeometry WxH[+x+y]	.bm.geometry	512x512	The bitmap window geometry.
+
+-lgGeometry WxH[+x+y]	.lg.geometry	512x512	The line graphics window
+						geometry.
+
+-patchGeometry WxH[+x+y] .patchgeometry		The default is large enough for
+						11 rows and columns of the
+						chosen font
+
+-cmapGeometry WxH[+x+y]	.cmapgeometry	256x32	The color map window geometry.
+
+-locationGeometry WxH[+x+y] .locationgeometry	The location window (shows the
+					128x128	portion of the image visable as
+						compared to the entire image)
+						geometry.
+
+-colors #		.bm.maxcolors	225	The initial number of colors
+-maxColors #					figdisp will try to use in the
+						default color map for bitmap
+						graphics.
+
+-minColors #		.bm.mincolors	200	The minimum number of colors
+						figdisp will use in the default
+						color map.  If this many colors
+						can not be allocated, a private
+						color map will be used.
+
+-privateColors #	.bm.private.maxcolors	The initial number of colors
+-maxPrivateColors #			65536	figdisp will try to use in a
+						private color map.  This is
+						decreased to the maximum number
+						of colors supported on the
+						chosen display.
+
+-minPrivateColors #	.bm.private.mincolors	The minimum number of colors
+					170	figdisp will try to use in a
+						private color map.  If this
+						many colors can not be
+						allocated figdisp will give up.
+
+-lineColors #		.lineColors	16	The number of colors to use for
+						line graphics.
+
+-visual			.visual		Any	The visual to use.  Accepted
+						values include the X11 visuals
+						PseudoColor and GrayScale, as
+						well as Default (only the
+						default visual is allowed) and
+						Any (any visual is allowed) for
+						either pgdisp or figdisp.
+						Pgdisp also allows the X11
+						visual classes StaticGray,
+						StaticColor, DirectColor, and
+						TrueColor.
+
+-help			.showhelp	True	Whether or not an initial help
+-nohelp						screen should be displayed.
+
+-font font		.font		fixed	The font to use for all
+-fn font					labling.  A fixed-width font is
+						recommended but not required.
+
+-psFile outfile		.psFile		direct	The output file for image and
+						window printing.
+
+-P printer		.printer	PRINTER	The printer to use for image
+-printer printer				and window printing.
+
+-sleepTime #		.sleepTime	100000	See the section on Figdisp
+						Design for a complete
+						description of this resource. 
+ 						Users will usually never need
+						to worry about it.
+
+-forceSquare		.forceSquare	False	If true, the location window
+-noforceSquare					will always preserve the aspect
+						ratio of the image (e.g. if the
+						image is twice as wide as it is
+						high, the location window will 
+						also be twice as wide as it is
+						high).
+
+-saveColors #		.saveColors	6	The number of colors to try to
+						copy from the default color map
+						to a private color map.
+
+-leaveColors #		.leaveColors	0	The number of colors to leave
+						available in the default color
+						map.
+
+-ascendingCoord		.line.ascending	False	See the section on Line Plots
+-noascendingCoord				for a description of this
+						resource.  If true, takes
+						precedence over
+						.line.leftToRight.
+
+-leftToRight		.line.leftToRight	See Line Plots.
+-noleftToRight				False
+
+-ascendingX		.row.ascending	True	See Line Plots.  If true, takes
+-noascendingX					precedence over
+						.row.leftToRight
+
+-rowLeftToRight		.row.leftToRight	See Line Plots.
+-norowLeftToRight			True
+
+-ascendingY		.col.ascending	True	See Line Plots.  If true, takes
+-noascendingY					precedence over .col.bottomToTop
+
+-bottomToTop		.col.bottomToTop	See Line Plots.
+-nobottomToTop				True
+
+-zoomin key		.zoomIn		F2	The key used to increase both X
+						and Y zoom factors.
+
+-zoomnorm key		.zoomNorm	F3	The key used to reset both X
+						and Y zoom factors.
+
+-zoomout key		.zoomOut	F4	The key used to decrease both X
+						and Y zoom factors.
+
+-zoomxin key		.x.zoomIn	R7	The key used to increase the X
+						zoom factor.
+
+-zoomxout key		.x.zoomOut	R9	The key used to decrease the X
+						zoom factor.
+
+-zoomyin key		.y.zoomIn	R13	The key used to increase the Y
+						zoom factor.
+
+-zoomyout key		.y.zoomOut	R15	The key used to decrease the Y
+						zoom factor.
+
+-helpkey key		.help		F5	The key used to produce a help
+						screen, including the current
+						key definitions.
+
+-cursor key		.cursor		F6	The key used to toggle the
+						display of the cursor position
+						and data value in the window's
+						title bar.
+
+-recenter key		.recenter	F7	The key used to recenter the
+						image in the window.
+
+-showloc key		.showLoc	F8	The key used to toggle the
+						display of the window showing
+						the main image window's
+						position in the entire image.
+
+-quit key		.quit		F9	The key used to exit figdisp.
+
+-showcmap key		.showCmap	F10	The key used to toggle the
+						display of the window
+						containing the color map in use.
+
+-showpatch key		.showPatch	L1	The key used to display the
+						window containing numeric pixel
+						values.
+
+-row key		.row		L2	The key used to produce a row
+						plot in the line graphics
+						window.
+
+-imagePrint key		.imagePs	L3	The key used to produce a
+						PostScript output of the entire
+						image.
+
+-windowPrint key	.windowPs	L4	The key used to produce a
+						PostScript output of the
+						portion of the image visible in
+						the main window.
+
+-invert key		.invertCmap	L8	The key used to invert the
+						color map.
+
+-showsee key		.showSee	L9	The key used to produce a
+						window containing the X and Y
+						centroid and FWHM of a star
+						near the cursor.
+
+-column key		.column		L10	The key used to produce a
+						column plot in the line
+						graphics window.
+
+-decreaseSlit key	.decreaseSlit	,	The key used to decrease the
+						slit width used for line plots.
+
+-increaseSlit key	.increaseSlit	.	The key used to increase the
+						slit width used for line plots.
+
+-resetSlit key		.resetSlit	/	The key used to reset the slit
+						width used for line plots.
+
+-inhibit key		.inhibit	L6	The key used to inhibit the
+						interpretation of all other
+						keys.  This allows a program
+						which accepts cursor input from
+						figdisp to receive any keyboard
+						value (except this key).
+
+
+		Table 3. Figdisp command line options and resources
+
+If you are already familiar with X resources, Table 2, plus the meaning of all
+the resources, which can be found earlier in this document, is all you need to
+know.  If not, continue reading.
+
+Figdisp looks for its resource values in the following places (precedence is 
+from top to bottom):
+
+	The command line
+
+	The XENVIRONMENT or ~/.hostname files
+
+	The server resource database (the xrdb command) or the ~/.Xdefaults file
+
+	The Figdisp or Pgdisp file in XAPPLRESDIR or /usr/lib/X11/app-defaults
+
+	The compile time defaults.
+
+You should note that because of this precedence, the defaults specified by your
+system manager in the Figdisp or Pgdisp file will take priority over the 
+compile-time defaults, so the listed default values may not agree with those on
+your system.
+
+2.3.1.  Customizing Figdisp with Command-Line Options
+
+The easiest way to experiment with figdisp's options is to use the command 
+line.  Doing this is as simple as looking up the command-line option which 
+corresponds to the resource you want to specify, and then using it on the
+command line.  For example, changing the key used to exit figdisp to "q" is as
+simple as
+
+% figdisp -quit q &
+
+Some figdisp command-line options do not require an argument.  For example, 
+let's say that in addition to changing the quit key, you wanted to disable 
+the initial message figdisp produces referring you to this manual and to the 
+help key.  You would do this by the command
+
+% figdisp -quit q -nohelp &
+
+Now let's say that in addition to all of the above, you wanted to specify that 
+the bitmap graphics window started out 256 pixels wide, 512 pixels tall, 100 
+pixels from the left edge of the screen, and 200 pixels from the top edge of 
+the screen, the line graphics window to start out 512 pixels wide and 256
+pixels high (but didn't care where on the screen it appeared), the font used
+for labels to be 5x8 (a very small font), PostScript output to go to the file
+~/fdout.ps, the display server to try to allocate a maximum of 128 colors and a
+minimum of 100 colors in the default color map, and the display server to exit
+if it has to allocate a private color map.  This would take the command
+
+% figdisp -quit q -nohelp -bmGeometry 256x512+100+200 -lgGeometry 512x256 \
+	-font 5x8 -psFile ~/fdout.ps -colors 128 -minColors 100 \
+	-maxPrivateColors 1 -minPrivateColors 2 &
+
+Since the minimum number of colors allowable in the private color map is less 
+than the maximum, figdisp will never use a private color map.  This technique 
+can also be used to require figdisp to use a private color map.
+
+Note that the options can come in any order and the flags can be abbreviated 
+to the smallest unique string, so the last command could also be
+
+% figdisp -minP 2 -maxP 1 -minC 100 -colo 128 -ps ~/fdout.ps -fon 5x8 \
+	-lg 512x256 -bm 256x512+100+200 -noh -q q &
+
+As was mentioned in Starting Figdisp, if you are using Figaro figdisp has been 
+aliased so that you do not need to specify the "&" to start figdisp in the 
+background.
+
+2.3.2.  Customizing Figdisp with your ~/.Xdefaults file
+
+As you no doubt realized, typing in a long command line as in the final example 
+can get to be very awkward.  This is where the server resource database (which 
+is usually read from the ~/.Xdefaults file using the command xrdb, usually 
+located in ~/.xinitrc) comes in handy.  The .Xdefaults file has the same format 
+as all the other resource files listed (XENVIRONMENT,
+/usr/lib/X11/app-defaults/Figdisp, etc), so this section applies to them as
+well.
+
+Assume that you had decided that the final example in the previous section 
+was how you wanted figdisp to start up.  You would then edit your ~/.Xdefaults 
+file to include the lines:
+
+figdisp.quit:           	q
+figdisp.showhelp:       	False
+figdisp.bm.geometry:         	256x512+100+200
+figdisp.lg.geometry:         	512x256
+figdisp.font:			5x8
+figdisp.psFile:			~/fdout.ps
+figdisp.bm.maxcolors:		128
+figdisp.bm.mincolors:		100
+figdisp.bm.private.maxcolors:	1
+figdisp.bm.private.mincolors:	2
+
+If your server has a server resource database, you would need to update it 
+by either re-starting X windows or using the xrdb command.  Once this was done, 
+figdisp would automatically come up as if you had typed in all those options. 
+You could still override your choices by using a command line option.
+
+2.4.  Figdisp Design
+
+This section is for people who need or want to know a little more about how 
+figdisp works.  You do not need to read it to use figdisp.  However, it may 
+be useful if figdisp acts a little odd - some things about the way figdisp 
+was written will occasionally affect the way things look to the attentive user.
+
+Figdisp has two modes, 8 or 16 bits per pixel.  The number of bits per pixel 
+is determined when the image is created, with an argument to the SET_BM_SIZE 
+command.  If 16 bit data are written into an 8 bit image the upper 8 bits are 
+used.  If 8 bit data are written into a 16 bit image the lower 8 bits are set 
+to 0.  Figdisp starts out in 16 bit mode.  TVPCKG currently only supports the 
+8 bit mode.
+
+Figdisp always considers pixel values to range from 0 to 65535 in 16 bit mode 
+and 0 to 255 in 8 bit mode.  Although several pixel values may be mapped to the
+same color on the screen (depending on the number of colors figdisp allocated 
+and what the user has done with the look-up table entries), all pixel values 
+reported to the user numerically (in the cursor readout and the data values 
+window, for example) retain the full 8 or 16 bits of accuracy.  The reported 
+data values can be changed with the figdisp_dscale() routine and the
+SET_BM_DSCALE command.  For example, figdisp can be told to map the data values
+from 0 to 65535 into the range -509 to 108.  Figaro uses this routine to change
+the displayed data values to match those selected by the user (e.g. the HIGH
+and LOW parameters in the IMAGE command), so that displayed data values match
+those in the data file (possibly subject to round-off errors, due to the 8 or
+16 bit nature of figdisp).
+
+Since figdisp is an X11 program, all coordinates are relative to the upper 
+left corner, defined to be (0,0).  The routine figdisp_cscale() and the command 
+SET_BM_CSCALE can be used to modify the displayed coordinates (cursor output, 
+data values window output, etc) arbitrarily.  Figaro uses this image to make 
+coordinates start at the lower left corner and increase up and to the right 
+so that the displayed coordinates match the image's coordinates.  The specific 
+coordinate values for the lower left and upper right corners are determined 
+by the command.  The IMAGE command sets the lower left corner to
+(XSTART,YSTART) and the upper right corner to (XEND,YEND).
+
+Figdisp zooms X and Y independently, in powers of two. The only coded-in limit 
+is a zoom factor of 2^30.  The zoom algorithm uses integer bit shifting to be 
+as fast as possible, so odd things happen when it would take more than 32 bits 
+to represent the width shifted by the zoom factor.  Since the entire screen 
+is taken up by a single pixel a long time before this limit is reached (unless 
+you have a 100,000 mile wide monitor), this should not normally be a problem.
+
+Figdisp tries not to care if the client program crashes.  To do this, it must 
+be able to determine if the client program has gone away without properly
+closing the communication channel.  This is done by periodically looking for
+the client program.  By default, this is done every 100,000 microseconds, and
+is only done when the connection is inactive.  This can be changed using the
+figdisp.sleepTime resource.  This is something the system manager will probably
+do once (if at all) and set in the application resource file.  The user will
+probably never use this resource.  It has a compile-time minimum of scanning
+every 10,000 microseconds, no matter what the value of figdisp.sleepTime.
+
+
+
+3.  Programmer's Guide
+
+3.1.  Introduction
+
+The figdisp family of programs uses what I believe is the X11 INCR property 
+mechanism for large data transfers, described in section L.2.5 of the X
+Protocol Reference Manual.  Since my understanding of this mechanism is at the
+very least incomplete, no matter what you need to do, you are encouraged to use 
+the figdisp_opencomm(), figdisp_sendcommand(), figdisp_getresponse(), and
+figdisp_closecomm() routines, which can be found in the Figaro TVPCKG library.
+These routines are known to work, no matter how skewed my knowledge of the INCR
+property mechanism.
+
+If your program only uses line graphics, you are encouraged to use PGPLOT.  Not
+only is PGPLOT very easy to use, it also provides many nice features, including
+the ability to display output on a wide variety of display devices.  Similarly,
+if you you only bitmap graphics, you are encouraged to use TVPCKG.  Both of
+these systems were designed with a specific object in mind, and therefore might
+not be suitable for your application.  Most obviously, they are written in
+Fortran, so the calling conventions will seem strange to C programmers.
+
+If you decide not to use TVPCKG for your bitmap graphics applications, you 
+should consider using the figdisp_xxx routines, which are located in the TVPCKG 
+library.  Since the bitmap graphics capabilities of figdisp were designed with 
+TVPCKG in mind, every figdisp feature has a corresponding routine.
+
+If you do not want to use the figdisp_xxx routines, or if your program handles 
+both line graphics and bitmap graphics, you must go to the raw data stream 
+and use the figdisp_opencomm(), figdisp_sendcommand(), figdisp_getresponse(), 
+and figdisp_closecomm() routines.
+
+3.2.  The figdisp_xxx Routines
+
+In addition to a general description of the function of these routines, several 
+descriptions refer to "sending the XXX" command to the display server.  Such a
+reference should be looked up in the Raw Command Stream section of this manual. 
+
+Despite many figdisp_xxx arguments being integer (32 bit on Suns), the raw 
+command stream is composed of short (16 bit) quantities.  The behavior of any 
+routine which gets a value which can not fit into 16 bits is undefined.  All 
+commands which do not require an immediate answer are buffered and may not 
+take place immediately.
+
+NAME
+	figdisp_close - close the channel to the display server
+
+SYNOPSIS
+	void figdisp_close()
+
+DESCRIPTION
+	The figdisp_close routine handles all the details of closing the
+	communication link between the client program and the display server.
+	This includes flushing any commands still in the buffer, closing the
+	communication channel, and destroying all X11 items used by the
+	figdisp_xxx routines.
+
+
+NAME
+	figdisp_closecomm - close the connection to the display server
+
+SYNOPSIS
+	void figdisp_closecomm()
+
+DESCRIPTION
+	This routine ensures that all data from the display server is read (so
+	future clients do not get confused) and closes the communication
+	channel to the display server.
+
+
+NAME
+	figdisp_cls - clear the display server bitmap screen
+
+SYNOPSIS
+	void figdisp_cls()
+
+DESCRIPTION
+	The figdisp_cls routine clears the bitmap graphics screen.
+
+
+NAME
+	figdisp_cscale - set the X and Y scaling factors
+
+SYNOPSIS
+	void figdisp_cscale(xmul, xdiv, xoff, ymul, ydiv, yoff)
+	int xmul, xdiv, xoff, ymul, ydiv, yoff;
+
+DESCRIPTION
+	This routine changes how the cursor position will be displayed when the
+	user has selected cursor output.  The displayed x position is
+	calculated by the formula
+
+	dispx = (rawx+xoff)*(xmul/xdiv),
+
+	with a similar formula for calculating the Y value.  The display server
+	considers the top left corner to be (0, 0).  For example, Figaro prefers
+	to have the bottom left corner be (1, 1).  This mapping is accomplished
+	by the call
+
+	figdisp_scale(1,1,1,-1,1,-YSIZE);
+
+	where YSIZE is the number of pixels in the image.
+
+
+NAME
+	figdisp_dscale - set the data scaling factors
+
+SYNOPSIS
+	void figdisp_dscale(dfac, doff)
+	float *dfac, *doff;
+
+DESCRIPTION
+	This routine changes how a data value will be displayed when the user
+	has selected cursor output.  The displayed value is calculated by the
+	formula
+
+	dispval = rawval*dfac+doff
+
+	The raw values are always between 0 and 255.  Note that the arguments
+	are pointers to floats, not doubles.  The code
+
+	float scale,low;
+	scale=(high-low)/255.0;
+	rlow=low;
+	figdisp_dscale(&scale,&low);
+
+	would cause the data values to be displayed as ranging from low to high
+	instead of from 0 to 255.
+
+	The discrepancy between this routine and the figdisp_cscale() routine
+	is there because it works easier with TVPCKG.
+
+
+NAME
+	figdisp_flush - flush all output to the display server
+
+SYNOPSIS
+	void figdisp_flush()
+
+DESCRIPTION
+	To obtain maximum possible throughput, many of the figdisp_xxx routines
+	simply buffer the commands to be sent to the display server.  The
+	figdisp_flush routine adds a BM_FLUSH command to the command buffer and
+	flushes the command buffer to the display server.
+
+
+NAME
+	figdisp_getresponse - get a response from the server
+
+SYNOPSIS
+	short *figdisp_getresponse(len)
+	int *len;
+
+DESCRIPTION
+	This routine is for support of the raw command stream and is not
+	necessary if you are using the figdisp_xxx routines.  len is set to the
+	number of shorts in the returned pointer.  The returned pointer points
+	should be freed with XFree() when it is no longer needed.  There is
+	currently no provision for timeout, so before calling this routine you
+	should be sure that there is actually going to be a response.
+
+RETURN VALUES
+	figdisp_getresponse() returns a NULL pointer if it was not able to get
+	data (see below).  Otherwise it returns a pointer to a buffer of shorts.
+
+ERRORS
+	figdisp_getresponse() will print the following error messages
+
+	"Could not get property value!"
+
+	figdisp_getresponse() was not able to get the value of the property
+	used to transfer data between the display server and the client.  In
+	this case, a value of NULL is returned and len is set to 0.
+
+	"OOPS - there was data left!"
+
+	For some reason the returned data could not be read all at once.  This
+	should never happen.  As much data as could be read will still be
+	returned.
+
+
+NAME
+	figdisp_getsize - get the size of the bitmap graphics image (not window)
+
+SYNOPSIS
+	void figdisp_getsize(xmax, ymax, dmax)
+	int *xmax, *ymax, *dmax;
+
+DESCRIPTION
+	This routines returns some of the significant characteristics of the
+	display server.  xmax is set to the maximum allowed horizontal position
+	(values 0 through xmax, inclusive, are valid, 0 being the leftmost
+	column).  ymax is set to the maximum allowed vertical position (0 being
+	the topmost row).  dmax is set to the maximum allowed data value.
+	Currently, dmax is always 65535, since the display server uses at most
+	16 bits per pixel.
+
+
+NAME
+	figdisp_init - initialize the display server
+
+SYNOPSIS
+	void figdisp_init()
+
+DESCRIPTION
+	This routine initializes the display server, not the figdisp_xxx
+	package.  This simply means sending the RESET command to the display
+	server and making sure that the image window is visible.
+
+
+NAME
+	figdisp_line - draw a line into the bitmap window
+
+SYNOPSIS
+	void figdisp_line(x1, y1, x2, y2, val)
+	int x1, x2, y1, y2, val;
+
+DESCRIPTION
+	A line of the 8 or 16 bit value (depending on the current image depth)
+	val is drawn from (x1,y1) to (x2,y2).
+
+
+NAME
+	figdisp_maxbuflen - return the maximum single-transfer buffer size
+
+SYNOPSIS
+	void figdisp_maxbuflen()
+
+DESCRIPTION
+	This routine returns the maximum buffer size (in shorts) which will be
+	transferred all at once.  Although the figdisp_sendcommand routine
+	should break any larger requests into smaller pieces, no program
+	currently uses this feature and it may not work.  By sizing your buffer
+	to the return value from figdisp_maxbuflen you will avoid any problems.
+
+
+NAME
+	figdisp_open - open a connection to figdisp and initialize figdisp_xxx
+
+SYNOPSIS
+	int figdisp_open(dev)
+	int dev;
+
+DESCRIPTION
+	This routine is simply a wrapper around the figdisp_opencomm() routine,
+	except that it uses its own buffer instead of a user-supplied buffer.
+	See the description of figdisp_opencomm() for a description of the
+	return values and errors.
+
+
+NAME
+	figdisp_opencomm - open a connection to the display server
+
+SYNOPSIS
+	int figdisp_opencomm(maxbuflen,dev)
+	int maxbuflen;
+	int dev;
+
+DESCRIPTION
+	maxbuflen is the maximum number of shorts in your command buffer.  dev
+	is the specific copy of figdisp or pgdisp which should be opened.  This
+	routine should only be used by programs which do not use the
+	figdisp_xxx routines such as figdisp_write() and figdisp_line().  If
+	your programs use those routines, you should open the communication
+	channel with the figdisp_open() routine.
+
+RETURN VALUES
+	figdisp_opencomm() returns:
+
+	1 on success.
+
+	0 on failure and prints an error message to stdout.
+
+ERRORS
+	figdisp_opencomm() will fail and print the following error messages if
+	any of the following occur:
+
+	"Couldn't open display!"
+
+	The call to XOpenDisplay failed - either the display server is not
+	running or the user has not set the DISPLAY environment variable
+	properly.
+
+	"Can't find the selection atom!"
+
+	The program was not able to find the atom used to handle selections.
+	This should never happen unless the display server has not been started.
+
+	"Can't find the incremental atom!"
+
+	The program was not able to find the atom used to transfer data between
+	the display server and the client program.  This should never happen
+	unless the display server has not been started.
+
+	"Can't find the locking atom!"
+
+	The program was not able to find the atom used to ensure that only on
+	client access the display server at any given time.  This should not
+	happen unless the display server has not been started.
+
+	"No display server running!"
+
+	The program was not able to contact the display server.
+
+	"Someone's using the display!"
+
+	The display server appears to be in use.  This could have been caused
+	by a client program crashing.  If so, the condition should fix itself
+	in a little while (under a minute).
+
+	"Couldn't own selection atom!"
+
+	For some reason the program was not able to get ownership of the
+	selection atom, so data transfers would be impossible.
+
+	"Can't own property!"
+
+	The program was not able to get ownership of the property the display
+	told it to use for transferring data.
+
+
+NAME
+	figdisp_readcursor - return cursor position and the button/key pressed
+
+SYNOPSIS
+	void figdisp_readcursor(x, y, val)
+	int *x, *y, *val;
+
+DESCRIPTION
+	This routine waits for the user to press a key or button (one not
+	assigned to a function such as zoom or pan) and then returns the
+	position in the image in x and y and the value of the key pressed in
+	val.  See the description of BM_GET_CURS for details on interpreting
+	val.
+
+
+NAME
+	figdisp_resize - resize the bitmap image
+
+SYNOPSIS
+	void figdisp_resize(x, y, bppix)
+	int x, y, bppix;
+
+DESCRIPTION
+	This routine sends a SET_BM_SIZE command to the display server.  x and
+	y must be between 0 and 32767 (inclusive).  If bppix is not 16, 8 is
+	used.  See the description of SET_BM_SIZE for information on what
+	happens if the server is unable to get sufficient memory to store the
+	image.
+
+
+NAME
+	figdisp_sendcommand - send the given buffer to the display server
+
+SYNOPSIS
+	void figdisp_sendcommand(buf, len)
+	short *buf;
+	int len;
+
+DESCRIPTION
+	This command sends the len shorts from buf to the display server.  It
+	is only necessary when using the raw command stream method of
+	communicating with the display server.  The figdisp_xxx routines use
+	their own buffer and send it when necessary.
+
+
+NAME
+	figdisp_setcursor - set the position of the bitmap cursor
+
+SYNOPSIS
+	void figdisp_setcursor(x, y)
+	int x, y;
+
+DESCRIPTION
+	This routine moves the cursor to the specified point in the image.  If
+	the position is within the window boundaries, the cursor is moved to
+	the specified point from anywhere on the screen.
+
+
+NAME
+	figdisp_wlut - modify the color LUTs
+
+SYNOPSIS
+	void figdisp_wlut(cvals, start, nluts, luts)
+	short *cvals;
+	int start, nluts, luts;
+
+DESCRIPTION
+	cvals is the array of values (0-65535) to put into the LUT entries.
+	start is the first LUT entry to change and nluts is the total number to
+	change.  If luts is 1, 2, or 3, the red, green, or blue (respectively)
+	LUT entries are affected.  Otherwise, all LUT entries are set to the
+	same value (cvals[0] is the red, green, and blue value for LUT entry
+	start).
+
+
+NAME
+	figdisp_write - write the given pixels to the bitmap image
+
+SYNOPSIS
+	void figdisp_write(x, y, pix, npix, isshort)
+	int x, y, npix, isshort;
+	char *pix;
+
+DESCRIPTION
+	This routine writes a npix pixels on row y, starting from column x. 
+	Pixels which would run off the edge of the image are discarded.
+	isshort should be set to 0 if the data values are 8-bit.  Anything else
+	means the pixels are 16-bit.  If isshort is zero and the current image
+	is a 16-bit image, the values are used as the most significant byte of
+	the image data and the least significant byte is set to zero.  If
+	isshort is non-zero and the current image is an 8-bit image, the most
+	significant byte is used as the image data.
+
+	Only a single row is written because that is the model which TVPCKG
+	uses.  If you desire a more flexible interface, look at the description
+	of the BM_WRITE command.  Do not use the raw command stream simply for
+	performance - the figdisp_xxx routines are buffered and the performance
+	penalty from using figdisp_write is minimal.
+
+
+NAME
+	figdisp_zoompan - set the zoom factor and center of the window
+
+SYNOPSIS
+	void figdisp_zoompan(x, y, zoom)
+	int x, y, zoom;
+
+DESCRIPTION
+	The point (x, y) is moved to the center of the displayed window and the
+	zoom factor is set to zoom (a power of two).
+
+
+3.3.  The Raw Command Stream
+
+The lowest level at which you can control the figdisp display server is by 
+sending it a stream of commands.  This is your only option if you wish to mix 
+line graphics and bitmap graphics.  The routines figdisp_opencomm(),
+figdisp_sendcommand(), figdisp_getresponse(), and figdisp_closecomm() (see
+above), but you must provide and format the command buffer.  This section
+describes the commands (defined in local/figdisp/commands.h, or
+src/local/figdisp/commands.h,v (RCS)) which the display server provides.  The
+numbering of commands in commands.h will not be changed (though more commands
+may be added), but you are still encouraged to use the symbolic definitions.
+
+When formatting your command buffer, be sure to get the arguments correct.  If
+you tell the display server to write past the end of the image it will catch it
+and not do so.  However, if you tell it that you are sending 24 pixels and then
+only send 22 pixels it can not detect this and is likely to start spewing out
+error messages and may even crash.
+
+All requests must begin on a 16-bit boundary.  Any padding necessary to
+accomplish this will be ignored.  Several of the commands described below
+return responses to the client.  Since a response is usually wanted right away,
+there is no provision for buffering responses.  This means that only one
+response can be generated per command buffer.
+
+Currently there are two different display servers: figdisp and pgdisp.  Figdisp 
+understands all commands.  Pgdisp (PGplot DISPlay) is for line graphics only, 
+and only understands the commands applicable to line graphics.  All other
+commands will be properly absorbed (without doing anything) and will generate a
+warning message once per command buffer.
+
+The behavior of an out-of-bounds x or y coordinate or line graphics color index 
+is undefined, but guaranteed not to crash the display server.  Coordinates 
+are usually clipped to their minimum or maximum values and the upper bits of 
+color indices are usually ignored.  This behavior is not guaranteed unless 
+the protocol definition specifically mentions it.
+
+
+NAME
+	BM_DEF_SIZE
+
+REPLY CONTENTS
+	short: xmin
+	short: xmax
+	short: ymin
+	short: ymax
+
+DESCRIPTION
+	This command returns the default size of the bitmap graphics image,
+	which is defined to be the current image size.  The values returned are
+	the minimum and maximum valid x and y values.  Since the display
+	servers can all resize the image arbitrarily (subject to available
+	memory), this command is only useful when attempting to preserve the
+	contents of the display (as TVPCKG sometimes does).
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		22	opcode
+
+REPLY ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		22	opcode
+	2		xmin	minimum valid x coordinate
+	2		xmax	maximum valid x coordinate
+	2		ymin	minimum valid y coordinate
+	2		ymax	maximum valid y coordinate
+
+
+NAME
+	BM_FLUSH
+
+DESCRIPTION
+	This command flushes all bitmap graphics output to the screen.  In the
+	current version of figdisp this has no effect, but previous versions
+	required this call to be reasonably efficient.  It is conceivable that
+	this command will actually do something in future versions of the
+	display server.
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		28	opcode
+
+
+NAME
+	BM_GET_CURS
+
+REPLY CONTENTS
+	short: x
+	short: y
+	char: isbutton
+	char: keyval
+
+DESCRIPTION
+	This command causes the display server to wait for the user to press a
+	key (not including one used by the display server to do something else)
+	and generate a reply.
+
+	If the user pressed a mouse button isbutton will be non-zero and keyval
+	will be the number of the button which was pressed, from left to right,
+	starting from 0.  Otherwise, isbutton will be zero and keyval will be
+	the ASCII code of the key which the user pressed.
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		19	opcode
+
+REPLY ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		19	opcode
+	2		x	X position where the user pressed a key or
+				button
+	2		y	Y position where the user pressed a key or
+				button
+	1		isbutton non-zero if a mouse button was pressed
+	1		keyval	The code corresponding to the key/button the
+				user pressed
+
+
+NAME
+	BM_LINE
+
+REQUEST CONTENTS
+	short: x1
+	short: y1
+	short: x2
+	short: y2
+	short: val
+
+DESCRIPTION
+	This command draws a line in the bitmap graphics window of value val
+	from (x1,y1) to (x2,y2).
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		29	opcode
+	2		x1	The X coordinate of the first point.
+	2		y1	The Y coordinate of the first point.
+	2		x2	The X coordinate of the second point.
+	2		y2	The Y coordinate of the second point.
+	2		val	The value to use for the line (0-65535).
+
+
+NAME
+	BM_MAX_DIM
+
+REPLY CONTENTS
+	short: minx
+	short: maxx
+	short: miny
+	short: maxy
+	short: mincol
+	short: maxcol
+
+DESCRIPTION
+	This command returns the maximum dimensions and color capabilities of
+	the bitmap graphics window.  An attempt (by user or client program) to
+	size the bitmap graphics window larger than these dimensions will
+	result in the window size being reduced to the maximum allowed size.
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		21	opcode
+
+REPLY ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		21	opcode
+	2		minx	The minimum valid x coordinate.  Should always
+				be 0.
+	2		maxx	The maximum valid x coordinate (not neccesarily
+				related to the current window width).
+	2		miny	The minimum valid y coordinate.  Should always
+				be 0.
+	2		maxy	The maximum valid y coordinate.
+	2		mincol	The minimum allowed color index.  Should always
+				be 0.
+	2		maxcol	The maximum allowed color index.
+
+
+NAME
+	BM_SET_CURS
+
+REQUEST CONTENTS
+	short: x
+	short: y
+
+DESCRIPTION
+	This command sets the bitmap graphics window cursor to the specified
+	point.  If the cursor is not near the given position it is warped there
+	from anywhere on the screen.
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		18	opcode
+	2		x	The new X position of the cursor.
+	2		y	The new Y position of the cursor.
+
+
+NAME
+	BM_WRITE
+
+REQUEST CONTENTS
+	short: bppix
+	short: x
+	short: y
+	short: width
+	short: height
+	char: data
+	char: pad (possibly)
+
+DESCRIPTION
+	This command writes the given 8 or 16 bit data (determined by bppix) to
+	the bitmap image.  The display server will not write data outside the
+	image, no matter what the values of x, y, width, and height.  However,
+	it does treat the specified number of bytes as data.  For example, if
+	the current image width is 10, bppix is 8, x is 8, and width is 4,
+	columns 8 and 9 will be updated and the next two bytes of the command
+	stream will be ignored.  Since all commands must begin on a 16 bit
+	boundary, if the area defined by width and height contains an odd
+	number of pixels and bppix is 8, you must include an extra byte at the 
+	end of this command (which is ignored).
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		24	opcode
+	2		bppix	The number of bits per pixel
+	2		x	The X coordinate of the upper left corner of
+				the affected area.
+	2		y	The Y coordinate of the upper left corner of
+				the affected area.
+	2		width	The width of the affected area.
+	2		height	The height of the affected area.
+	width*height*C	data	The data to copy into the bitmap image.  The
+				pixels are specified left to right along the
+				all rows, the topmost row first.  If bppix is
+				8, C is 1.  Otherwise, C is 2.
+
+	1		pad	This padding should be here if and only if
+				width*height is odd and bppix is 8.  If
+				present, the specific value is insignificant.
+
+
+NAME
+	BM_ZOOMPAN
+
+REQUEST CONTENTS
+	short: x
+	short: y
+	short: zfac.
+
+DESCRIPTION
+	This command causes the bitmap graphics window to be centered on the
+	given point in the image and sets the zoom factor to zfac, which is
+	interpreted as a power of two.  Because of the way zooms are handled,
+	zfac should be between -30 and +30.  Because the user has complete
+	control over the window center and zoom factor without the client
+	program being notified, it is unwise to use this command unless you
+	want the initial placement and zoom factor of an image to be different
+	from the default (the window showing the central portion of the image
+	and the zoom factor set to 0).
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		27	opcode
+	2		x	The image X coordinate for the new center of
+				the window.
+	2		y	The image Y coordinate for the new center of
+				the window.
+	2		zfac	The new zoom factor (power of two).
+
+
+NAME
+	CLR_BM_WIN
+
+DESCRIPTION
+	This command clears the bitmap graphics window.
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		20	opcode
+
+
+NAME
+	CLR_LG_WIN
+
+DESCRIPTION
+	This command clears the line graphics window.
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		7	opcode
+
+
+NAME
+	DRAW_DOT
+
+REQUEST CONTENTS
+	short: x
+	short: y
+
+DESCRIPTION
+	This command draws a dot with a radius of the current line size in the
+	line graphics window at (x,y) in the current color.
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		12	opcode
+	2		x	The x coordinate of the center of the dot.
+	2		y	The y coordinate of the center of the dot.
+
+
+NAME
+	DRAW_LINE
+
+REQUEST CONTENTS
+	short: x1
+	short: y1
+	short: x2
+	short: y2
+
+DESCRIPTION
+	This command draws a line in the line graphics window from (x1,y1) to
+	(x2,y2) in the current color.
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		5	opcode
+	2		x1	X coordinate of first point
+	2		y1	Y coordinate of first point
+	2		x2	X coordinate of second point
+	2		y2	Y coordinate of second point
+
+
+NAME
+	DRAW_POLY
+
+REQUEST CONTENTS
+	short: npts
+	short: pts
+
+DESCRIPTION
+	This command draws a poly-line in the line graphics window.  pts
+	contains npts x, y pairs.
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		6	opcode
+	2		npts	The number of points in the poly-line
+	4*npts		pts	The points (in the same format as DRAW_LINE) to
+				use
+
+
+NAME
+	FILL_POLY
+
+REQUEST CONTENTS
+	short: npts
+	short: pts
+
+DESCRIPTION
+	This command fills the polygon specified by the given points in the
+	line graphics window with the current color.  The polygon is closed
+	automatically if the last point does not coincide with the first point.
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		13	opcode
+	2		npts	The number of points in the polygon.
+	4*npts		pts	The pairs of x,y coordinate defining the
+				polygon.
+
+
+NAME
+	FILL_RECT
+
+REQUEST CONTENTS
+	short: x1
+	short: y1
+	short: x2
+	short: y2
+
+DESCRIPTION
+	This command fills the rectangle defined by the given points in the
+	line graphics window with the current color.  The points do not have to
+	be in any specific order.
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		14	opcode
+	2		x1	The x coordinate of one of the corners of the
+				rectangle.
+	2		y1	The y coordinate of one of the corners of the
+				rectangle.
+	2		x2	The x coordinate of the diagonal from the first
+				point.
+	2		x2	The y coordinate of the diagonal from the first
+				point.
+
+
+NAME
+	LG_CURS
+
+REQUEST CONTENTS
+	short: x
+	short: y
+
+REPLY CONTENTS
+	short: x
+	short: y
+	char: isbutton
+	char: keyval
+
+DESCRIPTION
+	This command sets the cursor to the given coordinates.  When the user
+	presses a key or a mouse button which isn't used by the display server
+	a reply is generated.  If the position to place the cursor is the same
+	as the last reported cursor position the cursor is not moved.
+	Otherwise, the cursor is warped to the given cursor position from any
+	place on the screen.
+
+	If the user pressed a mouse button isbutton will be non-zero and keyval
+	will be the number of the button which was pressed, from left to right,
+	starting from 0.  Otherwise, isbutton will be zero and keyval will be
+	the ASCII code of the key which the user pressed.
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		3	opcode
+	2		x	X position to place the cursor
+	2		y	Y position to place the cursor
+
+REPLY ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		3	opcode
+	2		x	X position where the user pressed a key or
+				button
+	2		y	Y position where the user pressed a key or
+				button
+	1		isbutton non-zero if a mouse button was pressed
+	1		keyval	The code corresponding to the key/button the
+				user pressed
+
+
+NAME
+	LG_DEF_SIZE
+
+REPLY CONTENTS
+	short: minx
+	short: maxx
+	short: miny
+	short: maxy
+
+DESCRIPTION
+	This routine returns the default line graphics window size, which is
+	defined to be whatever size the user (or previously run client program)
+	has set it to be.
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		10	opcode
+
+REPLY ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		10	opcode
+	2		minx	The current minimum valid x coordinate.  Should
+				always be 0.
+	2		maxx	The current maximum valid x coordinate (window
+				width - 1).
+	2		miny	The current minimum valid y coordinate.  Should
+				always be 0.
+	2		maxy	The current maximum valid y coordinate (window
+				height - 1).
+
+
+NAME
+	LG_LINE_WID
+
+REQUEST CONTENTS
+	short: width
+
+DESCRIPTION
+	Set the line width (in pixels) for the line graphics window.  A width
+	of 0 means use the fastest algorithm available for drawing lines of one
+	pixel width.  These types of lines may not meet properly.  See the
+	description of XSetLineAttributes() for more information.
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		15	opcode
+	2		width	The new line width.
+
+
+NAME
+	LG_MAX_DIM
+
+REPLY CONTENTS
+	short: minx
+	short: maxx
+	short: miny
+	short: maxy
+	short: mincol
+	short: maxcol
+
+DESCRIPTION
+	This command returns the maximum dimensions and color capabilities of
+	the line graphics window.  An attempt (by user or client program) to
+	size the line graphics window larger than these dimensions will result
+	in the window size being reduced to the maximum allowed size.
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		8	opcode
+
+
+REPLY ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		8	opcode
+	2		minx	The minimum valid x coordinate.  Should always
+				be 0.
+	2		maxx	The maximum valid x coordinate (not necessarily
+				related to the current window width).
+	2		miny	The minimum valid y coordinate.  Should always
+				be 0.
+	2		maxy	The maximum valid y coordinate.
+	2		mincol	The minimum allowed color index.  Should always
+				be 0.
+	2		maxcol	The maximum allowed color index.
+
+
+NAME
+	LG_SCALE
+
+REPLY CONTENTS
+	short: mmwidth
+	short: mmheight
+	short: pixwidth
+	short: pixheight
+
+DESCRIPTION
+	This command returns information useful for calculating the line
+	graphics window's aspect ratio.
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		9	opcode
+
+REPLY ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		9	opcode
+	2		mmwidth	The width of the screen (not window) in
+				millimeters.
+	2		mmheight The height of the screen in millimeters.
+	2		pixwidth The width of the screen in pixels.
+	2		pixheight The height of the screen in pixels.
+
+
+NAME
+	RESET
+
+DESCRIPTION
+	This command resets the display server's LUTs (both line graphics and
+	bitmap graphics windows, if applicable) and sets the line graphics
+	color and line width to their default values.  It does not affect the
+	image or line graphics data.
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		0	opcode
+
+
+NAME
+	SET_BM_CSCALE
+
+REQUEST CONTENTS
+	short: xmul
+	short: xdiv
+	short: xoff
+	short: ymul
+	short: ydiv
+	short: yoff
+
+DESCRIPTION
+	This command sets the X and Y scale and offset for the built-in cursor
+	readout.  The cursor readout will report a position of
+	(rawx+xoff)*(xmul/xdiv), where rawx is the X position in image
+	coordinates (0,0 being the top left corner of the image).
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		25	opcode
+	2		xmul	The amount by which the X coordinate should be
+				multiplied.
+	2		xdiv	The amount by which the X coordinate should be
+				divided.
+	2		xoff	The amount which should be added to the X
+				coordinate.
+	2		ymul	The amount by which the Y coordinate should be
+				multiplied.
+	2		ydiv	The amount by which the Y coordinate should be
+				divided.
+	2		yoff	The amount which should be added to the Y
+				coordinate.
+
+
+NAME
+	SET_BM_DSCALE
+
+REQUEST CONTENTS
+	short: dfachigh
+	short: dfaclow
+	short: doffhigh
+	short: dofflow
+
+DESCRIPTION
+	This command sets the scaling factor and offset used to transform the
+	raw data values into the values which appear on the screen.  Since data
+	transformations are usually arbitrary, while coordinate transformations
+	usually involve simply moving the origin to the lower left corner, a
+	little more effort is required to set the data transformation values.
+
+	The data transformation factors are actually 32-bit (float or REAL*4 on
+	Suns) values stuffed into a 16-bit command stream.  The following code
+	demonstrates how the command stream should be packed:
+
+	float dfac, doff;
+	short *ptr;
+	short commands[5];
+
+	commands[0]=SET_BM_DSCALE;
+	ptr = &dfac;
+	commands[1]= *ptr++;
+	commands[2]= *ptr;
+	ptr= &doff;
+	commands[3]= *ptr++;
+	commands[4]= *ptr;
+
+	This should work, assuming that the display server and the client are
+	running on the same machine, which has 16-bit shorts and 32-bit floats.
+	Although it's messy, it gets the job done.  If you have a better
+	method, one that will work whether or not the display server and client
+	are running on the same machine, please let me know.
+
+	The data value will be displayed as rawval*dfac+doff.
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		26	opcode
+	2		dfachigh The first 16-bits (most significant on
+				big-endian machines; hence the name dfachigh)
+				of the data scaling factor.
+	2		dfaclow	The second 16-bits of the data scaling factor.
+	2		doffhigh The first 16 bits of the data offset.
+	2		difflow	The second 16 bits of the data offset.
+
+
+NAME
+	SET_BM_LUT
+
+REQUEST CONTENTS
+	short: start
+	short: nluts
+	short: affect
+	short: luts
+
+DESCRIPTION
+	This command changes the bitmap graphics window's color LUT entries.
+	nluts entries are affected beginning with start.  affect determines how
+	luts is interpreted.  If affect is zero, luts contains 3*nluts values,
+	one each for red, green, and blue.  If affect is 1, the red LUT entries
+	are affected, if 2, the green LUT entries, and if 4, the blue LUTs are
+	affected.  If any of the two values are added together, both of the
+	corresponding colors LUT entries will be set to the same value.  For
+	example, if affect is 3, the red and green LUT entries for start will
+	be set to luts[0].
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		17	opcode
+	2		start	The first LUT entry to be affected.
+	2		nluts	The number of affected LUT entries.
+	2		affect	The colors to be affected.
+	C*nluts (see above)
+			luts	The values used to set the LUT entries.
+
+
+NAME
+	SET_BM_SIZE
+
+REQUEST CONTENTS
+	short: width
+	short: height
+	short: bppix
+
+DESCRIPTION
+	This request sets the current bitmap graphics image size.  The display
+	server will attempt to retain as much of the old image as possible and
+	fill any extra area with LUT entry 0.  However, memory constraints may
+	prevent this.  If the display server is unable to get sufficient memory
+	for the entire image it attempts to decrease the size of the image.
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		23	opcode
+	2		width	The new image width.
+	2		height	The new image height.
+	2		bppix	The number of bits per pixel (8 or 16).
+
+
+NAME
+	SET_LG_COL
+
+REQUEST CONTENTS
+	short: index
+
+DESCRIPTION
+	This command sets the current line graphics color to index.  The mod
+	operator is used to make sure that the index is within the number of
+	colors allocated for line graphics.
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		4	opcode
+	2		index	The color to use for future operations
+
+
+NAME
+	SET_LG_LUT
+
+REQUEST CONTENTS
+	short: start
+	short: nluts
+	short: values
+
+DESCRIPTION
+	This request changes the line graphics window's color LUT entries.
+	nluts red, green, and blue entries beginning with start are set to
+	values.
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		2	opcode
+	2		start	The first affected LUT entry
+	2		nluts	The number of affected LUT entries
+	6*nluts		values	The values to assign to the LUT entries
+
+
+NAME
+	SET_LG_SIZE
+
+REQUEST CONTENTS
+	short: width
+	short: height
+
+DESCRIPTION
+	This request sets the current line graphics window size.  This has an
+	undefined effect on any data currently in the line graphics window.
+	Values outside compile-time maximums and minimums are clipped
+	accordingly.
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		11	opcode
+	2		width	The new window width.
+	2		height	The new widow height.
+
+
+NAME
+	SHOW_BM_WIN
+
+REQUEST CONTENTS
+	short: show
+
+DESCRIPTION
+	This request causes the bitmap graphics window to appear and come to
+	the top of the window stack or disappear.  If show is 0 the bitmap
+	graphics window is hidden.  Anything else causes the bitmap graphics
+	window to appear.
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		16	opcode
+	2		show	show/hide the bitmap graphics window
+
+
+NAME
+	SHOW_LG_WIN
+
+REQUEST CONTENTS
+	short: show
+
+DESCRIPTION
+	This request causes the line graphics window to appear and come to the
+	top of the window stack or disappear.  If show is 0 the line graphics
+	window is hidden.  Anything else causes the line graphics window to
+	appear.
+
+REQUEST ENCODING
+	# of Bytes	Value	Description
+	----------------------------------------------------------------------
+	2		1	opcode
+	2		show	show/hide the line graphics window
+
+
+3.4.  Example programs
+
+The hardest part of accessing the display server is opening and closing the 
+device.  The following two example programs both perform the following tasks:
+
+	Open a channel to the device
+
+ 	Reset the display server
+
+	Resize the image to 100x100
+
+	Clear the image
+
+	Draw a box around the edges of the image
+
+	Draw the two diagonals
+
+	Position the cursor in the center of the bitmap image
+
+	Get a cursor input from the user
+
+	Print the cursor position and the key or button the user pressed
+
+	Close the display server. 
+
+The first version uses the figdisp_xxx subroutine library and the second uses 
+the raw command stream.  These short examples will clearly show you the
+advantages of using the figdisp_xxx package if you can.  Both of these examples
+are included in the figdisp distribution.  If you have the Figaro distribution,
+the source files are in ~figaro/src/local/figdisp and the executables are in
+~figaro/local/figdisp.
+
+3.4.1.  The figdisp_xxx Version
+
+/* The commands.h file can be found in local/figdisp or */
+/* src/local/figdisp/commands.h,v (RCS) in the Figaro distribution. */
+#include "commands.h"
+
+main()
+{
+        int x,y;                        /* the returned cursor position */
+        int val;                        /* the returned cursor value */
+
+	/* Open a channel to display server 0 */
+        figdisp_open(0);
+
+        /* the next group of commands is really optional - you can place */
+        /* whatever you like here.  You may want to always call */
+	/* figdisp_init(), but it is not necessary. */
+        figdisp_init();
+        figdisp_resize(100,100);
+        figdisp_cls();
+        figdisp_line(0,0,99,0,255);
+        figdisp_line(99,0,99,99,255);
+        figdisp_line(99,99,0,99,255);
+        figdisp_line(0,99,0,0,255);
+        figdisp_line(0,0,99,99,255);
+        figdisp_line(99,0,0,99,255);
+        figdisp_setcursor(50,50);
+        figdisp_getcursor(&x,&y,&val);
+
+        if (val & 0xFF00) printf("The user pressed mouse button %d",val & 0xFF);
+        else printf("The user pressed key '%c'",val);
+        printf(" at (%d,%d).\n",x,y);
+
+        /* you should always call this routine to make sure that */
+	/* everything you sent was received. */
+        figdisp_close();
+
+        exit(0);
+}
+
+Get the file commands.h as described in the comments.  Link with the command
+
+cc -o exam1 exam1.c -L~figaro/local/libs -ltvpckg -lX11.
+
+Make sure that the display server is running and then run exam1.  You should 
+get output like:
+
+The user pressed key 'g' at (30,40).
+
+Note that the code also shows how to decode a mouse press.  Since the bitmap 
+window uses each mouse button for its own purposes, you will never get a mouse 
+press from the bitmap window.  However, you could get a mouse press from the 
+line graphics window.  The decoding of the return value is the same.
+
+3.4.2.  The Raw Command Stream Version
+
+#include "commands.h"
+#include <stdio.h>
+
+/* MAXBUF is the maximum number of commands we allow.  This should be */
+/* changed to whatever you like, provided that it fits in a single X11 */
+/* transfer.  The figdisp_xxx package uses 40000. */
+#define MAXBUF 40000
+
+main()
+{
+        short combuf[MAXBUF];       /* the command buffer */
+        short *response;            /* the response from the display server */
+        int rlen;                   /* the length of the response */
+        int next=0;                 /* the next buffer place to use */
+
+        short *figdisp_getresponse();
+
+        /* corresponds to figdisp_init() */
+        combuf[next++]=RESET;
+        combuf[next++]=SHOW_BM_WIN;
+        combuf[next++]=1;
+
+        /* corresponds to figdisp_resize(100,100) */
+        combuf[next++]=SET_BM_SIZE;
+        combuf[next++]=100;
+        combuf[next++]=100;
+
+        /* corresponds to figdisp_cls() */
+        combuf[next++]=CLR_BM_WIN;
+
+        /* corresponds to figdisp_line(0,0,99,0,255) */
+        combuf[next++]=BM_LINE;
+        combuf[next++]=0;
+        combuf[next++]=0;
+        combuf[next++]=99;
+        combuf[next++]=0;
+        combuf[next++]=255;
+
+        /* corresponds to figdisp_line(99,0,99,99,255) */
+        combuf[next++]=BM_LINE;
+        combuf[next++]=99;
+        combuf[next++]=0;
+        combuf[next++]=99;
+        combuf[next++]=99;
+        combuf[next++]=255;
+
+        /* corresponds to figdisp_line(99,99,0,99,255) */
+        combuf[next++]=BM_LINE;
+        combuf[next++]=99;
+        combuf[next++]=99;
+        combuf[next++]=0;
+        combuf[next++]=99;
+        combuf[next++]=255;
+
+        /* corresponds to figdisp_line(0,99,0,0,255) */
+        combuf[next++]=BM_LINE;
+        combuf[next++]=0;
+        combuf[next++]=99;
+        combuf[next++]=0;
+        combuf[next++]=0;
+        combuf[next++]=255;
+
+        /* corresponds to figdisp_line(0,0,99,99,255) */
+        combuf[next++]=BM_LINE;
+        combuf[next++]=0;
+        combuf[next++]=0;
+        combuf[next++]=99;
+        combuf[next++]=99;
+        combuf[next++]=255;
+
+        /* corresponds to figdisp_line(99,0,0,99,255) */
+        combuf[next++]=BM_LINE;
+        combuf[next++]=99;
+        combuf[next++]=0;
+        combuf[next++]=0;
+        combuf[next++]=99;
+        combuf[next++]=255;
+
+        /* corresponds to figdisp_setcursor(50,50) */
+        combuf[next++]=BM_SET_CURS;
+        combuf[next++]=50;
+        combuf[next++]=50;
+
+        /* this and figdisp_getresponse() correspond to figdisp_readcursor() */
+        combuf[next++]=BM_GET_CURS;
+
+        /* open the channel to the display server */
+        figdisp_opencomm(MAXBUF*2,0);
+
+        /* send the buffer we formatted above.  Note that we could have */
+        /* formatted the buffer after the call to figdisp_opencomm() */
+        figdisp_sendcommand(combuf,next);
+
+        /* now get the response from BM_GET_CURS */
+        if ((response=figdisp_getresponse(&rlen)) == NULL)
+                printf("was not able to get cursor value!\n");
+        else if (response[0] != BM_GET_CURS || rlen != 4)
+                printf("We got the wrong response or the wrong length!\n");
+        else {
+                if (response[3] & 0xFF00)
+                        printf("The user pressed mouse button %d",
+				response[3] & 0xFF);
+                else printf("The user pressed key '%c'",response[3]);
+                printf(" at (%d,%d).\n",response[1],response[2]);
+        }
+
+        /* you may now format more command buffers, send them, and get */
+	/* responses for as long as you like */
+
+        /* close off the communication channel */
+        figdisp_closecomm();
+
+        exit(0);
+}
+
+This code should be placed in a file exam2.c.  Get the file commands.h as
+before.  Link exam2 with the command
+
+cc -o exam2 exam2.c -L~figaro/local/libs -ltvpckg -lX11
+
+Make sure that the display server is running and then run exam2.  You should 
+get the same type of output as the previous example.

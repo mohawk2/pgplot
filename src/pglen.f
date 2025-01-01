@@ -1,5 +1,4 @@
-C*PGLEN -- find length of a string in a variety of units
-C%void cpglen(int units, const char *string, float *xl, float *yl);
+C*PGLEN -- Find length of a string in a variety of units
 C+
       SUBROUTINE PGLEN (UNITS, STRING, XL, YL)
       REAL XL, YL
@@ -25,10 +24,10 @@ C--
 C 15-Sep-1989 - new routine (Neil Killeen)
 C-----------------------------------------------------------------------
       INCLUDE 'pgplot.inc'
-      LOGICAL PGNOTO
-      REAL    D
 C
-      IF (PGNOTO('PGLEN')) RETURN
+      REAL D
+C
+      IF (PGOPEN.EQ.0) RETURN
 C
 C   Work out length of a string in absolute device coordinates (dots)
 C   and then convert
@@ -36,23 +35,23 @@ C
       CALL GRLEN (STRING, D)
 C
       IF (UNITS.EQ.0) THEN
-        XL = D / PGXSZ(PGID)
-        YL = D / PGYSZ(PGID)
+        XL = D / XSZ
+        YL = D / YSZ
       ELSE IF (UNITS.EQ.1) THEN
-        XL = D / PGXPIN(PGID)
-        YL = D / PGYPIN(PGID)
+        XL = D / XPERIN
+        YL = D / YPERIN
       ELSE IF (UNITS.EQ.2) THEN
-        XL = 25.4 * D / PGXPIN(PGID)
-        YL = 25.4 * D / PGYPIN(PGID)
+        XL = 25.4 * D / XPERIN
+        YL = 25.4 * D / YPERIN
       ELSE IF (UNITS.EQ.3) THEN
         XL = D
         YL = D
       ELSE IF (UNITS.EQ.4) THEN
-        XL = D / ABS(PGXSCL(PGID))
-        YL = D / ABS(PGYSCL(PGID))
+        XL = D / ABS(XSCALE)
+        YL = D / ABS(YSCALE)
       ELSE IF (UNITS.EQ.5) THEN
-        XL = D / PGXLEN(PGID)
-        YL = D / PGYLEN(PGID)
+        XL = D / XLEN
+        YL = D / YLEN
       ELSE
         CALL GRWARN('Illegal value for UNITS in routine PGLEN')
       END IF

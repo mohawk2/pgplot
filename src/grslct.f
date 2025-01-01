@@ -1,3 +1,4 @@
+
 C*GRSLCT -- select active output device
 C+
       SUBROUTINE GRSLCT (IDENT)
@@ -23,17 +24,16 @@ C-----------------------------------------------------------------------
       CHARACTER CHR
 C
       IF ((IDENT.LE.0) .OR. (IDENT.GT.GRIMAX) .OR.
-     1     (GRSTAT(IDENT).EQ.0)) THEN
-         CALL GRWARN('GRSLCT - invalid plot identifier.')
+     1    (GRSTAT(IDENT).EQ.0)) THEN
+            CALL GRWARN('GRSLCT - invalid plot identifier.')
       ELSE IF (IDENT.EQ.GRCIDE) THEN
-         GRGTYP = GRTYPE(IDENT)
-         RETURN
+          RETURN
       ELSE
-         GRCIDE = IDENT
-         GRGTYP = GRTYPE(IDENT)
-         RBUF(1)= GRCIDE
-         RBUF(2)= GRUNIT(GRCIDE)
-         NBUF   = 2
-         CALL GREXEC(GRGTYP, 8,RBUF,NBUF,CHR,LCHR)
+          GRCIDE = IDENT
+          GRGTYP = GRTYPE(IDENT)
+          RBUF(1)= GRCIDE
+          RBUF(2)= GRUNIT(GRCIDE)
+          NBUF   = 2
+          CALL GREXEC(GRGTYP, 8,RBUF,NBUF,CHR,LCHR)
       END IF
       END

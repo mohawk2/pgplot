@@ -18,11 +18,10 @@ C  X, Y   (input)  : the lower left corner of the output region
 C                    (device coordinates)
 C--
 C 16-Jan-1991 - [GvG]
-*  4-Aug-1993 - Debugged by Remko Scharroo
 C-----------------------------------------------------------------------
       INCLUDE 'grpckg1.inc'
       INTEGER     NSIZE
-      PARAMETER   (NSIZE = 1280)
+      PARAMETER   (NSIZE = 1024)
       REAL        RBUF(NSIZE + 2)
       REAL        WIDTH
       INTEGER     IC1, IC2
@@ -30,7 +29,6 @@ C-----------------------------------------------------------------------
       INTEGER     NBUF, LCHR
       CHARACTER*1 CHR
 
-      IF (.NOT.GRPLTD(GRCIDE)) CALL GRBPIC
 C
 C Get allowable color range and pixel width
 C
@@ -41,13 +39,13 @@ C
 C
 C Compute Y coordinate for this line
 C
-         RBUF(2) = Y + (J - J1) * WIDTH
+         RBUF(2) = Y + (J - J1 + 0.5) * WIDTH
          I = I1
   10        L = 1
 C
 C Compute left X coordinate for this line segment
 C
-            RBUF(1) = X + (I - I1) * WIDTH
+            RBUF(1) = X + (I - I1 + 0.5) * WIDTH
 C
 C Check color index
 C
@@ -65,8 +63,7 @@ C
 C
 C Output segment
 C
-*           NBUF = L + 2 ! wrong ! should be: (RS)
-            NBUF = L + 1
+            NBUF = L + 2
             CALL GREXEC(GRGTYP, 26, RBUF, NBUF, CHR, LCHR)
 C
 C Something left?

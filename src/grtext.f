@@ -18,11 +18,6 @@ C--
 C (3-May-1983)
 C  5-Aug-1986 - add GREXEC support [AFT].
 C  6-Sep-1989 - standardize [TJP].
-C 20-Apr-1995 - Verbose PS file support.  If PGPLOT_PS_VERBOSE_TEXT is
-C               defined, text strings in PS files are preceded by a 
-C               comment with the text of the string plotted as vectors
-C               [TJP after D.S.Briggs].
-C  4-Feb-1997 - grexec requires an RBUF array, not a scalar [TJP].
 C-----------------------------------------------------------------------
       INCLUDE 'grpckg1.inc'
       LOGICAL ABSXY,UNUSED,VISBLE,CENTER
@@ -31,15 +26,9 @@ C-----------------------------------------------------------------------
       CHARACTER*(*) STRING
       REAL ANGLE, FACTOR, FNTBAS, FNTFAC, COSA, SINA, DX, DY, XORG, YORG
       REAL XCUR, YCUR, ORIENT, RATIO, X0, Y0, RLX, RLY
-      REAL XMIN, XMAX, YMIN, YMAX
-      REAL RBUF(6)
-      INTEGER I, IFNTLV,NLIST,LX,LY, K, LXLAST,LYLAST, LSTYLE
-      INTEGER SLEN, GRTRIM
+      INTEGER XMIN, XMAX, YMIN, YMAX, LSTYLE
+      INTEGER I, IFNTLV,NLIST,LX,LY, K, LXLAST,LYLAST
       INTRINSIC ABS, COS, LEN, MIN, SIN
-      CHARACTER DEVTYP*14, STEMP*258
-      LOGICAL DEVINT, VTEXT
-
-c      CENTER = .FALSE.
 C
 C Check that there is something to be plotted.
 C
@@ -57,21 +46,6 @@ C
       CALL GRQLS(LSTYLE)
       CALL GRSLS(1)
 C
-C Put device dependent code here or at end
-C
-      VTEXT = .FALSE.
-      CALL GRQTYP (DEVTYP, DEVINT)
-      IF ((DEVTYP.EQ.'PS').OR.(DEVTYP.EQ.'VPS').OR.
-     1    (DEVTYP.EQ.'CPS').OR.(DEVTYP.EQ.'VCPS')) THEN
-         CALL GRGENV ('PS_VERBOSE_TEXT', STEMP, I)
-         VTEXT = (I.GT.0)
-         IF (VTEXT) THEN
-            SLEN = GRTRIM(STRING)
-            STEMP = '% Start "' // STRING(1:SLEN) // '"'
-            CALL GREXEC (GRGTYP, 23, RBUF, 0, STEMP, SLEN+10)
-         END IF
-      END IF
-C
 C Save current viewport, and open the viewport to include the full
 C view surface.
 C
@@ -85,7 +59,7 @@ C
 C
 C Compute scaling and orientation.
 C
-      ANGLE = ORIENT*(3.14159265359/180.)
+      ANGLE = ORIENT*(3.14159265/180.)
       FACTOR = GRCFAC(GRCIDE)/2.5
       RATIO = GRPXPI(GRCIDE)/GRPYPI(GRCIDE)
       COSA = FACTOR * COS(ANGLE)
@@ -159,18 +133,6 @@ C                 ! backspace
   330     XORG = XORG + DX*FNTFAC
           YORG = YORG + DY*FNTFAC
   380 CONTINUE
-C
-C Set pen position ready for next character.
-C
-      GRXPRE(GRCIDE) = XORG
-      GRYPRE(GRCIDE) = YORG
-C
-C Another possible device dependent section
-C
-      IF (VTEXT) THEN
-         STEMP = '% End "' // STRING(1:SLEN) // '"'
-         CALL GREXEC(GRGTYP, 23, RBUF, 0, STEMP, SLEN+8)
-      END IF
 C
 C Restore the viewport and line-style, and return.
 C

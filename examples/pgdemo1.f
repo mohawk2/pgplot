@@ -1,88 +1,33 @@
-      PROGRAM PGDEM1
+      PROGRAM PGDEMO
 C-----------------------------------------------------------------------
 C Demonstration program for PGPLOT. The main program opens the output
 C device and calls a series of subroutines, one for each sample plot.
 C-----------------------------------------------------------------------
-      INTEGER PGOPEN
+      INTEGER PGBEG
 C
-C Call PGOPEN to initiate PGPLOT and open the output device; PGOPEN
+C Call PGBEG to initiate PGPLOT and open the output device; PGBEG
 C will prompt the user to supply the device name and type. Always
-C check the return code from PGOPEN.
+C check the return code from PGBEG.
 C
-      IF (PGOPEN('?') .LE. 0) STOP
+      IF (PGBEG(0,'?',1,1) .NE. 1) STOP
 C
-C Print information about device.
-C
-      CALL PGEX0
-C
-C Call the demonstration subroutines (4,5 are put on one page)
+C Call the demonstration subroutines.
 C
       CALL PGEX1
       CALL PGEX2
       CALL PGEX3
-      CALL PGSUBP(2,1)
       CALL PGEX4
       CALL PGEX5
-      CALL PGSUBP(1,1)
       CALL PGEX6
       CALL PGEX7
       CALL PGEX8
       CALL PGEX9
       CALL PGEX10
       CALL PGEX11
-      CALL PGEX12
-      CALL PGEX13
-      CALL PGEX14
-      CALL PGEX15
 C
-C Finally, call PGCLOS to terminate things properly.
+C Finally, call PGEND to terminate things properly.
 C
-      CALL PGCLOS
-C-----------------------------------------------------------------------
-      END
-
-      SUBROUTINE PGEX0
-C-----------------------------------------------------------------------
-C This subroutine tests PGQINF and displays the information returned on
-C the standard output.
-C-----------------------------------------------------------------------
-      CHARACTER*64 VALUE
-      INTEGER LENGTH
-      REAL X, Y, X1, X2, Y1, Y2
-C
-C Information available from PGQINF:
-C
-      CALL PGQINF('version',  VALUE, LENGTH)
-      WRITE (*,*) 'version=', VALUE(:LENGTH)
-      CALL PGQINF('state',    VALUE, LENGTH)
-      WRITE (*,*) 'state=',   VALUE(:LENGTH)
-      CALL PGQINF('user',     VALUE, LENGTH)
-      WRITE (*,*) 'user=',    VALUE(:LENGTH)
-      CALL PGQINF('now',      VALUE, LENGTH)
-      WRITE (*,*) 'now=',     VALUE(:LENGTH)
-      CALL PGQINF('device',   VALUE, LENGTH)
-      WRITE (*,*) 'device=',  VALUE(:LENGTH)
-      CALL PGQINF('file',     VALUE, LENGTH)
-      WRITE (*,*) 'file=',    VALUE(:LENGTH)
-      CALL PGQINF('type',     VALUE, LENGTH)
-      WRITE (*,*) 'type=',    VALUE(:LENGTH)
-      CALL PGQINF('dev/type', VALUE, LENGTH)
-      WRITE (*,*) 'dev/type=',VALUE(:LENGTH)
-      CALL PGQINF('hardcopy', VALUE, LENGTH)
-      WRITE (*,*) 'hardcopy=',VALUE(:LENGTH)
-      CALL PGQINF('terminal', VALUE, LENGTH)
-      WRITE (*,*) 'terminal=',VALUE(:LENGTH)
-      CALL PGQINF('cursor',   VALUE, LENGTH)
-      WRITE (*,*) 'cursor=',  VALUE(:LENGTH)
-C
-C Get view surface dimensions:
-C
-      CALL PGQVSZ(1, X1, X2, Y1, Y2)
-      X = X2-X1
-      Y = Y2-Y1
-      WRITE (*,100) X, Y, X*25.4, Y*25.4
-  100 FORMAT (' Plot dimensions (x,y; inches): ',F9.2,', ',F9.2/
-     1        '                          (mm): ',F9.2,', ',F9.2)
+      CALL PGEND
 C-----------------------------------------------------------------------
       END
 
@@ -99,7 +44,7 @@ C Call PGENV to specify the range of the axes and to draw a box, and
 C PGLAB to label it. The x-axis runs from 0 to 10, and y from 0 to 20.
 C
       CALL PGENV(0.,10.,0.,20.,0,1)
-      CALL PGLAB('(x)', '(y)', 'PGPLOT Example 1:  y = x\u2')
+      CALL PGLAB('(x)', '(y)', 'PGPLOT Example 1 - y = x\u2')
 C
 C Mark five points (coordinates in arrays XS and YS), using symbol
 C number 9.
@@ -126,7 +71,7 @@ C-----------------------------------------------------------------------
 C
       CALL PGENV(-2.,10.,-0.4,1.2,0,1)
       CALL PGLAB('(x)', 'sin(x)/x', 
-     $             'PGPLOT Example 2:  Sinc Function')
+     $             'PGPLOT Example 2 - Sinc Function')
       DO 20 I=1,100
           XR(I) = (I-20)/6.
           YR(I) = 1.0
@@ -142,7 +87,7 @@ C This example illustrates the use of PGBOX and attribute routines to
 C mix colors and line-styles.
 C----------------------------------------------------------------------
       REAL PI
-      PARAMETER (PI=3.14159265359)
+      PARAMETER (PI=3.14159265)
       INTEGER I
       REAL XR(360), YR(360)
       REAL ARG
@@ -151,7 +96,6 @@ C Call PGENV to initialize the viewport and window; the
 C AXIS argument is -2, so no frame or labels will be drawn.
 C
       CALL PGENV(0.,720.,-2.0,2.0,0,-2)
-      CALL PGSAVE
 C
 C Set the color index for the axes and grid (index 5 = cyan).
 C Call PGBOX to draw first a grid at low brightness, and then a
@@ -190,63 +134,41 @@ C
 C
 C Restore attributes to defaults.
 C
-      CALL PGUNSA
+      CALL PGSLS(1)
+      CALL PGSCI(1)
+      CALL PGSLW(1)
 C-----------------------------------------------------------------------
       END
 
       SUBROUTINE PGEX4
 C-----------------------------------------------------------------------
-C Demonstration program for PGPLOT: draw histograms.
+C Demonstration program for PGPLOT: draw a histogram.
 C-----------------------------------------------------------------------
-      REAL PI
-      PARAMETER (PI=3.14159265359)
       INTEGER  I, ISEED
       REAL     DATA(1000), X(620), Y(620)
-      REAL     PGRNRM
+      REAL     RNGAUS, RAN5, JUNK
 C
-C Call PGRNRM to obtain 1000 samples from a normal distribution.
+C Call RNGAUS to obtain 1000 samples from a normal distribution.
 C
       ISEED = -5678921
+      JUNK = RAN5(ISEED)
       DO 10 I=1,1000
-          DATA(I) = PGRNRM(ISEED)
+          DATA(I) = RNGAUS(ISEED)
    10 CONTINUE
 C
 C Draw a histogram of these values.
 C
-      CALL PGSAVE
       CALL PGHIST(1000,DATA,-3.1,3.1,31,0)
-C
-C Samples from another normal distribution.
-C
-      DO 15 I=1,200
-          DATA(I) = 1.0+0.5*PGRNRM(ISEED)
-   15 CONTINUE
-C
-C Draw another histogram (filled) on same axes.
-C
-      CALL PGSCI(15)
-      CALL PGHIST(200,DATA,-3.1,3.1,31,3)
-      CALL PGSCI(0)
-      CALL PGHIST(200,DATA,-3.1,3.1,31,1)
-      CALL PGSCI(1)
-C
-C Redraw the box which may have been clobbered by the histogram.
-C
-      CALL PGBOX('BST', 0.0, 0, ' ', 0.0, 0)
-C
-C Label the plot.
-C
       CALL PGLAB('Variate', ' ',
-     $             'PGPLOT Example 4:  Histograms (Gaussian)')
+     $             'PGPLOT Example 4 - Histogram (Gaussian)')
 C
 C Superimpose the theoretical distribution.
 C
       DO 20 I=1,620
           X(I) = -3.1 + 0.01*(I-1)
-          Y(I) = 0.2*1000./SQRT(2.0*PI)*EXP(-0.5*X(I)*X(I))
+          Y(I) = 0.2*1000./SQRT(2.*3.14159265)*EXP(-0.5*X(I)*X(I))
    20 CONTINUE
       CALL PGLINE(620,X,Y)
-      CALL PGUNSA
 C-----------------------------------------------------------------------
       END
 
@@ -261,11 +183,9 @@ C----------------------------------------------------------------------
       PARAMETER (RED=2)
       PARAMETER (GREEN=3)
       PARAMETER (CYAN=5)
-      INTEGER   NP
-      PARAMETER (NP=15)
       INTEGER   I
-      REAL      X, YLO(NP), YHI(NP)
-      REAL      FREQ(NP), FLUX(NP), XP(100), YP(100), ERR(NP)
+      REAL      X, YLO, YHI
+      REAL      FREQ(15), FLUX(15), XP(100), YP(100), ERR(15)
       DATA FREQ / 26., 38., 80., 160., 178., 318.,
      1            365., 408., 750., 1400., 2695., 2700.,
      2            5000., 10695., 14900. /
@@ -283,12 +203,11 @@ C Jy. Note that it is necessary to specify the logarithms of these
 C quantities in the call to PGENV. We request equal scales in x and y
 C so that slopes will be correct.  Use PGLAB to label the graph.
 C
-      CALL PGSAVE
       CALL PGSCI(CYAN)
       CALL PGENV(-2.0,2.0,-0.5,2.5,1,30)
       CALL PGLAB('Frequency, \gn (GHz)',
      1             'Flux Density, S\d\gn\u (Jy)',
-     2             'PGPLOT Example 5:  Log-Log plot')
+     2             'PGPLOT Example 5 - Log-Log plot')
 C
 C Draw a fit to the spectrum (don't ask how this was chosen). This 
 C curve is drawn before the data points, so that the data will write 
@@ -306,138 +225,137 @@ C Plot the measured flux densities: here the data are installed with a
 C DATA statement; in a more general program, they might be read from a
 C file. We first have to take logarithms (the -3.0 converts MHz to GHz).
 C
-      DO 20 I=1,NP
+      DO 20 I=1,15
           XP(I) = ALOG10(FREQ(I))-3.0
           YP(I) = ALOG10(FLUX(I))
    20 CONTINUE
       CALL PGSCI(GREEN)
-      CALL PGPT(NP, XP, YP, 17)
+      CALL PGPT(15, XP, YP, 17)
 C
 C Draw +/- 2 sigma error bars: take logs of both limits.
 C
-      DO 30 I=1,NP
-          YHI(I) = ALOG10(FLUX(I)+2.*ERR(I))
-          YLO(I) = ALOG10(FLUX(I)-2.*ERR(I))
+      DO 30 I=1,15
+          YHI = ALOG10(FLUX(I)+2.*ERR(I))
+          YLO = ALOG10(FLUX(I)-2.*ERR(I))
+          CALL PGERRY(1,XP(I),YLO,YHI,1.0)
    30 CONTINUE
-      CALL PGERRY(NP,XP,YLO,YHI,1.0)
-      CALL PGUNSA
 C-----------------------------------------------------------------------
       END
 
       SUBROUTINE PGEX6
 C----------------------------------------------------------------------
 C Demonstration program for the PGPLOT plotting package.  This example
-C illustrates the use of PGPOLY, PGCIRC, and PGRECT using SOLID, 
-C OUTLINE, HATCHED, and CROSS-HATCHED fill-area attributes.
+C illustrates the use of PGPOLY using SOLID and HOLLOW fill-area
+C attributes.
 C----------------------------------------------------------------------
-      REAL PI, TWOPI
-      PARAMETER (PI=3.14159265359)
-      PARAMETER (TWOPI=2.0*PI)
-      INTEGER NPOL
-      PARAMETER (NPOL=6)
-      INTEGER I, J, N1(NPOL), N2(NPOL), K
-      REAL X(10), Y(10), Y0, ANGLE
-      CHARACTER*32 LAB(4)
-      DATA N1 / 3, 4, 5, 5, 6, 8 /
-      DATA N2 / 1, 1, 1, 2, 1, 3 /
-      DATA LAB(1) /'Fill style 1 (solid)'/
-      DATA LAB(2) /'Fill style 2 (outline)'/
-      DATA LAB(3) /'Fill style 3 (hatched)'/
-      DATA LAB(4) /'Fill style 4 (cross-hatched)'/
+      REAL TWOPI
+      PARAMETER (TWOPI=2.0*3.14159265)
+      INTEGER I, J
+      REAL X(10), Y(10)
 C
-C Initialize the viewport and window.
+C Call PGENV to initialize the viewport and window; the
+C AXIS argument is -2, so no frame or labels will be drawn.
 C
-      CALL PGBBUF
-      CALL PGSAVE
-      CALL PGPAGE
-      CALL PGSVP(0.0, 1.0, 0.0, 1.0)
-      CALL PGWNAD(0.0, 10.0, 0.0, 10.0)
+      CALL PGENV(0.,8.,0.,8.0,1,-2)
 C
-C Label the graph.
+C Call PGLAB to label the graph.
 C
-      CALL PGSCI(1)
-      CALL PGMTXT('T', -2.0, 0.5, 0.5, 
-     :     'PGPLOT fill area: routines PGPOLY, PGCIRC, PGRECT')
+      CALL PGSCI(3)
+      CALL PGLAB(' ',' ','PGPLOT Example 6 - PGPOLY')
 C
-C Draw assorted polygons.
+C Draw assorted regular convex polygons (solid).
 C
-      DO 30 K=1,4
-         CALL PGSCI(1)
-         Y0 = 10.0 - 2.0*K
-         CALL PGTEXT(0.2, Y0+0.6, LAB(K))
-         CALL PGSFS(K)
-         DO 20 I=1,NPOL
-            CALL PGSCI(I)
-            DO 10 J=1,N1(I)
-               ANGLE = REAL(N2(I))*TWOPI*REAL(J-1)/REAL(N1(I))
-               X(J) = I + 0.5*COS(ANGLE)
-               Y(J) = Y0 + 0.5*SIN(ANGLE)
- 10         CONTINUE
-            CALL PGPOLY (N1(I),X,Y)
- 20      CONTINUE
-         CALL PGSCI(7)
-         CALL PGCIRC(7.0, Y0, 0.5)
-         CALL PGSCI(8)
-         CALL PGRECT(7.8, 9.5, Y0-0.5, Y0+0.5)
- 30   CONTINUE
+      CALL PGSFS(1)
+      DO 20 I=3,9
+          CALL PGSCI(I-2)
+          DO 10 J=1,I
+            X(J) = I-2 + 0.5*COS(TWOPI*(J-1)/I)
+            Y(J) = 6 + 0.5*SIN(TWOPI*(J-1)/I)
+   10     CONTINUE
+          CALL PGPOLY (I,X,Y)
+   20 CONTINUE
 C
-      CALL PGUNSA
-      CALL PGEBUF
+C Draw assorted regular convex polygons (hollow).
+C
+      CALL PGSFS(2)
+      DO 40 I=3,9
+          CALL PGSCI(I-2)
+          DO 30 J=1,I
+            X(J) = I-2 + 0.5*COS(TWOPI*(J-1)/I)
+            Y(J) = 3 + 0.5*SIN(TWOPI*(J-1)/I)
+   30     CONTINUE
+          CALL PGPOLY (I,X,Y)
+   40 CONTINUE
+      CALL PGSFS(1)
 C-----------------------------------------------------------------------
       END
 
       SUBROUTINE PGEX7
 C-----------------------------------------------------------------------
-C A plot with a large number of symbols; plus test of PGERR1.
+C Example program for PGPLOT. This program generates an Aitoff equal-
+C area projection of the whole sky, centered on (lat=0, long=180).
 C-----------------------------------------------------------------------
-      INTEGER I, ISEED
-      REAL XS(300),YS(300), XR(101), YR(101), XP, YP, XSIG, YSIG
-      REAL PGRAND, PGRNRM
-C
-C Window and axes.
+      REAL  RPDEG
+      PARAMETER (RPDEG=3.1415926/180.0)
+      INTEGER I, J
+      REAL B, L, XC(361), YC(361)
 C
       CALL PGBBUF
-      CALL PGSAVE
-      CALL PGSCI(1)
-      CALL PGENV(0.,5.,-0.3,0.6,0,1)
-      CALL PGLAB('\fix', '\fiy', 'PGPLOT Example 7: scatter plot')
 C
-C Random data points.
+C Call PGENV to create a rectangular window of 4 x 2 units. This is 
+C the bounding rectangle of the Aitoff plot. The JUST argument is 1
+C to get equal scales in x and y.  Setting the character height to
+C zero eliminates the margin that PGENV normally leaves for labels.
 C
-      ISEED = -45678921
-      DO 10 I=1,300
-          XS(I) = 5.0*PGRAND(ISEED)
-          YS(I) = XS(I)*EXP(-XS(I)) + 0.05*PGRNRM(ISEED)
-   10 CONTINUE
-      CALL PGSCI(3)
-      CALL PGPT(100,XS,YS,3)
-      CALL PGPT(100,XS(101),YS(101),17)
-      CALL PGPT(100,XS(201),YS(201),21)
+      CALL PGSCH(0.0)
+      CALL PGENV(-2.0, 2.0, -1.0, 1.0, 1, -2)
 C
-C Curve defining parent distribution.
+C Draw 7 lines of constant longitude at longitude 0, 60, 120, ..., 
+C 360 degrees. Each line is made up of 180 straight-line segments.
 C
-      DO 20 I=1,101
-          XR(I) = 0.05*(I-1)
-          YR(I) = XR(I)*EXP(-XR(I))
+      DO 20 J=1,7
+          L = (-180.+(J-1)*60.)*RPDEG
+          DO 10 I=1,181
+              B = (I-91)*RPDEG
+              CALL AITOFF(B,L,XC(I),YC(I))
+   10     CONTINUE
+          CALL PGLINE(181,XC,YC)
    20 CONTINUE
-      CALL PGSCI(2)
-      CALL PGLINE(101,XR,YR)
 C
-C Test of PGERR1/PGPT1.
+C Draw 5 lines of constant latitude at latitudes -60, -30, 0, 30, 
+C 60 degrees. Each line is made up of 360 straight-line segments.
 C
-      XP = XS(101)
-      YP = YS(101)
-      XSIG = 0.2
-      YSIG = 0.1
-      CALL PGSCI(5)
-      CALL PGSCH(3.0)
-      CALL PGERR1(5, XP, YP, XSIG, 1.0)
-      CALL PGERR1(6, XP, YP, YSIG, 1.0)
-      CALL PGPT1(XP,YP,21)
+      DO 40 J=1,5
+          B = (-60.+(J-1)*30.)*RPDEG
+          DO 30 I=1,361
+              L = FLOAT(I-181)*RPDEG
+              CALL AITOFF(B,L,XC(I),YC(I))
+   30     CONTINUE
+          CALL PGLINE(361,XC,YC)
+   40 CONTINUE
 C
-      CALL PGUNSA
+C Having drawn the lines of latitude and longitude, one can now mark 
+C points, etc.  To do this, call subroutine AITOFF to convert 
+C latitude and longitude to (x,y) coordinates.  This is outside the 
+C scope of this example program.  
+C
       CALL PGEBUF
+      CALL PGSCH(1.0)
+      END
+
+      SUBROUTINE AITOFF(B,L,X,Y)
 C-----------------------------------------------------------------------
+C Aitoff projection .
+C
+C       Input: latitude and longitude (B,L) in radians
+C       Output: cartesian (X,Y) in range +/-2, +/-1
+C-----------------------------------------------------------------------
+      REAL L,B,X,Y,L2,DEN
+C
+      L2 = L/2.0
+      DEN = SQRT(1.0+COS(B)*COS(L2))
+      X = 2.0*COS(B)*SIN(L2)/DEN
+      Y = SIN(B)/DEN
       END
 
       SUBROUTINE PGEX8
@@ -479,8 +397,6 @@ C Fill-area style:
 C-----------------------------------------------------------------------
 C
       CALL PGPAGE
-      CALL PGBBUF
-      CALL PGSAVE
 C
 C Define the Viewport
 C
@@ -538,9 +454,7 @@ C
       CALL PGSCI (WHITE)
       CALL PGSLS (DASHED)
       CALL PGLINE (360,XR,YR)
-C
-      CALL PGUNSA
-      CALL PGEBUF
+      CALL PGSLS (SOLID)
 C-----------------------------------------------------------------------
       END
 
@@ -551,25 +465,19 @@ C illustrates curve drawing with PGFUNT; the parametric curve drawn is
 C a simple Lissajous figure.
 C                              T. J. Pearson  1983 Oct 5
 C----------------------------------------------------------------------
-      REAL PI, TWOPI
-      PARAMETER (PI=3.14159265359)
-      PARAMETER (TWOPI=2.0*PI)
       REAL     FX, FY
       EXTERNAL FX, FY
 C
 C Call PGFUNT to draw the function (autoscaling).
 C
-      CALL PGBBUF
-      CALL PGSAVE
       CALL PGSCI(5)
-      CALL PGFUNT(FX,FY,360,0.0,TWOPI,0)
+      CALL PGFUNT(FX,FY,360,0.0,2.0*3.14159265,0)
 C
 C Call PGLAB to label the graph in a different color.
 C
       CALL PGSCI(3)
-      CALL PGLAB('x','y','PGPLOT Example 9:  routine PGFUNT')
-      CALL PGUNSA
-      CALL PGEBUF
+      CALL PGLAB('x','y','PGPLOT Example 9 - routine PGFUNT')
+      CALL PGSCI(1)
 C
       END
 
@@ -591,8 +499,6 @@ C Demonstration program for the PGPLOT plotting package.  This example
 C illustrates curve drawing with PGFUNX.
 C                              T. J. Pearson  1983 Oct 5
 C----------------------------------------------------------------------
-      REAL PI
-      PARAMETER (PI=3.14159265359)
 C The following define mnemonic names for the color indices and
 C linestyle codes.
       INTEGER   BLACK, WHITE, RED, GREEN, BLUE, CYAN, MAGENT, YELLOW
@@ -611,40 +517,29 @@ C linestyle codes.
 C
 C The Fortran functions to be plotted must be declared EXTERNAL.
 C
-      REAL     PGBSJ0, PGBSJ1
-      EXTERNAL PGBSJ0, PGBSJ1
+      REAL     BESJ0, BESJ1
+      EXTERNAL BESJ0, BESJ1
 C
 C Call PGFUNX twice to draw two functions (autoscaling the first time).
 C
-      CALL PGBBUF
-      CALL PGSAVE
       CALL PGSCI(YELLOW)
-      CALL PGFUNX(PGBSJ0,500,0.0,10.0*PI,0)
+      CALL PGFUNX(BESJ0,500,0.0,10.0*3.14159265,0)
       CALL PGSCI(RED)
       CALL PGSLS(DASH)
-      CALL PGFUNX(PGBSJ1,500,0.0,10.0*PI,1)
+      CALL PGFUNX(BESJ1,500,0.0,10.0*3.14159265,1)
 C
 C Call PGLAB to label the graph in a different color. Note the
 C use of "\f" to change font.  Use PGMTXT to write an additional
 C legend inside the viewport.
 C
       CALL PGSCI(GREEN)
-      CALL PGSLS(FULL)
-      CALL PGLAB('\fix', '\fiy',
-     2           '\frPGPLOT Example 10: routine PGFUNX')
+      CALL PGLAB('\fix', 
+     1             '\fiy',
+     2             '\frPGPLOT Example 10')
       CALL PGMTXT('T', -4.0, 0.5, 0.5,
-     1     '\frBessel Functions')
-C
-C Call PGARRO to label the curves.
-C
-      CALL PGARRO(8.0, 0.7, 1.0, PGBSJ0(1.0))
-      CALL PGARRO(12.0, 0.5, 9.0, PGBSJ1(9.0))
-      CALL PGSTBG(GREEN)
-      CALL PGSCI(0)
-      CALL PGPTXT(8.0, 0.7, 0.0, 0.0, ' \fiy = J\d0\u(x)')
-      CALL PGPTXT(12.0, 0.5, 0.0, 0.0, ' \fiy = J\d1\u(x)')
-      CALL PGUNSA
-      CALL PGEBUF
+     1     '\fiy = J\d0\u(x)\fr (solid), '//
+     2     '\fiy = J\d1\u(x)\fr (dashed)')
+      CALL PGSCI(1)
 C-----------------------------------------------------------------------
       END
 
@@ -678,8 +573,6 @@ C
 C
 C Initialize the plot (no labels).
 C
-      CALL PGBBUF
-      CALL PGSAVE
       CALL PGENV(-4.,4.,-4.,4.,1,-2)
       CALL PGSCI(2)
       CALL PGSLS(1)
@@ -687,13 +580,13 @@ C
 C
 C Write a heading.
 C
-      CALL PGLAB(' ',' ','PGPLOT Example 11:  Dodecahedron')
+      CALL PGLAB(' ',' ','PGPLOT Example 11 - Dodecahedron')
 C
 C Mark the vertices.
 C
       DO 2 I=1,NVERT
           ZZ = VERT(3,I)
-          CALL PGPT1(VERT(1,I)+0.2*ZZ,VERT(2,I)+0.3*ZZ,9)
+          CALL PGPT(1,VERT(1,I)+0.2*ZZ,VERT(2,I)+0.3*ZZ,9)
     2 CONTINUE
 C
 C Draw the edges - test all vertex pairs to find the edges of the 
@@ -717,327 +610,152 @@ C
               CALL PGLINE(2,X,Y)
    10     CONTINUE
    20 CONTINUE
-      CALL PGUNSA
-      CALL PGEBUF
-C-----------------------------------------------------------------------
-      END
-
-      SUBROUTINE PGEX12
-C-----------------------------------------------------------------------
-C Test routine for PGPLOT: draw arrows with PGARRO.
-C-----------------------------------------------------------------------
-      INTEGER NV, I, K
-      REAL A, D, X, Y, XT, YT
-C
-C Number of arrows.
-C
-      NV =16
-C
-C Select a square viewport.
-C
-      CALL PGBBUF
-      CALL PGSAVE
-      CALL PGSCH(0.7)
-      CALL PGSCI(2)
-      CALL PGENV(-1.05,1.05,-1.05,1.05,1,-1)
-      CALL PGLAB(' ', ' ', 'PGPLOT Example 12: PGARRO')
+      CALL PGSLW(1)
       CALL PGSCI(1)
-C
-C Draw the arrows
-C
-      K = 1
-      D = 360.0/57.29577951/NV
-      A = -D
-      DO 20 I=1,NV
-          A = A+D
-          X = COS(A)
-          Y = SIN(A)
-          XT = 0.2*COS(A-D)
-          YT = 0.2*SIN(A-D)
-          CALL PGSAH(K, 80.0-3.0*I, 0.5*REAL(I)/REAL(NV))
-          CALL PGSCH(0.25*I)
-          CALL PGARRO(XT, YT, X, Y)
-          K = K+1
-          IF (K.GT.2) K=1
-   20 CONTINUE
-C
-      CALL PGUNSA
-      CALL PGEBUF
 C-----------------------------------------------------------------------
       END
 
-      SUBROUTINE PGEX13
-C----------------------------------------------------------------------
-C This example illustrates the use of PGTBOX.
-C----------------------------------------------------------------------
-      INTEGER N
-      PARAMETER (N=10)
-      INTEGER I
-      REAL X1(N), X2(N)
-      CHARACTER*20 XOPT(N), BSL*1
-      DATA X1 /   4*0.0, -8000.0, 100.3, 205.3, -45000.0, 2*0.0/
-      DATA X2 /4*8000.0,  8000.0, 101.3, 201.1, 3*-100000.0/
-      DATA XOPT / 'BSTN', 'BSTNZ', 'BSTNZH', 'BSTNZD', 'BSNTZHFO', 
-     :      'BSTNZD', 'BSTNZHI', 'BSTNZHP', 'BSTNZDY', 'BSNTZHFOY'/
-C
-      BSL = CHAR(92)
-      CALL PGPAGE
-      CALL PGSAVE
-      CALL PGBBUF
-      CALL PGSCH(0.7)
-      DO 100 I=1,N
-        CALL PGSVP(0.15, 0.85, (0.7+REAL(N-I))/REAL(N), 
-     :                         (0.7+REAL(N-I+1))/REAL(N)) 
-        CALL PGSWIN(X1(I), X2(I), 0.0, 1.0)
-        CALL PGTBOX(XOPT(I),0.0,0,' ',0.0,0)
-        CALL PGLAB('Option = '//XOPT(I), ' ', ' ')
-        IF (I.EQ.1) THEN
-           CALL PGMTXT('B', -1.0, 0.5, 0.5, 
-     :                 BSL//'fiAxes drawn with PGTBOX')
-        END IF
-  100 CONTINUE
-      CALL PGEBUF
-      CALL PGUNSA
-C-----------------------------------------------------------------------
-      END
-
-      SUBROUTINE PGEX14
-C-----------------------------------------------------------------------
-C Test routine for PGPLOT: polygon fill and color representation.
-C-----------------------------------------------------------------------
-      INTEGER I, J, N, M
-      REAL PI, THINC, R, G, B, THETA
-      REAL XI(100),YI(100),XO(100),YO(100),XT(3),YT(3)
-      PARAMETER (PI=3.14159265359)
-C
-      N = 33
-      M = 8
-      THINC=2.0*PI/N
-      DO 10 I=1,N
-        XI(I) = 0.0
-        YI(I) = 0.0
-   10 CONTINUE
-      CALL PGBBUF
-      CALL PGSAVE
-      CALL PGENV(-1.,1.,-1.,1.,1,-2)
-      CALL PGLAB(' ', ' ', 'PGPLOT Example 14: PGPOLY and PGSCR')
-      DO 50 J=1,M
-        R = 1.0
-        G = 1.0 - REAL(J)/REAL(M)
-        B = G
-        CALL PGSCR(J, R, G, B)
-        THETA = -REAL(J)*PI/REAL(N)
-        R = REAL(J)/REAL(M)
-        DO 20 I=1,N
-          THETA = THETA+THINC
-          XO(I) = R*COS(THETA)
-          YO(I) = R*SIN(THETA)
-   20   CONTINUE
-        DO 30 I=1,N
-          XT(1) = XO(I)
-          YT(1) = YO(I)
-          XT(2) = XO(MOD(I,N)+1)
-          YT(2) = YO(MOD(I,N)+1)
-          XT(3) = XI(I)
-          YT(3) = YI(I)
-          CALL PGSCI(J)
-          CALL PGSFS(1)
-          CALL PGPOLY(3,XT,YT)
-          CALL PGSFS(2)
-          CALL PGSCI(1)
-          CALL PGPOLY(3,XT,YT)
-   30   CONTINUE
-        DO 40 I=1,N
-          XI(I) = XO(I)
-          YI(I) = YO(I)
-   40   CONTINUE
-   50 CONTINUE
-      CALL PGUNSA
-      CALL PGEBUF
-C-----------------------------------------------------------------------
-      END
-
-      SUBROUTINE PGEX15
-C----------------------------------------------------------------------
-C This is a line-drawing test; it draws a regular n-gon joining
-C each vertex to every other vertex. It is not optimized for pen
-C plotters.
-C----------------------------------------------------------------------
-      INTEGER I, J, NV
-      REAL A, D, X(100), Y(100)
-C
-C Set the number of vertices, and compute the 
-C coordinates for unit circumradius.
-C
-      NV = 17
-      D = 360.0/NV
-      A = -D
-      DO 20 I=1,NV
-          A = A+D
-          X(I) = COS(A/57.29577951)
-          Y(I) = SIN(A/57.29577951)
-   20 CONTINUE
-C
-C Select a square viewport.
-C
-      CALL PGBBUF
-      CALL PGSAVE
-      CALL PGSCH(0.5)
-      CALL PGSCI(2)
-      CALL PGENV(-1.05,1.05,-1.05,1.05,1,-1)
-      CALL PGLAB(' ', ' ', 'PGPLOT Example 15: PGMOVE and PGDRAW')
-      CALL PGSCR(0,0.2,0.3,0.3)
-      CALL PGSCR(1,1.0,0.5,0.2)
-      CALL PGSCR(2,0.2,0.5,1.0)
-      CALL PGSCI(1)
-C
-C Draw the polygon.
-C
-      DO 40 I=1,NV-1
-          DO 30 J=I+1,NV
-            CALL PGMOVE(X(I),Y(I))
-            CALL PGDRAW(X(J),Y(J))
-   30     CONTINUE
-   40 CONTINUE
-C
-C Flush the buffer.
-C
-      CALL PGUNSA
-      CALL PGEBUF
-C-----------------------------------------------------------------------
-      END
-
-      REAL FUNCTION PGBSJ0(XX)
+      REAL FUNCTION BESJ0(XX)
       REAL XX
-C-----------------------------------------------------------------------
-C Bessel function of order 0 (approximate).
-C Reference: Abramowitz and Stegun: Handbook of Mathematical Functions.
+C     BESSEL FUNCTION J0(XX)
+C     REVISED SEPT, 1971  -  TRANSFERED TO VAX JULY 1979.
+C     J0(-XX) = J0(XX)
 C-----------------------------------------------------------------------
       REAL X, XO3, T, F0, THETA0
-C     
+C
       X = ABS(XX)
       IF (X .LE. 3.0) THEN
-         XO3 = X/3.0
-         T   = XO3*XO3
-         PGBSJ0 = 1.0 + T*(-2.2499997 +
-     1                  T*( 1.2656208 +
-     2                  T*(-0.3163866 +
-     3                  T*( 0.0444479 +
-     4                  T*(-0.0039444 +
-     5                  T*( 0.0002100))))))
+          XO3 = X/3.
+          T   = XO3*XO3
+          BESJ0 = 1.+T*(-2.2499997+T*(1.2656208+T*(-.3163866+T*(.0444479
+     1            +T*(-.003944+T*.0002100)))))
       ELSE
-         T = 3.0/X
-         F0 =     0.79788456 +
-     1        T*(-0.00000077 + 
-     2        T*(-0.00552740 +
-     3        T*(-0.00009512 +
-     4        T*( 0.00137237 +
-     5        T*(-0.00072805 +
-     6        T*( 0.00014476))))))
-         THETA0 = X - 0.78539816 +
-     1            T*(-0.04166397 +
-     2            T*(-0.00003954 +
-     3            T*( 0.00262573 +
-     4            T*(-0.00054125 +
-     5            T*(-0.00029333 +
-     6            T*( 0.00013558))))))
-         PGBSJ0 = F0*COS(THETA0)/SQRT(X)
+          T = 3./X
+          F0 = .79788456+T*(-.00000077+T*(-.00552740+T*(-.00009512
+     1         +T*(.00137237+T*(-.00072805+T*.00014476)))))
+          THETA0 = X-.78539816+T*(-.04166397+T*(-.00003954
+     1      +T*(.00262573+T*(-.00054125+T*(-.00029333+T*.00013558)))))
+          BESJ0 = F0*COS(THETA0)/SQRT(X)
       END IF
-C-----------------------------------------------------------------------
+      RETURN
       END
 
-      REAL FUNCTION PGBSJ1(XX)
+      REAL FUNCTION BESJ1(XX)
       REAL XX
-C-----------------------------------------------------------------------
-C Bessel function of order 1 (approximate).
-C Reference: Abramowitz and Stegun: Handbook of Mathematical Functions.
+C     BESSEL FUNCTION J1(XX)
+C     REVISED SEPT,1971
+C     J1(-XX)=-J1(XX)
+C     TRANSFERED TO VAX    JULY 1979
 C-----------------------------------------------------------------------
       REAL X, XO3, T, F1, THETA1
 C
       X = ABS(XX)
       IF (X .LE. 3.0) THEN
-         XO3 = X/3.0
-         T = XO3*XO3
-         PGBSJ1 = 0.5 + T*(-0.56249985 +
-     1                  T*( 0.21093573 +
-     2                  T*(-0.03954289 +
-     3                  T*( 0.00443319 +
-     4                  T*(-0.00031761 +
-     5                  T*( 0.00001109))))))
-         PGBSJ1 = PGBSJ1*XX
+          XO3 = X/3.
+          T = XO3*XO3
+          BESJ1 = .5+T*(-.56249985+T*(.21093573+T*
+     1                 (-.03954289+T*(.00443319+T*
+     2                 (-.00031761+T*.00001109)))))
+          BESJ1 = BESJ1*XX
       ELSE
-         T = 3.0/X
-         F1 =    0.79788456 +
-     1       T*( 0.00000156 +
-     2       T*( 0.01659667 + 
-     3       T*( 0.00017105 +
-     4       T*(-0.00249511 +
-     5       T*( 0.00113653 + 
-     6       T*(-0.00020033))))))
-         THETA1 = X   -2.35619449 + 
-     1             T*( 0.12499612 +
-     2             T*( 0.00005650 +
-     3             T*(-0.00637879 +
-     4             T*( 0.00074348 +
-     5             T*( 0.00079824 +
-     6             T*(-0.00029166))))))
-         PGBSJ1 = F1*COS(THETA1)/SQRT(X)
+          T = 3./X
+          F1 = .79788456+T*(.00000156+T*(.01659667+T*(.00017105
+     1         +T*(-.00249511+T*(.00113653-T*.00020033)))))
+          THETA1 = X-2.35619449+T*(.12499612+T*(.00005650+T*(-.00637879
+     1             +T*(.00074348+T*(.00079824-T*.00029166)))))
+          BESJ1 = F1*COS(THETA1)/SQRT(X)
       END IF
-      IF (XX .LT. 0.0) PGBSJ1 = -PGBSJ1
-C-----------------------------------------------------------------------
+      IF (XX .LT. 0.0) BESJ1 = -BESJ1
+      RETURN
       END
 
-      REAL FUNCTION PGRNRM (ISEED)
+C*RNGAUS -- random number from Gaussian (normal) distribution
+C+
+      REAL FUNCTION RNGAUS (ISEED)
       INTEGER ISEED
-C-----------------------------------------------------------------------
+C
 C Returns a normally distributed deviate with zero mean and unit 
 C variance. The routine uses the Box-Muller transformation of uniform
-C deviates. For a more efficient implementation of this algorithm,
-C see Press et al., Numerical Recipes, Sec. 7.2.
+C deviates. Reference: Press et al., Numerical Recipes, Sec. 7.2.
 C
 C Arguments:
-C  ISEED  (in/out) : seed used for PGRAND random-number generator.
+C  ISEED  (in/out) : seed used for RAN5 random-number generator.
 C
 C Subroutines required:
-C  PGRAND -- return a uniform random deviate between 0 and 1.
+C  RAN5 -- return a uniform random deviate between 0 and 1.
 C
 C History:
-C  1995 Dec 12 - TJP.
+C  1987 Nov 13 - TJP.
 C-----------------------------------------------------------------------
-      REAL R, X, Y, PGRAND
+      INTEGER ISET
+      REAL R, V1, V2, FAC, GSET
+      REAL RAN5
+      SAVE ISET, GSET
+      DATA ISET/0/
 C
- 10   X = 2.0*PGRAND(ISEED) - 1.0
-      Y = 2.0*PGRAND(ISEED) - 1.0
-      R = X**2 + Y**2
-      IF (R.GE.1.0) GOTO 10
-      PGRNRM = X*SQRT(-2.0*LOG(R)/R)
-C-----------------------------------------------------------------------
+      IF (ISET.EQ.0) THEN
+   10     V1 = 2.*RAN5(ISEED)-1.
+          V2 = 2.*RAN5(ISEED)-1.
+          R = V1**2+V2**2
+          IF (R.GE.1.) GOTO 10
+          FAC = SQRT(-2.*LOG(R)/R)
+          GSET = V1*FAC
+          RNGAUS = V2*FAC
+          ISET = 1
+      ELSE
+          RNGAUS = GSET
+          ISET = 0
+      END IF
+C
       END
 
-      REAL FUNCTION PGRAND(ISEED)
-      INTEGER ISEED
-C-----------------------------------------------------------------------
+C*RAN5 -- random number from uniform distribution
+C+
+      REAL FUNCTION RAN5(IDUM)
+      INTEGER IDUM
+C
 C Returns a uniform random deviate between 0.0 and 1.0.
 C
-C NOTE: this is not a good random-number generator; it is only
-C intended for exercising the PGPLOT routines.
-C
-C Based on: Park and Miller's "Minimal Standard" random number
-C   generator (Comm. ACM, 31, 1192, 1988)
+C Park and Miller's "Minimal Standard" random number generator (Comm.
+C ACM, 31, 1192, 1988) with Bays-Durham shuffle. Call with IDUM negative
+C to initialize. Be sure to preserve IDUM between calls.
+C Reference: Press and Farrar, Computers in Physics, Vol.4, No. 2, 
+C p.190, 1990.
 C
 C Arguments:
-C  ISEED  (in/out) : seed.
+C  IDUM  (in/out) : seed.
+C
+C History:
+C  1990 Apr 6 - TJP.
 C-----------------------------------------------------------------------
-      INTEGER   IM, IA, IQ, IR
-      PARAMETER (IM=2147483647)
-      PARAMETER (IA=16807, IQ=127773, IR= 2836)
-      REAL      AM
-      PARAMETER (AM=128.0/IM)
-      INTEGER   K
+      INTEGER IA, IM, IQ, IR, NTAB
+      REAL    AM, ATAB
+      PARAMETER (IA=16807, IM=2147483647, AM=1.0/IM)
+      PARAMETER (IQ=127773, IR=2836, NTAB=32, ATAB=NTAB-1)
 C-
-      K = ISEED/IQ
-      ISEED = IA*(ISEED-K*IQ) - IR*K
-      IF (ISEED.LT.0) ISEED = ISEED+IM
-      PGRAND = AM*(ISEED/128)
+      INTEGER J, K
+      REAL V(NTAB), Y
+      SAVE V, Y
+      DATA V/NTAB*0.0/, Y/0.5/
+C-
+      IF (IDUM.LE.0) THEN
+          IDUM = MAX(-IDUM,1)
+          DO 12 J=NTAB,1,-1
+              K = IDUM/IQ
+              IDUM = IA*(IDUM-K*IQ) - IR*K
+              IF (IDUM.LT.0) IDUM = IDUM+IM
+              V(J) = AM*IDUM
+   12     CONTINUE
+          Y = V(1)
+      END IF
+    1 CONTINUE
+          K = IDUM/IQ
+          IDUM = IA*(IDUM-K*IQ) - IR*K
+          IF (IDUM.LT.0) IDUM = IDUM+IM
+          J = 1 + INT(ATAB*Y)
+          Y = V(J)
+          RAN5 = Y
+          V(J) = AM*IDUM
+      IF (RAN5.EQ.0.0 .OR. RAN5.EQ.1.0) GOTO 1
       RETURN
       END

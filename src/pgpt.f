@@ -1,5 +1,4 @@
-C*PGPT -- draw several graph markers
-C%void cpgpt(int n, const float *xpts, const float *ypts, int symbol);
+C*PGPT -- draw one or more graph markers
 C+
       SUBROUTINE PGPT (N, XPTS, YPTS, SYMBOL)
       INTEGER N
@@ -35,18 +34,18 @@ C N is less than 1, nothing is drawn.
 C--
 C 27-Nov-1986
 C 17-Dec-1990 - add polygons [PAH].
-C 14-Mar-1997 - optimization: use GRDOT1 [TJP].
 C-----------------------------------------------------------------------
-      LOGICAL PGNOTO
+      INCLUDE  'pgplot.inc'
 C
       IF (N.LT.1) RETURN
-      IF (PGNOTO('PGPT')) RETURN
-C
+      IF (PGOPEN.EQ.0) RETURN
       CALL PGBBUF
+C
       IF (SYMBOL.GE.0 .OR. SYMBOL.LE.-3) THEN
           CALL GRMKER(SYMBOL,.FALSE.,N,XPTS,YPTS)
       ELSE
-          CALL GRDOT1(N,XPTS,YPTS)
+          CALL GRVCT0(3,.FALSE.,N,XPTS,YPTS)
       END IF
+      CALL GRMOVA(XPTS(N),YPTS(N))
       CALL PGEBUF
       END

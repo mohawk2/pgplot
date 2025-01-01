@@ -15,8 +15,6 @@ C \u       :      up one level (returns -1)
 C \d       :      down one level (returns -2)
 C \b       :      backspace (returns -3)
 C \A       :      (upper case only) Angstrom symbol, roman font
-C \x       :      multiplication sign
-C \.       :      centered dot
 C \\       :      \, returns the code for backslash
 C \gx      :      greek letter corresponding to roman letter x
 C \fn      :      switch to Normal font
@@ -40,9 +38,6 @@ C  3-May-1983 - [TJP].
 C 13-Jun-1984 - add \A [TJP].
 C 15-Dec-1988 - standardize [TJP].
 C 29-Nov-1990 - add \m escapes [TJP].
-C 27-Nov-1991 - add \x escape [TJP].
-C 27-Jul-1995 - extend for 256-character set [TJP]
-C  7-Nov-1995 - add \. escape [TJP].
 C-----------------------------------------------------------------------
       CHARACTER*8  FONTS
       CHARACTER*48 GREEK
@@ -64,7 +59,7 @@ C
       IF (J.GT.LENTXT) RETURN
       CH = ICHAR(TEXT(J:J))
       IF (CH.LT.0)   CH = 32
-      IF (CH.GT.303) CH = 32
+      IF (CH.GT.175) CH = 32
 C
 C Test for escape sequence (\)
 C
@@ -93,18 +88,6 @@ C
             ELSE IF (TEXT(J+1:J+1).EQ.'A') THEN
                 NSYMBS = NSYMBS + 1
                 SYMBOL(NSYMBS) = 2078
-                J = J+1
-                GOTO 100
-            ELSE IF (TEXT(J+1:J+1).EQ.'x') THEN
-                NSYMBS = NSYMBS + 1
-                SYMBOL(NSYMBS) = 2235
-                IF (IFONT.EQ.1) SYMBOL(NSYMBS) = 727
-                J = J+1
-                GOTO 100
-            ELSE IF (TEXT(J+1:J+1).EQ.'.') THEN
-                NSYMBS = NSYMBS + 1
-                SYMBOL(NSYMBS) = 2236
-                IF (IFONT.EQ.1) SYMBOL(NSYMBS) = 729
                 J = J+1
                 GOTO 100
             ELSE IF (TEXT(J+1:J+1).EQ.'(') THEN
@@ -148,7 +131,7 @@ C               -- end DO WHILE
      1               TEXT(J+1:J+1).EQ.'G') THEN
                 IG = INDEX(GREEK, TEXT(J+2:J+2))
                 NSYMBS = NSYMBS + 1
-                CALL GRSYMK(255+IG, IFONT, SYMBOL(NSYMBS))
+                CALL GRSYMK(127+IG, IFONT, SYMBOL(NSYMBS))
                 J = J+2
                 GOTO 100
             END IF

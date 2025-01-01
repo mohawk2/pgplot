@@ -1,0 +1,239 @@
+% PGPLOT manual, 9-Jun-1988, T. J. Pearson
+%------------------------------------------------------------------------
+% Copyright (c) 1983, 1984, 1985, 1986, 1987, 1988, 1989 by
+% California Institute of Technology.
+% All rights reserved.
+%------------------------------------------------------------------------
+
+\beginchapter{2}{SIMPLE USE OF PGPLOT}
+
+\beginsection Introduction
+
+This chapter introduces the basic subroutines needed to create a graph
+using PGPLOT, by way of a concrete example.  It does not describe all 
+the capabilities of PGPLOT; these are presented in later chapters. 
+
+A graph is composed of several elements: a box or axes delineating the
+graph and indicating the scale, labels if required, and one or more
+points or lines.  To draw a graph you need to call at least four of the
+PGPLOT subroutines: 
+
+\item{1.} |PGBEGIN|, to start up PGPLOT and specify the device you want
+to plot on; 
+
+\item{2.} |PGENV|, to define the range and scale of the graph, and draw
+labels, axes etc; 
+
+\item{3.} one or more calls to |PGPOINT| or |PGLINE| or both, or other
+drawing routines, to draw points or lines. 
+
+\item{4.} |PGEND| to close the plot.
+
+\noindent
+To draw more than graph on the same device, repeat steps (2) and (3). It
+is only necessary to call |PGBEGIN| and |PGEND| once each, unless you want
+to plot on more than one device.
+
+This chapter presents a very simple example program to demonstrate the
+above four steps.
+
+
+\beginsection An Example
+
+A typical application of PGPLOT is to draw a set of measured data points
+and a theoretical curve for comparison.  This chapter describes a
+simple program for drawing such a plot; in this case
+there are five data points and the theoretical curve is $y=x^2$.  Here 
+is the complete Fortran code for the~program:
+\begintt
+      PROGRAM SIMPLE
+      REAL XR(100), YR(100)
+      REAL XS(5), YS(5)
+      DATA XS/1.,2.,3.,4.,5./
+      DATA YS/1.,4.,9.,16.,25./
+      CALL PGBEGIN(0,'?',1,1)
+      CALL PGENV(0.,10.,0.,20.,0,1)
+      CALL PGLABEL('(x)', '(y)', 'A Simple Graph')
+      CALL PGPOINT(5,XS,YS,9)
+      DO 10 I=1,60
+          XR(I) = 0.1*I
+          YR(I) = XR(I)**2
+   10 CONTINUE
+      CALL PGLINE(60,XR,YR)
+      CALL PGEND
+      END
+\endtt
+The following sections of this chapter describe how the program works, 
+and the resulting plot is shown in Figure \the\chapnum.1.
+
+
+\beginsection Data Initialization
+
+We shall store the $x$ and $y$ coordinates of the five data points in
+arrays |XS| and |YS|. For convenience, this program  defines the values
+in |DATA| statements, but a more realistic program might read them from
+a file. Arrays |XR| and |YR| will be used later in the program for the 
+theoretical curve.
+\begintt
+      REAL XR(100), YR(100)
+      REAL XS(5), YS(5)
+      DATA XS/1.,2.,3.,4.,5./
+      DATA YS/1.,4.,9.,16.,25./
+\endtt
+
+\topinsert
+\insertplot{fig21.ps}{8.0}{10.5}{0.25}{0.25}{0.5}{1}
+\smallskip
+\centerline{{\bf Figure \the\chapnum.1}\quad Output from example 
+program.}
+\endinsert
+
+\beginsection Starting PGPLOT
+
+The first thing the program must do is to start up PGPLOT and select the
+graphics device for output:
+\begintt
+      CALL PGBEGIN(0,'?',1,1)
+\endtt
+Subroutine |PGBEGIN| has four arguments:
+\item{1.} The first argument is present for historical reasons. It
+should always be set to zero (0).
+\item{2.} The second argument is a character string which gives
+a ``device specification'' for
+the interactive graphics device or disk file for hardcopy graphics (see
+Chapter~1 and Appendix~D).  This program makes use of a special shorthand feature of
+PGPLOT, however: if this argument is set to |'?'|, the program will
+ask the user to supply the device specification at run-time. 
+\item{3,}  4. The last two arguments are described in \S3.2.
+Usually they are both set to 1, as in this example.
+
+
+\beginsection Defining Plot Scales and Drawing Axes
+
+Subroutine |PGENV| starts a new picture and defines the range of
+variables and the scale of the plot.  |PGENV| also draws and labels the
+enclosing box and the axes if requested. In this case, the $x$-axis of
+the plot will run from 0.0 to 10.0 and the $y$ axis will run from 0.0 to
+20.0. 
+\begintt
+      CALL PGENV(0.,10.,0.,20.,0,1)
+\endtt
+|PGENV| has six arguments:
+\item{1,} 2. the left and right limits for
+the $x$ (horizontal) axis (real numbers, not integers).
+\item{3,} 4. the bottom and top limits for
+the $y$ (vertical) axis (also real numbers).
+\item{5.} If this (integer) argument is 1, the scales
+of the $x$-axis and $y$-axis (in units per inch) will be equal; otherwise
+the axes will be scaled independently. In this case we have not 
+requested equal scales.
+\item{6.} This argument controls whether an enclosing box, tick-marks,
+numeric labels, and/or a grid will
+be put on the graph. The recommended value is 0. Some of the allowed
+values are: 
+\itemitem{$-2$:} no annotation;
+\itemitem{$-1$:} draw box only;
+\itemitem{0:} draw box, and label it with coordinate values around the 
+edge;
+\itemitem{1:} in addition to the box and labels, draw the two
+axes (lines $x=0$, $y=0$) with tick marks;
+\itemitem{2:} in addition to the box, labels, and axes, draw
+a grid at major increments of the $x$ and $y$ coordinates.
+
+
+\beginsection Labeling the Axes
+
+Subroutine |PGLABEL| may (optionally) be called after |PGENV| to write
+identifying labels on the $x$ and $y$ axes, and at the top of the
+picture:
+\begintt
+      CALL PGLABEL('(x)', '(y)', 'A Simple Graph')
+\endtt
+All three arguments are character variables or constants; any
+of them can be blank (\hbox{|' '|}). 
+\item{1.} A label for the $x$-axis (bottom of picture).
+\item{2.} A label for the $y$-axis (left-hand edge).
+\item{3.} A label for the plot (top of picture).
+
+
+\beginsection Drawing Graph Markers
+
+Subroutine |PGPOINT| draws {\it graph markers} at one or more
+points on the graph. Here we use it to mark the five data points:
+\begintt
+      CALL PGPOINT(5,XS,YS,9)
+\endtt
+If any of the specified points fall outside the window defined in the
+call to |PGENV|, they will not be plotted.  The arguments to |PGPOINT| 
+are:
+\item{1.} The number of points to be marked (integer).
+\item{2,} 3. The $x$ and $y$ coordinates of the points (real arrays).
+\item{4.} The number of the symbol to be used to mark the points. In 
+this example, we use symbol number 9 which is a circle with a central 
+dot. The available symbols are shown in Chapter 4.
+
+
+\beginsection Drawing Lines
+
+The following code draws the ``theoretical curve'' through the data
+points:
+\begintt
+      DO 10 I=1,60
+          XR(I) = 0.1*I
+          YR(I) = XR(I)**2
+   10 CONTINUE
+      CALL PGLINE(60,XR,YR)
+\endtt
+We compute the $x$ and $y$ coordinates at 60 points on the 
+theoretical curve, and use subroutine |PGLINE| to draw a curve through
+them. |PGLINE| joins up the points with straight-line segments,
+so it is necessary to compute coordinates at fairly close intervals in 
+order to get a smooth curve. Any lines which cross the boundary of the
+window defined in |PGENV| are ``clipped'' at the boundary, and lines
+which lie outside the boundary are not drawn.  The arguments of |PGLINE|
+are like those of |PGPOINT|:
+\item{1.} The number of points defining the line (integer).
+\item{2,} 3. The $x$ and $y$ coordinates of the points (real arrays).
+
+
+\beginsection Ending the Plot
+
+Subroutine |PGEND| must be called to complete the graph properly,
+otherwise some pending output may not get sent to the device:
+\begintt
+      CALL PGEND
+\endtt
+
+
+\beginsection Compiling and running the program
+
+To compile the program and link it with the PGPLOT library, see 
+Chapter~1. For example, under VMS:
+\begintt
+$ EDIT SIMPLE.FOR
+...
+$ FORTRAN SIMPLE
+$ LINK SIMPLE
+\endtt
+
+Under Unix:
+\begintt
+ed simple.f
+...
+fc -o simple simple.f -lpgplot
+\endtt
+
+When you run the program, it will ask you to supply the graphics device
+specification. Type in any allowed device specification, or type a
+question-mark (|?|) to get a list of the available device types. For
+example, if you are using a VT125 terminal, type |/VT|: the graph will
+appear on the terminal screen. 
+
+If you want a hard copy, you can run the program again, and specify a
+different device type, e.g., |SIMPLE.PLT/VERS| to make a disk file
+in Versatec format. To obtain the hard copy, print the file (but first
+check with your system manager what the correct print command is; it is
+possible to waste a lot of paper by using the wrong command or sending a 
+file to the wrong sort of printer!). 
+
+\endchapter

@@ -36,27 +36,21 @@ C 15-Dec-1988 - standardize [TJP].
 C 25-Jun-1989 - remove code that removes spaces from the device name 
 C               [TJP].
 C 26-Nov-1990 - [TJP].
-C  5-Jan-1993 - [TJP].
-C  1-Sep-1994 - store device capabilities in common for later use [TJP].
-C 17-Apr-1995 - zero-length string fix [TJP].
-C  6-Jun-1995 - explicitly initialize GRSTAT [TJP].
-C 29-Apr-1996 - moved initialization into GRINIT [TJP].
-C 12-Jul-1999 - fix bug [TJP].
 C-----------------------------------------------------------------------
       INCLUDE 'grpckg1.inc'
-      INTEGER   IER, FTYPE, NBUF, LCHR
-      INTEGER   GRPARS, GRTRIM
+      INTEGER   I, IER, FTYPE, GRPARS, NBUF, LCHR
       REAL      RBUF(6)
-      LOGICAL   APPEND
+      LOGICAL   FNTOPN, APPEND
       CHARACTER*128 FFILE,CHR
-
-C Faux usage of DUMMY to avoid warning on compile
-C      DUMMY = 0
-
+      SAVE    FNTOPN
+      DATA    FNTOPN / .TRUE. /
 C
-C Initialize GRPCKG; read font file (if necessary).
+C Initialize character-drawing routines (first call to GROPEN only).
 C
-      CALL GRINIT
+      IF (FNTOPN) THEN
+          CALL GRSY00
+          FNTOPN = .FALSE.
+      END IF
 C
 C Allocate an identifier.
 C
@@ -71,6 +65,7 @@ C
           END IF
       GOTO 10
       END IF
+      GRCIDE = IDENT
 C
 C Validate the device specification.
 C
@@ -85,6 +80,7 @@ C
       IF (FTYPE.EQ.0) FTYPE = TYPE
       IF (1.LE.FTYPE) THEN
           GRTYPE(IDENT) = FTYPE
+          GRGTYP = FTYPE
       ELSE
           CHR = 'Device type omitted or invalid: '
           CHR(33:) = FILE
@@ -96,10 +92,15 @@ C
 C Install the file name, or assign default.
 C
       IF (FFILE.EQ.' ') THEN
-          CALL GREXEC(GRTYPE(IDENT), 5,RBUF,NBUF,FFILE,LCHR)
+          CALL GREXEC(GRGTYP, 5,RBUF,NBUF,FFILE,LCHR)
       END IF
       GRFILE(IDENT) = FFILE
-      GRFNLN(IDENT) = MAX(1,GRTRIM(GRFILE(IDENT)))
+      I = LEN(GRFILE(IDENT))
+   20 IF (GRFILE(IDENT)(I:I).EQ.' ') THEN
+          I = I-1
+      GOTO 20
+      END IF
+      GRFNLN(IDENT) = I
 C
 C Open workstation.
 C
@@ -107,23 +108,13 @@ C
       IF (APPEND) RBUF(3)=1
       NBUF=3
       CALL GREXEC(GRGTYP, 9,RBUF,NBUF, GRFILE(IDENT),GRFNLN(IDENT))
-      GROPEN=RBUF(2)
-      IF (GROPEN.NE.1) THEN
-         IDENT = 0
-         RETURN
-      END IF
-      GRGTYP = GRTYPE(IDENT)
       GRUNIT(IDENT)=RBUF(1)
+      GROPEN=RBUF(2)
+      IF (GROPEN.NE.1) RETURN
       GRPLTD(IDENT) = .FALSE.
-      GRSTAT(IDENT) = 1
-      CALL GRSLCT(IDENT)
 C
 C Install the default plot parameters
 C
-C--- Inquire color-index range.
-      CALL GREXEC(GRGTYP, 2,RBUF,NBUF,CHR,LCHR)
-      GRMNCI(IDENT)=RBUF(5)
-      GRMXCI(IDENT)=RBUF(6)
 C--- Inquire resolution.
       CALL GREXEC(GRGTYP, 3,RBUF,NBUF,CHR,LCHR)
       GRPXPI(IDENT)=RBUF(1)
@@ -140,18 +131,14 @@ C--- Inquire default plot size.
       GRXMAX(IDENT) = RBUF(2)
       GRYMIN(IDENT) = RBUF(3)
       GRYMAX(IDENT) = RBUF(4)
-C--- Inquire device capabilities.
-      GRGCAP(IDENT) = 'NNNNNNNNNNN'
-      CALL GREXEC(GRGTYP, 4,RBUF,NBUF,CHR,LCHR)
-      IF (LCHR.GT.LEN(GRGCAP(IDENT))) LCHR = LEN(GRGCAP(IDENT))
-      GRGCAP(IDENT)(1:LCHR) = CHR(:LCHR)
 C--- Current pen position.
       GRXPRE(IDENT) = 0.0
       GRYPRE(IDENT) = 0.0
-C--- GRSETS has not been called.
-      GRADJU(IDENT) = .FALSE.
 C---Default scaling.
       CALL GRTRN0(0.0, 0.0, 1.0, 1.0)
+C
+      GRSTAT(IDENT) = 1
+      CALL GRSLCT(IDENT)
 C
 C Default attributes.
 C  text font (normal)
@@ -160,15 +147,13 @@ C  line-style (full)
 C  line-width (minimum)
 C  marker number (dot)
 C
-      GRCFNT(IDENT) = 1
-      GRCCOL(IDENT) = 1
-      GRSTYL(IDENT) = 1
-      GRWIDT(IDENT) = 1
-      GRCMRK(IDENT) = 1
-      GRDASH(IDENT) = .FALSE.
+      GRCFNT(GRCIDE) = 1
+      GRCCOL(GRCIDE) = 1
+      GRSTYL(GRCIDE) = 1
+      GRWIDT(GRCIDE) = 1
+      GRCMRK(GRCIDE) = 1
+      GRDASH(GRCIDE) = .FALSE.
 C
       GROPEN = 1
 C
       END
-
-

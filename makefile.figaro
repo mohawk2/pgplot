@@ -1,0 +1,1207 @@
+#+
+#  Name:
+#     makefile
+#
+#  Purpose:
+#     Make file for the PGPLOT subroutine library.
+#
+#  Invocation:
+#     This make file is not intended to be invoked directly (although
+#     this is possible) but instead to be invoked via the accompanying
+#     mk C-shell script.  The mk script sets up a number of environment
+#     variables required by the make file. Note that this is not the way
+#     PGPLOT is normally linked. This file and the associated 'mk' file 
+#     have been added to this version, released as part of Portable
+#     standalone Figaro, to provide a consistent style of makefile across
+#     the whole Figaro release.
+#
+#  Type of Module:
+#     Description file for the UNIX "make" command.
+#
+#  Description:
+#     This description file is used by the UNIX "make" command to build
+#     a library from the released source files.
+#
+#  Targets:
+#     make [help]
+#        This is the default target.  It outputs a message describing
+#        the mk C-shell script and listing the targets provided.
+#     make check
+#        Performs a simple check that all necessary source files are
+#        present.
+#     make build
+#        Compiles the source files and creates all files needed prior
+#        to installing the library for use.
+#     make install
+#        n/a.
+#     make deinstall
+#        n/a.
+#     make test
+#        n/a.
+#     make export
+#        Produces an export copy of the built library suitable for
+#        passing to another user.  A compressed tar file is created in
+#        the $EXPORT directory containing copies of the source files and
+#        built files for the library (the current directory is used by
+#        default if the environment variable EXPORT is not defined).  The
+#        library should normally be built before using this target.
+#        After unpacking the exported file on a similar machine, the
+#        recipient may simply install it for use.
+#     make export_source
+#        Produces an export copy of the source for the library suitable
+#        for passing to another user to build (possibly on on a different
+#        type of machine).  A compressed tar file is created in the
+#        $EXPORT directory containing copies of just the source files for
+#        the library (the current directory is used by default if the
+#        environment variable EXPORT is not defined).  After unpacking
+#        the exported file, the recipient must build the library before
+#        installing it for use.
+#     make clean
+#        Cleans up after building the library, removing all intermediate
+#        files created during the building process.
+#     make unbuild
+#        Reverses the building process, removing all built files and all
+#        intermediate files.
+#
+#  Prior Requirements:
+#     This makefile uses a number of macros to allow it to be configured
+#     for different computer systems and file organisations.  These
+#     macros all have defaults but, in general, specific values should be
+#     assigned to over-ride at least some of these.  As a minimum, the
+#     SYSTEM macro should be defined externally (e.g. by defining an
+#     environment variable and invoking "make" with the "-e" option) in
+#     order to identify the computer system in use.  The associated C-
+#     shell script "mk" is provided to make the necessary external
+#     definitions and to invoke "make" for currently supported SYSTEM
+#     values.
+#
+#  External Dependencies:
+#     none.
+#
+#  Authors:
+#     hme: Horst Meyerdierks (UoE, Starlink)
+#     KS:  Keith Shortridge (AAO)
+#     {enter_new_authors_here}
+#
+#  History:
+#     19 Oct 1992 (hme):
+#        Original version.
+#      3 Apr 1993 (KS):
+#        Modified for use with PGPLOT.
+#      8 Jul 1993 (KS):
+#        No longer compiles lib_get_vm.c. This had been a problem for the
+#        gcc compiler (the $ in the routine names) and a Fortran replacement
+#        has been provided in the misc library.
+#     18 Oct 1994 (SJM):
+#	 Add system check for grexec.f so it doesn't try to use svdriv with 
+#	 Solaris2
+#     24 Mar 1995 (KS):
+#        Added -w to xwdriv, gr_termio and grgetc rules to prevent Solaris
+#        warning messages - mainly about include file redefinitions.
+#     21 Jun 1995 (KS):
+#        Removed grivas.c from list of C routines - not needed and giving
+#        problems with include files under ULTRIX. Added -w to grlj00.c 
+#        rule to prevent annoying warning message.
+#     {note_further_changes_here}
+#-
+
+#-------------------------------------------------------------------------------
+
+#  Defaults
+#  ========
+
+#  These default macro values should be over-ridden as necessary to
+#  adapt to the local system setup (either use the mk C-shell script or
+#  use environment variables and invoke "make" with the "-e" option).
+
+#  Name of computer system.
+
+SYSTEM = unknown
+
+#  Directory in which the non-system-dependent source is to be found. The
+#  directory containing the system-dependent code should have been defined
+#  as SYS_DIR by 'mk'
+
+SRC_DIR = src
+
+#  Directory containing the font information.
+
+FONTDIR = fonts
+
+#  Directory into which the PGPLOT library will be placed.
+
+FIG_LIB = ../lib
+
+#  Directory into which exported tar files will be placed.  This
+#  defaults to the current directory.
+
+EXPORT = .
+
+#  Command for "randomizing" a library.  The default is appropriate
+#  for BSD based systems.
+
+RANLIB = ranlib
+
+#-------------------------------------------------------------------------------
+
+#  Define library contents
+#  =======================
+
+#  The name of the library or package
+#
+#  PKG_NAME should be set to the name of the package, eg. gks, ndf, etc.
+
+PKG_NAME = pgplot
+
+#  Files comprising the distributed (source only) system. This list
+#  should comprise all the files need to completely rebuild the library
+#  from source (including this make file and the mk script).
+
+SOURCE_FILES = $(F_ROUTINES) $(BLOCK_DATA) $(C_ROUTINES) \
+                 $(CX_ROUTINES) $(FX_ROUTINES) makefile mk
+
+#  Files which must be built from the distributed source before the
+#  library can be installed for use.  This list should comprise all the
+#  files that are required to use the library.
+
+BUILT_FILES = $(OBJECT_LIBRARY) grfont.dat
+
+#  External include files are files that are needed to build the library
+#  but are not part of the package.   This list should contain the names
+#  used in the source code, not the actual names of the files.
+
+EXTERNAL_INCLUDES = 
+
+#  Names of symbolic links used to access include files during
+#  compilation.
+#
+#  This list will comprise all the external include files and any other
+#  include files whose names do not exactly match the names used in the
+#  source code.
+
+INCLUDE_LINKS = $(EXTERNAL_INCLUDES)
+
+#  Fortran routines required for building the library.  This is just a
+#  list of all the Fortran source files. We don't differentiate here
+#  between the various classes of routines (system-dependent, etc).
+
+F_ROUTINES = \
+   cgdriv.f cpdriv.f grarea.f grbpic.f grchar.f grchr0.f \
+   grchsz.f grclip.f grclos.f grclpl.f grcurs.f grdat2.f grdot0.f \
+   grdtyp.f gresc.f gretxt.f grfa.f grfao.f grgray.f grgrgr.f \
+   grgrps.f grgtc0.f gribf1.f grim00.f grim02.f grim03.f grinqfont.f \
+   grinqli.f grinqpen.f gritoc.f grldev.f grlen.f grlin0.f grlin1.f \
+   grlin2.f grlin3.f grlina.f grlinr.f grmark.f grmcur.f grmker.f \
+   grmova.f grmovr.f gropen.f grpage.f grpars.f grpixl.f grps01.f \
+   grps02.f grpxpo.f grpxpx.f grpxre.f grqci.f \
+   grqcol.f grqdev.f grqdt.f grqfnt.f grqls.f grqlw.f grqm00.f \
+   grqpos.f grqtyp.f grre01.f grre02.f grre04.f grrec0.f grrect.f \
+   grsci.f grscr.f grsetc.f grsetfont.f grsetli.f grsetpen.f grsets.f \
+   grsfnt.f grsfs.f grsize.f grslct.f grsls.f grslw.f grsyds.f \
+   grsymk.f grsyxd.f grte01.f grterm.f grtext.f \
+   grtf01.f grtf02.f grtf03.f grtk00.f grtk01.f grtoup.f grtran.f \
+   grtrn0.f grtxy0.f grvct0.f grvect.f grvt02.f \
+   grvt03.f grxhls.f grxrgb.f grzs01.f grzs02.f grzs03.f \
+   grzs04.f hpdriv.f ivdriv.f ljdriv.f \
+   lldriv.f nudriv.f pgadvance.f pgask.f pgbbuf.f pgbeg.f pgbegin.f \
+   pgbin.f pgbox.f pgbox1.f pgcn01.f pgcnsc.f pgconb.f pgcons.f \
+   pgcont.f pgconx.f pgcp.f pgcurs.f pgcurse.f pgdraw.f pgebuf.f \
+   pgend.f pgenv.f pgerrb.f pgerrx.f pgerry.f pgetxt.f pgfunt.f \
+   pgfunx.f pgfuny.f pggray.f pghi2d.f pghis1.f pghist.f pgiden.f \
+   pglab.f pglabel.f pglcur.f pgldev.f pglen.f pgline.f pgmove.f \
+   pgmtext.f pgmtxt.f pgncur.f pgncurse.f pgnpl.f pgnumb.f pgolin.f \
+   pgpage.f pgpap.f pgpaper.f pgpixl.f pgpnts.f pgpoint.f pgpoly.f \
+   pgpt.f pgptext.f pgptxt.f pgqcf.f pgqch.f pgqci.f pgqcol.f \
+   pgqcr.f pgqfs.f pgqinf.f pgqls.f pgqlw.f pgqpos.f pgqvp.f \
+   pgqwin.f pgrect.f pgrnd.f pgrnge.f pgscf.f pgsch.f pgsci.f \
+   pgscr.f pgsetc.f pgsfs.f pgshls.f pgsize.f pgsls.f pgslw.f \
+   pgsvp.f pgswin.f pgtbox.f pgtext.f pgtime.f pgtlab.f pgtlb1.f \
+   pgupdt.f pgvport.f pgvsiz.f pgvsize.f pgvstand.f pgvstd.f pgvw.f \
+   pgwindow.f pgwnad.f psdriv.f qmdriv.f qpdriv.f redriv.f \
+   tkdriv.f vcdriv.f vpdriv.f \
+   vtdriv.f zsdriv.f \
+   grdate.f grexec.f grflun.f grgcom.f grgenv.f grglun.f grgmsg.f \
+   grlgtr.f grmsg.f groptx.f grprom.f grsy00.f grtrml.f grtter.f \
+   gruser.f grwarn.f
+
+#  Block data routines. 
+
+BLOCK_DATA =  
+
+#  C routines required for building the library.  This is just a \
+#  list of all the C source files.
+
+C_ROUTINES = \
+   figdisp_comm.c griv00.c grlj00.c \
+   svblock.c x2driv.c xwblock.c xwdriv.c \
+   gr_termio.c grgetc.c grtermio.c
+
+#  Note that 'mk' sets two additional variables: CX_ROUTINES lists those C
+#  routines found in the normal source directory but which are not included
+#  for all systems - ie it lists those to be included for this particular
+#  target. FX_ROUTINES does the same for .f routines.
+
+
+#  All the object modules to be built.
+
+O_ROUTINES = $(F_ROUTINES:.f=.o) $(C_ROUTINES:.c=.o) $(FX_ROUTINES:.f=.o) \
+                $(CX_ROUTINES:.c=.o)
+
+#  Library files to be built.
+
+OBJECT_LIBRARY = $(FIG_LIB)/lib$(PKG_NAME).a
+
+#-------------------------------------------------------------------------------
+
+#  Primary targets
+#  ===============
+
+#  These are the targets intended for normal external use.
+
+#  help: Display information about the mk script and the make targets
+
+help:
+	@ echo "                     -----   WARNING   -----"
+	@ echo \
+"This make file is designed to be run from the shell script mk, not" \
+"directly"
+	@ echo \
+"from the command line.  It requires some environment variables to be" \
+"set"
+	@ echo \
+"before it will run successfully.  These are defined in mk.  The list" \
+"of"
+	@ echo \
+"environment variables that affect the installation is given in the" \
+"make file."
+	@ echo
+	@ echo \
+"This makefile has the following targets:"
+	@ echo \
+"   help - Print out this message"
+	@ echo \
+"   check - Check that the files needed to build the package are" \
+" present"
+	@ echo \
+"   build - Build the package from source"
+	@ echo \
+"   export - Make a tar file for exporting the system"
+	@ echo \
+"   export_source - Make a tar file for exporting just the source"
+	@ echo \
+"   clean - Tidy up after a build"
+	@ echo \
+"   unbuild - Remove all the built files"
+	@ echo
+	@ echo \
+"To install this package, edit the file mk to set the environment"
+	@ echo \
+"variables to their appropriate values and type the commands:"
+	@ echo \
+"   mk build
+	@ echo \
+"   mk clean
+
+#  build: Build the system
+#  -----------------------
+#
+#  The default target. Compile the source and build the libraries, etc.,
+#  in the source directory.
+
+build: $(BUILT_FILES)
+	@ echo "   Build of $(PKG_NAME) library is complete"
+
+#  check: Check that the necessary source files are present
+#  --------------------------------------------------------
+
+check: $(SOURCE_FILES)
+	@ echo "   All essential source files are present"
+
+#  export: Export the installed system.
+#  -----------------------------------
+#
+#  Target for exporting the source plus all the built files.  Since
+#  the result will contain (machine-specific) binary files, these are
+#  placed in a compressed tar file called $PKG_NAME_$SYSTEM_tar.Z in
+#  the $EXPORT directory.  After unpacking this archive file, in order
+#  to re-install the built files the recipient must edit the mk script
+#  and then perform a "mk install" (or alternatively perform a
+#  "make install" after setting up the required environment variables).
+
+export: $(EXPORT)/$(PKG_NAME)_$(SYSTEM)_tar.Z
+$(EXPORT)/$(PKG_NAME)_$(SYSTEM)_tar.Z:
+	tar cvhf $(EXPORT)/$(PKG_NAME)_$(SYSTEM)_tar \
+                                      $(SOURCE_FILES) $(BUILT_FILES)
+	compress $(EXPORT)/$(PKG_NAME)_$(SYSTEM)_tar
+	@ echo \
+	"   Export copy of the built $(PKG_NAME) library has been placed "
+	@ echo \
+	"   in the compressed tar file $(EXPORT)/$(PKG_NAME)_$(SYSTEM)_tar.Z"
+
+#  export_source: Export the source for the library
+#  ------------------------------------------------
+#
+#  Target for exporting the library source to a new user.  The original
+#  source files are inserted into a compressed tar file called
+#  $PKG_NAME_tar.Z in the $EXPORT directory.  The recipient must unpack
+#  this and use the mk script to build the system.
+
+export_source: $(EXPORT)/$(PKG_NAME)_tar.Z
+$(EXPORT)/$(PKG_NAME)_tar.Z:
+	tar cvhf $(EXPORT)/$(PKG_NAME)_tar $(SOURCE_FILES)
+	compress $(EXPORT)/$(PKG_NAME)_tar
+	@ echo \
+	"   Export copy of the $(PKG_NAME) library source files has been"
+	@ echo \
+	"   placed in the compressed tar file $(EXPORT)/$(PKG_NAME)_tar.Z"
+
+#  clean: Clean up the source directory
+#  ------------------------------------
+#
+#  Remove all intermediate files.  Do not remove built files.
+
+clean:
+	@- rm $(INCLUDE_LINKS) >/dev/null
+	@- rm $(O_ROUTINES) >/dev/null
+	@- rm pgpack >/dev/null
+	@ echo "   Intermediate files removed"
+
+#  unbuild: Reverse the build process
+#  ---------------------------------
+#
+#  Remove all intermediate files and all built files.
+
+unbuild: clean
+	@- rm $(BUILT_FILES) >/dev/null
+	@- rm $(F_ROUTINES:.f=) \
+              $(C_ROUTINES:.c=) \
+              $(FX_ROUTINES:.f=) \
+              $(CX_ROUTINES:.c=) >/dev/null
+	@ echo "   Built files removed"
+
+#-------------------------------------------------------------------------------
+
+#  Secondary targets, etc
+#  ======================
+
+#  These targets and rules are generally for internal rather than
+#  external use.
+
+#  Rules for creating the necessary sub-directories.
+
+$(FIG_LIB):
+	mkdir $@
+
+#  Rule for building the object library.
+
+$(OBJECT_LIBRARY) : $(FIG_LIB) $(F_ROUTINES:.f=) $(C_ROUTINES:.c=) \
+                       $(FX_ROUTINES:.f=) $(CX_ROUTINES:.c=)
+	$(RANLIB) $@
+
+#  Rules to set up links to locate include files required for compilation.
+#  Add additional lines for all the soft links that need to be created.
+
+SYM_LINK = -ln -s $? $@
+
+#  Dependencies on include files (and links to include files).
+
+# The following PG routines reference `pgplot.inc'
+
+grgray grgrgr grgrps \
+pgask  pgbbuf pgbeg  pgbin  pgbox  pgcont pgcp \
+pgcurs pgebuf pgend  pgerrb pgerrx pgerry pggray pghi2d \
+pghist pgiden pglcur pglen  pgmtxt pgncur pgolin \
+pgpage pgpap  pgpixl pgpoly pgpt   pgptxt pgqch pgqfs \
+pgqinf pgqvp  pgqwin pgrect pgsch  pgsfs  pgsvp \
+pgswin pgupdt pgvsiz pgvstd pgvw   pgwnad : $(SRC_DIR)/pgplot.inc
+
+# The following GR routines reference `grpckg.inc'
+
+grarea grbpic grchr0 grchsz grclos grclpl grcurs \
+grdot0 grdtyp gresc  gretxt grfa   grgray grgrgr \
+grldev grlen  grlin0 grlin1 grlin2 grlin3 \
+grlina grlinr grmker grmova grmovr gropen grpage \
+grpixl grpxpo grpxpx \
+grqci  grqcol grqdev grqdt  grqfnt grqls  \
+grqlw  grqpos grqtyp grrec0 grrect \
+grsci  grscr  grsetc grsetli grsets grsfnt grsfs grsize \
+grslct grsls  grslw  grterm grtext grtrn0 grtxy0 \
+grvct0 : $(SRC_DIR)/grpckg1.inc
+
+griv00 : $(SRC_DIR)/gadef.h $(SRC_DIR)/gmdef.h $(SRC_DIR)/gphdef.h
+grtv00 : $(SRC_DIR)/imdef.h
+
+x2driv figdisp_comm : $(SRC_DIR)/commands.h
+
+#-----------------------------------------------------------------------
+# Target "grfont.dat" is the binary font file.
+# This is created from grfont.txt with the "pgpack" program.
+#    (a) compile the `pgpack' program; then
+#    (b) run `pgpack' to convert the ASCII version of the font file
+#    (grfont.txt) into the binary version (grfont.dat). When executed,
+#    `pgpack' should report:
+#	Characters defined:   996
+#	Array cells used:   26732
+#-----------------------------------------------------------------------
+
+pgpack: $(FONTDIR)/pgpack.f
+	$(FC) $(FFLAGS) -o pgpack $(FONTDIR)/pgpack.f
+
+grfont.dat: $(FONTDIR)/grfont.txt pgpack
+	rm -f grfont.dat
+	./pgpack <$(FONTDIR)/grfont.txt
+
+#  Explicit rules for making the different object modules.
+
+cgdriv : $(SRC_DIR)/cgdriv.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+cpdriv : $(SRC_DIR)/cpdriv.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grarea : $(SRC_DIR)/grarea.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grbpic : $(SRC_DIR)/grbpic.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grchar : $(SRC_DIR)/grchar.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grchr0 : $(SRC_DIR)/grchr0.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grchsz : $(SRC_DIR)/grchsz.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grclip : $(SRC_DIR)/grclip.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grclos : $(SRC_DIR)/grclos.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grclpl : $(SRC_DIR)/grclpl.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grcurs : $(SRC_DIR)/grcurs.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grdat2 : $(SRC_DIR)/grdat2.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grdot0 : $(SRC_DIR)/grdot0.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grdtyp : $(SRC_DIR)/grdtyp.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+gresc : $(SRC_DIR)/gresc.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+gretxt : $(SRC_DIR)/gretxt.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grfa : $(SRC_DIR)/grfa.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grfao : $(SRC_DIR)/grfao.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grgray : $(SRC_DIR)/grgray.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grgrgr : $(SRC_DIR)/grgrgr.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grgrps : $(SRC_DIR)/grgrps.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grgtc0 : $(SRC_DIR)/grgtc0.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+gribf1 : $(SRC_DIR)/gribf1.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grim00 : $(SRC_DIR)/grim00.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grim02 : $(SRC_DIR)/grim02.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grim03 : $(SRC_DIR)/grim03.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grinqfont : $(SRC_DIR)/grinqfont.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grinqli : $(SRC_DIR)/grinqli.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grinqpen : $(SRC_DIR)/grinqpen.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+gritoc : $(SRC_DIR)/gritoc.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grldev : $(SRC_DIR)/grldev.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grlen : $(SRC_DIR)/grlen.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grlin0 : $(SRC_DIR)/grlin0.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grlin1 : $(SRC_DIR)/grlin1.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grlin2 : $(SRC_DIR)/grlin2.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grlin3 : $(SRC_DIR)/grlin3.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grlina : $(SRC_DIR)/grlina.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grlinr : $(SRC_DIR)/grlinr.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grmark : $(SRC_DIR)/grmark.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grmcur : $(SRC_DIR)/grmcur.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grmker : $(SRC_DIR)/grmker.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grmova : $(SRC_DIR)/grmova.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grmovr : $(SRC_DIR)/grmovr.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+gropen : $(SRC_DIR)/gropen.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grpage : $(SRC_DIR)/grpage.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grpars : $(SRC_DIR)/grpars.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grpixl : $(SRC_DIR)/grpixl.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grps01 : $(SRC_DIR)/grps01.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grps02 : $(SRC_DIR)/grps02.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grpxpo : $(SRC_DIR)/grpxpo.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grpxpx : $(SRC_DIR)/grpxpx.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grpxre : $(SRC_DIR)/grpxre.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grqci : $(SRC_DIR)/grqci.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grqcol : $(SRC_DIR)/grqcol.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grqdev : $(SRC_DIR)/grqdev.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grqdt : $(SRC_DIR)/grqdt.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grqfnt : $(SRC_DIR)/grqfnt.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grqls : $(SRC_DIR)/grqls.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grqlw : $(SRC_DIR)/grqlw.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grqm00 : $(SRC_DIR)/grqm00.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grqpos : $(SRC_DIR)/grqpos.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grqtyp : $(SRC_DIR)/grqtyp.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grre01 : $(SRC_DIR)/grre01.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grre02 : $(SRC_DIR)/grre02.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grre04 : $(SRC_DIR)/grre04.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grrec0 : $(SRC_DIR)/grrec0.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grrect : $(SRC_DIR)/grrect.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grsci : $(SRC_DIR)/grsci.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grscr : $(SRC_DIR)/grscr.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grsetc : $(SRC_DIR)/grsetc.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grsetfont : $(SRC_DIR)/grsetfont.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grsetli : $(SRC_DIR)/grsetli.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grsetpen : $(SRC_DIR)/grsetpen.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grsets : $(SRC_DIR)/grsets.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grsfnt : $(SRC_DIR)/grsfnt.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grsfs : $(SRC_DIR)/grsfs.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grsize : $(SRC_DIR)/grsize.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grslct : $(SRC_DIR)/grslct.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grsls : $(SRC_DIR)/grsls.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grslw : $(SRC_DIR)/grslw.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grsyds : $(SRC_DIR)/grsyds.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grsymk : $(SRC_DIR)/grsymk.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grsyxd : $(SRC_DIR)/grsyxd.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grte01 : $(SRC_DIR)/grte01.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grterm : $(SRC_DIR)/grterm.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grtext : $(SRC_DIR)/grtext.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grtf01 : $(SRC_DIR)/grtf01.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grtf02 : $(SRC_DIR)/grtf02.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grtf03 : $(SRC_DIR)/grtf03.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grtk00 : $(SRC_DIR)/grtk00.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grtk01 : $(SRC_DIR)/grtk01.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grtoup : $(SRC_DIR)/grtoup.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grtran : $(SRC_DIR)/grtran.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grtrn0 : $(SRC_DIR)/grtrn0.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grtxy0 : $(SRC_DIR)/grtxy0.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grvct0 : $(SRC_DIR)/grvct0.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grvect : $(SRC_DIR)/grvect.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grvt02 : $(SRC_DIR)/grvt02.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grvt03 : $(SRC_DIR)/grvt03.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grxhls : $(SRC_DIR)/grxhls.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grxrgb : $(SRC_DIR)/grxrgb.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grzs01 : $(SRC_DIR)/grzs01.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grzs02 : $(SRC_DIR)/grzs02.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grzs03 : $(SRC_DIR)/grzs03.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grzs04 : $(SRC_DIR)/grzs04.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+hpdriv : $(SRC_DIR)/hpdriv.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+ivdriv : $(SRC_DIR)/ivdriv.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+ljdriv : $(SRC_DIR)/ljdriv.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+lldriv : $(SRC_DIR)/lldriv.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+nudriv : $(SRC_DIR)/nudriv.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgadvance : $(SRC_DIR)/pgadvance.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgask : $(SRC_DIR)/pgask.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgbbuf : $(SRC_DIR)/pgbbuf.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgbeg : $(SRC_DIR)/pgbeg.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgbegin : $(SRC_DIR)/pgbegin.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgbin : $(SRC_DIR)/pgbin.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgbox : $(SRC_DIR)/pgbox.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgbox1 : $(SRC_DIR)/pgbox1.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgcn01 : $(SRC_DIR)/pgcn01.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgcnsc : $(SRC_DIR)/pgcnsc.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgconb : $(SRC_DIR)/pgconb.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgcons : $(SRC_DIR)/pgcons.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgcont : $(SRC_DIR)/pgcont.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgconx : $(SRC_DIR)/pgconx.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgcp : $(SRC_DIR)/pgcp.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgcurs : $(SRC_DIR)/pgcurs.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgcurse : $(SRC_DIR)/pgcurse.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgdraw : $(SRC_DIR)/pgdraw.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgebuf : $(SRC_DIR)/pgebuf.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgend : $(SRC_DIR)/pgend.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgenv : $(SRC_DIR)/pgenv.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgerrb : $(SRC_DIR)/pgerrb.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgerrx : $(SRC_DIR)/pgerrx.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgerry : $(SRC_DIR)/pgerry.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgetxt : $(SRC_DIR)/pgetxt.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgfunt : $(SRC_DIR)/pgfunt.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgfunx : $(SRC_DIR)/pgfunx.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgfuny : $(SRC_DIR)/pgfuny.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pggray : $(SRC_DIR)/pggray.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pghi2d : $(SRC_DIR)/pghi2d.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pghis1 : $(SRC_DIR)/pghis1.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pghist : $(SRC_DIR)/pghist.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgiden : $(SRC_DIR)/pgiden.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pglab : $(SRC_DIR)/pglab.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pglabel : $(SRC_DIR)/pglabel.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pglcur : $(SRC_DIR)/pglcur.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgldev : $(SRC_DIR)/pgldev.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pglen : $(SRC_DIR)/pglen.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgline : $(SRC_DIR)/pgline.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgmove : $(SRC_DIR)/pgmove.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgmtext : $(SRC_DIR)/pgmtext.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgmtxt : $(SRC_DIR)/pgmtxt.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgncur : $(SRC_DIR)/pgncur.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgncurse : $(SRC_DIR)/pgncurse.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgnpl : $(SRC_DIR)/pgnpl.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgnumb : $(SRC_DIR)/pgnumb.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgolin : $(SRC_DIR)/pgolin.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgpage : $(SRC_DIR)/pgpage.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgpap : $(SRC_DIR)/pgpap.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgpaper : $(SRC_DIR)/pgpaper.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgpixl : $(SRC_DIR)/pgpixl.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgpnts : $(SRC_DIR)/pgpnts.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgpoint : $(SRC_DIR)/pgpoint.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgpoly : $(SRC_DIR)/pgpoly.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgpt : $(SRC_DIR)/pgpt.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgptext : $(SRC_DIR)/pgptext.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgptxt : $(SRC_DIR)/pgptxt.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgqcf : $(SRC_DIR)/pgqcf.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgqch : $(SRC_DIR)/pgqch.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgqci : $(SRC_DIR)/pgqci.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgqcol : $(SRC_DIR)/pgqcol.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgqcr : $(SRC_DIR)/pgqcr.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgqfs : $(SRC_DIR)/pgqfs.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgqinf : $(SRC_DIR)/pgqinf.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgqls : $(SRC_DIR)/pgqls.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgqlw : $(SRC_DIR)/pgqlw.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgqpos : $(SRC_DIR)/pgqpos.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgqvp : $(SRC_DIR)/pgqvp.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgqwin : $(SRC_DIR)/pgqwin.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgrect : $(SRC_DIR)/pgrect.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgrnd : $(SRC_DIR)/pgrnd.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgrnge : $(SRC_DIR)/pgrnge.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgscf : $(SRC_DIR)/pgscf.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgsch : $(SRC_DIR)/pgsch.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgsci : $(SRC_DIR)/pgsci.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgscr : $(SRC_DIR)/pgscr.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgsetc : $(SRC_DIR)/pgsetc.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgsfs : $(SRC_DIR)/pgsfs.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgshls : $(SRC_DIR)/pgshls.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgsize : $(SRC_DIR)/pgsize.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgsls : $(SRC_DIR)/pgsls.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgslw : $(SRC_DIR)/pgslw.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgsvp : $(SRC_DIR)/pgsvp.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgswin : $(SRC_DIR)/pgswin.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgtbox : $(SRC_DIR)/pgtbox.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgtext : $(SRC_DIR)/pgtext.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgtime : $(SRC_DIR)/pgtime.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgtlab : $(SRC_DIR)/pgtlab.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgtlb1 : $(SRC_DIR)/pgtlb1.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgupdt : $(SRC_DIR)/pgupdt.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgvport : $(SRC_DIR)/pgvport.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgvsiz : $(SRC_DIR)/pgvsiz.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgvsize : $(SRC_DIR)/pgvsize.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgvstand : $(SRC_DIR)/pgvstand.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgvstd : $(SRC_DIR)/pgvstd.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgvw : $(SRC_DIR)/pgvw.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgwindow : $(SRC_DIR)/pgwindow.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+pgwnad : $(SRC_DIR)/pgwnad.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+psdriv : $(SRC_DIR)/psdriv.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+qmdriv : $(SRC_DIR)/qmdriv.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+qpdriv : $(SRC_DIR)/qpdriv.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+redriv : $(SRC_DIR)/redriv.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+tkdriv : $(SRC_DIR)/tkdriv.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+vcdriv : $(SRC_DIR)/vcdriv.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+vedriv : $(SRC_DIR)/vedriv.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+vpdriv : $(SRC_DIR)/vpdriv.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+vtdriv : $(SRC_DIR)/vtdriv.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+zsdriv : $(SRC_DIR)/zsdriv.f
+	$(FC) -c $(FFLAGS) $(SRC_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+
+grdate : $(SYS_DIR)/grdate.f
+	$(FC) -c $(FFLAGS) $(SYS_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grexec : $(SYS_DIR)/grexec_$(SYSTEM).f
+	$(FC) -c $(FFLAGS) $(SYS_DIR)/$@_$(SYSTEM).f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grflun : $(SYS_DIR)/grflun.f
+	$(FC) -c $(FFLAGS) $(SYS_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grgcom : $(SYS_DIR)/grgcom.f
+	$(FC) -c $(FFLAGS) $(SYS_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grgenv : $(SYS_DIR)/grgenv.f
+	$(FC) -c $(FFLAGS) $(SYS_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grglun : $(SYS_DIR)/grglun.f
+	$(FC) -c $(FFLAGS) $(SYS_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grgmsg : $(SYS_DIR)/grgmsg.f
+	$(FC) -c $(FFLAGS) $(SYS_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grlgtr : $(SYS_DIR)/grlgtr.f
+	$(FC) -c $(FFLAGS) $(SYS_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grmsg : $(SYS_DIR)/grmsg.f
+	$(FC) -c $(FFLAGS) $(SYS_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+groptx : $(SYS_DIR)/groptx.f
+	$(FC) -c $(FFLAGS) $(SYS_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grprom : $(SYS_DIR)/grprom.f
+	$(FC) -c $(FFLAGS) $(SYS_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grsy00 : $(SYS_DIR)/grsy00.f
+	$(FC) -c $(FFLAGS) $(SYS_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grtrml : $(SYS_DIR)/grtrml.f
+	$(FC) -c $(FFLAGS) $(SYS_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grtter : $(SYS_DIR)/grtter.f
+	$(FC) -c $(FFLAGS) $(SYS_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+gruser : $(SYS_DIR)/gruser.f
+	$(FC) -c $(FFLAGS) $(SYS_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grwarn : $(SYS_DIR)/grwarn.f
+	$(FC) -c $(FFLAGS) $(SYS_DIR)/$@.f -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+
+
+cfopenvws : $(SRC_DIR)/cfopenvws.c
+	$(CC) -c $(CFLAGS) $(SRC_DIR)/$@.c -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+figdisp_comm : $(SRC_DIR)/figdisp_comm.c
+	$(CC) -c $(CFLAGS) $(SRC_DIR)/$@.c -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+griv00 : $(SRC_DIR)/griv00.c
+	$(CC) -c $(CFLAGS) $(SRC_DIR)/$@.c -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grivas : $(SRC_DIR)/grivas.c
+	$(CC) -c $(CFLAGS) $(SRC_DIR)/$@.c -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grlj00 : $(SRC_DIR)/grlj00.c
+	$(CC) -c -w $(CFLAGS) $(SRC_DIR)/$@.c -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grtv00 : $(SRC_DIR)/grtv00.c
+	$(CC) -c $(CFLAGS) $(SRC_DIR)/$@.c -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+svblock : $(SRC_DIR)/svblock.c
+	$(CC) -c $(CFLAGS) $(SRC_DIR)/$@.c -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+svdriv : $(SRC_DIR)/svdriv.c
+	$(CC) -c $(CFLAGS) $(SRC_DIR)/$@.c -o $@.o; \
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+x2driv : $(SRC_DIR)/x2driv.c
+	$(CC) -c $(CFLAGS) $(SRC_DIR)/$@.c -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+xwblock : $(SRC_DIR)/xwblock.c
+	$(CC) -c $(CFLAGS) $(SRC_DIR)/$@.c -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+xwdriv : $(SRC_DIR)/xwdriv.c
+	$(CC) -c -w $(CFLAGS) $(SRC_DIR)/$@.c -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+xxdriv : $(SRC_DIR)/xxdriv.c
+	$(CC) -c $(CFLAGS) $(SRC_DIR)/$@.c -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+
+
+gr_termio : $(SYS_DIR)/gr_termio.c
+	$(CC) -c -w $(CFLAGS) $(SYS_DIR)/$@.c -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grgetc : $(SYS_DIR)/grgetc.c
+	$(CC) -c -w $(CFLAGS) $(SYS_DIR)/$@.c -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@
+grtermio : $(SYS_DIR)/grtermio.c
+	$(CC) -c $(CFLAGS) $(SYS_DIR)/$@.c -o $@.o
+	ar r $(OBJECT_LIBRARY) $@.o; touch $@

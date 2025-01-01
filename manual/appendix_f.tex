@@ -1,0 +1,244 @@
+% PGPLOT manual,  29-JUN-1989, T. J. Pearson
+%------------------------------------------------------------------------
+% Copyright (c) 1983, 1984, 1985, 1986, 1987, 1988, 1989 by
+% California Institute of Technology.
+% All rights reserved.
+%------------------------------------------------------------------------
+
+\beginappendix{F}{CALLING PGPLOT FROM A C PROGRAM}
+
+\beginsection Introduction
+
+It is possible to call PGPLOT routines from a program written in C.
+The methods for calling a Fortran subroutine from a C program are
+operating-system dependent, and indeed it is impossible in some
+systems. The details are rather complicated, and if there is a 
+demand, we could create a C-callable library that hides these details 
+from the user. Examples of the same program written in Fortran-77, 
+VAX/VMS C, and Convex UNIX C are included below.
+
+\beginsection VMS
+
+The following is a prescription for calling PGPLOT subroutines from
+a C program on a VAX running VMS.  
+\smallskip
+\item{1.}All arguments (except arrays and character strings) are passed by
+	address using the |&| operator. As you cannot take the address of a 
+	constant, constants must be passed in dummy variables.
+\item{2.} |INTEGER| arguments correspond to C type |long int| or |int|.
+\item{3.} |REAL| arguments correspond to C type |float|.
+\item{4.} |CHARACTER| arguments correspond to C character strings, but they must
+	be passed by descriptor. The VAX-C manual explains how to do this using
+	the |$DESCRIPTOR| macro for fixed strings; it is a little more complicated
+	for variable strings. 
+\item{5.} Note that the backslash character (|\|) must be escaped (|\\|).
+
+\beginsection Convex UNIX
+
+The following is a prescription for calling PGPLOT subroutines from
+a C program on the Convex. It may also work on other Berkeley UNIX 
+systems.
+\smallskip
+\item{1.} The main program must be called |MAIN__()| instead of |main()|. 
+	I don't know why this is so, but it must have to do with the
+	initialization of the Fortran library.
+\item{2.} Use the C compiler to compile the program, but use |fc| to load it. 
+	This ensures that the Fortran system libraries are scanned.
+\item{3.} All PGPLOT subroutine names must be typed in lower case, with an 
+underscore appended, e.g., |pgbegin_()|, |pgend_()|.
+\item{4.} All arguments (except arrays and character strings) are passed by
+address using the |&| operator. As you cannot take the address of a 
+constant, constants must be passed in dummy variables.
+\item{5.} |INTEGER| arguments correspond to C type |long int|.
+\item{6.} |REAL| arguments correspond to C type |float|.
+\item{7.} For |CHARACTER| arguments, pass a pointer to a C character string,
+and add the length of the string (number of characters) as an extra
+|long int| argument at the end of the argument list.
+\item{8.} Note that the backslash character (|\|) must be escaped (|\\|).
+\smallskip
+Example:
+\begintt
+cc -c example1.c
+fc -o example1 example1.o -lpgplot
+example1
+\endtt
+
+\pageinsert
+\eightpoint
+\begintt
+C ---------------------------------------------------------------------
+C Demonstration program for PGPLOT (Fortran version).
+C ---------------------------------------------------------------------
+C
+      PROGRAM PGDEMO
+C
+      INTEGER I
+      REAL XS(5),YS(5), XR(100), YR(100)
+      DATA XS/1.,2.,3.,4.,5./
+      DATA YS/1.,4.,9.,16.,25./
+C
+C Call PGBEGIN to initiate PGPLOT and open the output device; PGBEGIN
+C will prompt the user to supply the device name and type.
+C
+      CALL PGBEGIN(0,'?',1,1)
+C
+C Call PGENV to specify the range of the axes and to draw a box, and
+C PGLABEL to label it. The x-axis runs from 0 to 10, and y from 0 to 20.
+C
+      CALL PGENV(0.,10.,0.,20.,0,1)
+      CALL PGLABEL('(x)', '(y)', 'PGPLOT Example 1 - y = x\u2')
+C
+C Mark five points (coordinates in arrays XS and YS), using symbol
+C number 9.
+C
+      CALL PGPOINT(5,XS,YS,9)
+C
+C Compute the function at 60 points, and use PGLINE to draw it.
+C
+      DO 10 I=1,60
+          XR(I) = 0.1*I
+          YR(I) = XR(I)**2
+   10 CONTINUE
+      CALL PGLINE(60,XR,YR)
+C
+C Finally, call PGEND to terminate things properly.
+C
+      CALL PGEND
+C
+      END
+\endtt
+\vfill
+\endinsert
+
+\pageinsert
+\eightpoint
+\begintt
+/* ---------------------------------------------------------------------
+ * Demonstration program for PGPLOT called from C [VMS].
+ *----------------------------------------------------------------------
+ */
+
+#include descrip
+
+main()
+{
+    int i;
+    static float xs[] = {1.0, 2.0, 3.0, 4.0, 5.0 };
+    static float ys[] = {1.0, 4.0, 9.0, 16.0, 25.0 };
+    float xr[100], yr[100];
+    long dummy, nx, ny;
+    float xmin, xmax, ymin, ymax;
+    long just, axis, n, symbol;
+    $DESCRIPTOR(device, "?");
+    $DESCRIPTOR(xlabel, "(x)");
+    $DESCRIPTOR(ylabel, "(y)");
+    $DESCRIPTOR(toplabel, "PGPLOT Example 1 - y = x\\u2");
+/*
+ * Call PGBEGIN to initiate PGPLOT and open the output device; PGBEGIN
+ * will prompt the user to supply the device name and type.
+ */
+    dummy = 0;
+    nx = 1;
+    ny = 1;
+    pgbegin(&dummy, &device, &nx, &ny);
+/*
+ * Call PGENV to specify the range of the axes and to draw a box, and
+ * PGLABEL to label it. The x-axis runs from 0 to 10, and y from 0 to 20.
+ */
+    xmin = 0.0;
+    xmax = 10.0;
+    ymin = 0.0;
+    ymax = 20.0;
+    just = 0;
+    axis = 1;
+    pgenv(&xmin, &xmax, &ymin, &ymax, &just, &axis);
+    pglabel(&xlabel, &ylabel, &toplabel);
+/*
+ * Mark five points (coordinates in arrays XS and YS), using symbol
+ * number 9.
+ */
+    n = 5;
+    symbol = 9;
+    pgpoint(&n, xs, ys, &symbol);
+/*
+ * Compute the function at 60 points, and use PGLINE to draw it.
+ */
+    n = 60;
+    for (i=0; i<n; i++)
+        {
+        xr[i] = 0.1*i;
+        yr[i] = xr[i]*xr[i];
+        }
+    pgline(&n, xr, yr);
+/*
+ * Finally, call PGEND to terminate things properly.
+ */
+    pgend();
+}
+\endtt
+\vfill
+\endinsert
+
+\pageinsert
+\eightpoint
+\begintt
+/* ---------------------------------------------------------------------
+ * Demonstration program for PGPLOT called from C [Convex UNIX].
+ *----------------------------------------------------------------------
+ */
+
+MAIN__()
+{
+    int i;
+    static float xs[] = {1.0, 2.0, 3.0, 4.0, 5.0 };
+    static float ys[] = {1.0, 4.0, 9.0, 16.0, 25.0 };
+    float xr[100], yr[100];
+    long dummy, nx, ny, just, axis, n, symbol;
+    float xmin, xmax, ymin, ymax;
+/*
+ * Call PGBEGIN to initiate PGPLOT and open the output device; PGBEGIN
+ * will prompt the user to supply the device name and type.
+ */
+    dummy = 0;
+    nx = 1;
+    ny = 1;
+    pgbegin_(&dummy, "?", &nx, &ny, 1L);
+/*
+ * Call PGENV to specify the range of the axes and to draw a box, and
+ * PGLABEL to label it. The x-axis runs from 0 to 10, and y from 0 to 20.
+ */
+    xmin = 0.0;
+    xmax = 10.0;
+    ymin = 0.0;
+    ymax = 20.0;
+    just = 0;
+    axis = 1;
+    pgenv_(&xmin, &xmax, &ymin, &ymax, &just, &axis);
+    pglabel_("(x)", "(y)", "PGPLOT Example 1 - y = x\\u2", 3L, 3L, 27L);
+/*
+ * Mark five points (coordinates in arrays XS and YS), using symbol
+ * number 9.
+ */
+    n = 5;
+    symbol = 9;
+    pgpoint_(&n, xs, ys, &symbol);
+/*
+ * Compute the function at 60 points, and use PGLINE to draw it.
+ */
+    n = 60;
+    for (i=0; i<n; i++)
+        {
+        xr[i] = 0.1*i;
+        yr[i] = xr[i]*xr[i];
+        }
+    pgline_(&n, xr, yr);
+/*
+ * Finally, call PGEND to terminate things properly.
+ */
+    pgend_();
+}
+\endtt
+\vfill
+\endinsert
+
+\endchapter

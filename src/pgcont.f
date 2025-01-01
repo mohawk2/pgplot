@@ -1,6 +1,4 @@
 C*PGCONT -- contour map of a 2D data array (contour-following)
-C%void cpgcont(const float *a, int idim, int jdim, int i1, int i2, \
-C% int j1, int j2, const float *c, int nc, const float *tr);
 C+
       SUBROUTINE PGCONT (A, IDIM, JDIM, I1, I2, J1, J2, C, NC, TR)
       INTEGER IDIM, JDIM, I1, J1, I2, J2, NC
@@ -47,10 +45,7 @@ C       [TJP].
 C-----------------------------------------------------------------------
       INCLUDE  'pgplot.inc'
       INTEGER  I
-      LOGICAL  PGNOTO
       EXTERNAL PGCP
-C
-      IF (PGNOTO('PGCONT')) RETURN
 C
 C Save TRANS matrix.
 C

@@ -1,3 +1,4 @@
+
 C*GRMOVA -- move pen (absolute, world coordinates)
 C+
       SUBROUTINE GRMOVA (X,Y)
@@ -14,7 +15,6 @@ C-----------------------------------------------------------------------
       REAL     X,Y
 C
       IF (GRCIDE.GE.1) THEN
-C         WRITE (*,'(A,2F10.5)') 'GRMOVA', X, Y
           GRXPRE(GRCIDE) = X * GRXSCL(GRCIDE) + GRXORG(GRCIDE)
           GRYPRE(GRCIDE) = Y * GRYSCL(GRCIDE) + GRYORG(GRCIDE)
       END IF

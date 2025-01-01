@@ -29,11 +29,11 @@ C-----------------------------------------------------------------------
       PARAMETER (DOT = 3)
       PARAMETER (MOVE = 2)
       PARAMETER (VECSIZ = 30)
-      PARAMETER (PI = 3.14159265359)
+      PARAMETER (PI = 3.14159265)
       INCLUDE 'grpckg1.inc'
       CHARACTER*(*) STRING
       CHARACTER*1   NEXT
-      REAL     XMIN, XMAX, YMIN, YMAX
+      INTEGER  XMIN, XMAX, YMIN, YMAX
       INTEGER  MODE,LSTYLE,LEVEL
       INTEGER  I, J, L, CH, POINTS
       LOGICAL  ABSXY, CENTER, MORE, WINDOW
@@ -43,11 +43,6 @@ C-----------------------------------------------------------------------
       REAL     DX, DY, XORG, YORG
       REAL     XC(VECSIZ), YC(VECSIZ), XT, YT
 C
-      XMIN = 0.
-      XMAX = 0.
-      YMIN = 0.
-      YMAX = 0.
-
       IF (LEN(STRING).LE.0) RETURN
 C
 C Compute scaling and orientation.
@@ -58,8 +53,8 @@ C
       FACTOR = GRCFAC(GRCIDE)
       COSA = FACTOR * COS(ANGLE)
       SINA = FACTOR * SIN(ANGLE)
-      DX = 10.0 * COSA
-      DY = 10.0 * SINA
+      DX = GRCXSP * COSA
+      DY = GRCXSP * SINA
       CALL GRTXY0(ABSXY, X0, Y0, XORG, YORG)
       IF (.NOT.WINDOW) THEN
           XMIN = GRXMIN(GRCIDE)

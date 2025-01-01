@@ -1,0 +1,229 @@
+% PGPLOT manual,  14-JUL-1989, T. J. Pearson
+%------------------------------------------------------------------------
+% Copyright (c) 1983, 1984, 1985, 1986, 1987, 1988, 1989 by
+% California Institute of Technology.
+% All rights reserved.
+%------------------------------------------------------------------------
+
+\beginchapter{1}{INTRODUCTION}
+
+\beginsection PGPLOT
+
+PGPLOT is a Fortran subroutine package for drawing simple scientific
+graphs on various graphics display devices. It was originally developed
+for use with astronomical data reduction programs in the Caltech Astronomy
+department.
+
+This manual is intended for the Fortran programmer who wishes to write a
+program generating graphical output.  For most applications, the program
+can be device-independent, and the output can be directed to the
+appropriate device at run time.  The output device is described by a
+``device specification,'' discussed below. The programmer can build a
+specific device specification into the program, but it is better to make
+this a parameter which the user of the program can supply. 
+
+All the examples in this manual use standard Fortran-77. PGPLOT itself 
+is written mostly in standard Fortran-77, with a few non-standard, 
+system-dependent subroutines. At Caltech, it runs under the VAX/VMS,
+Convex-UNIX, and Sun-UNIX operating systems.
+
+
+\beginsection This Manual
+
+This manual is intended both as a tutorial introduction to PGPLOT and as 
+a reference manual.  The remainder of this chapter describes some 
+fundamentals: how to include the PGPLOT library in your program, and the
+types of graphic devices that PGPLOT can use.
+
+Chapter 2 is tutorial: it presents a Fortran program for drawing a
+graph using the minimum number of PGPLOT subroutines, and explains what
+each of these subroutines does.  After reading this chapter, you should 
+be able to write your own PGPLOT program, although it may be helpful to 
+refer to the individual subroutine descriptions in Appendix~A.
+
+The basic features of PGPLOT are introduced in Chapters 3, 4, and 5.
+Chapter 3 explains the positioning and scaling of plots on the page,
+Chapter 4 describes the basic (``primitive'') routines for drawing 
+lines, writing text, drawing graph markers, and shading areas, and
+Chapter 5 describes the routines for changing the ``attributes'' of 
+these primitives: color, line-style, line-width, text font, etc.
+
+Chapter 6 describes some ``high level'' routines that use the primitive 
+routines to build up more complicated pictures: \eg, function plots,
+histograms, bar charts, and contour maps.
+
+Chapter 7 describes PGPLOT's capabilities for ``interactive'' graphics,
+whereby the user of the PGPLOT program can control its action with a
+cursor, joystick, mouse, etc.
+
+Chapter 8 describes the use of ``metafiles''. A metafile is a disk file
+in which a device-independent representation of a graphics image can be
+stored. A translation program allows the image to be displayed on
+any supported device. 
+
+There are six appendices.  Appendix~A is a list of all the PGPLOT
+routines, with detailed instructions for their use.  Appendix~B shows
+the complete set of PGPLOT characters and symbols that can be used for
+annotating graphs.  Appendix~C is intended for those who want to install
+PGPLOT on another machine. Appendix~D gives details of the devices
+supported by PGPLOT.  Appendix~E provides instructions for programmers 
+who want to extend PGPLOT to support other devices. Appendix~F describes 
+how PGPLOT subroutines can be called from a program written in the C 
+language.
+
+
+\beginsection Using PGPLOT
+
+In order to use PGPLOT subroutines, you will need to link your
+program with the graphics subroutine library. 
+
+\beginsub{VAX/VMS} On the Caltech Astronomy VAX computers, the graphics
+subroutine library is scanned automatically by the |LINK| command, so
+the following sequence of instructions suffices to compile, link, and
+run a graphics program |EXAMPLE.FOR|: 
+\begintt
+$ FORTRAN EXAMPLE
+$ LINK EXAMPLE
+$ RUN EXAMPLE
+\endtt
+On other VMS computers, the automatic search of the graphics library may not
+occur.  You will then need to include the graphics library explicitly by
+using a |LINK| commands like the following:
+\begintt
+$ LINK EXAMPLE,PGPLOT_DIR:GRPSHR/LIB
+\endtt
+The PGPLOT subroutines are not included in your |.EXE| file, but are
+fetched from a {\it shareable image} when you execute the |RUN| command.
+This makes the |.EXE| file much smaller, and means that the program need
+not be relinked when changes are made to the graphics subroutines; but
+the |.EXE| file can only be run on a machine that has a copy of the
+shareable image and is running a compatible version of VAX/VMS. 
+For more information, see Appendix~C.
+
+\beginsub{Unix} The following assumes that the PGPLOT 
+library |libpgplot.a| has been installed in a standard location where 
+the loader can find it. To compile, link, and run a graphics program
+|example.f|: 
+\begintt
+fc -o example example.f -lpgplot
+example
+\endtt
+Unlike the VMS version, the PGPLOT routines are included in the 
+executable file.
+
+
+\beginsection Graphics Devices
+
+Graphics devices fall into two classes: devices which produce a hardcopy
+output, usually on paper; and interactive devices, which usually display
+the plot on a TV monitor. Some of the interactive devices allow
+modification to the displayed picture, and some have a movable cursor
+which can be used as a graphical input device. There is also a ``null
+device,'' to which unwanted graphical output can be directed. 
+Hardcopy devices are not used interactively.  One must first create a
+disk file and then send it to the appropriate device with a print or
+copy command. Consult Appendix~D (or your System Manager) to determine
+the appropriate device-specific command. 
+
+A PGPLOT graphical output device is described by a ``device
+specification'' that consists of two parts, separated by a slash (/):
+the {\it device name\/} or {\it file name}, and the {\it device type}.
+
+\beginsub{Device name} The 
+device name or file name is the name by which the output device is
+known to the operating system. For most hardcopy devices, this should be
+the name of a disk file, while for interactive devices, it should be the
+name of a device of the appropriate type; in both cases, the name should
+be specified according to the syntax of the operating system in use. If
+the device or file name includes a slash (|/|), enclose the name in
+double quotation marks (|"|). If the device name is omitted from the
+device specification, a default device is used, the default depending on
+the device type (see Appendix~D). In Unix, device and file names are 
+case-sensitive.
+
+\beginsub{Device type} The
+device type tells PGPLOT what sort of graphical device it is.
+Appendix~D lists the device types available at the time of writing,
+together with the names by which they are known to PGPLOT. If the device
+type is omitted, a system-dependent default type is assumed (this is the
+value of the ``environment variable'' |PGPLOT_TYPE|, and on Phobos and
+Deimos it is ``Printronix''). The device type is not case-sensitive: you 
+can use uppercase or lowercase letters, or a mixture of the two.
+
+\beginsub{Examples (VMS)}
+
+\noindent
+Tektronix 4006/4010 terminal: |TTA4/TEK| (device |_TTA4:|).
+
+\noindent
+Grinnell image display: |/GRIN|.
+
+\noindent
+Disk file, Printronix format: |SYS$SCRATCH:PLOT.DAT/PRIN|.
+
+\noindent
+Disk file, Versatec format, with the output file on a different DECnet 
+node: |DEIMOS::XPLOT.DAT/PRIN|.
+
+\noindent
+Disk file in default format in default directory: |PGPLOT.LIS|.
+
+\beginsub{Examples (Unix)}
+
+\noindent
+Tektronix 4006/4010 terminal: |/TEK| (the logged-in terminal).
+
+\noindent
+IVAS image display: |/IVAS|.
+
+\noindent
+Disk file, Printronix format: |"/scr/tjp/plot.dat"/PRIN|.
+
+\noindent
+Disk file in default format in default directory: |pgplot.lis|.
+
+\beginsection Environment variables
+
+The run-time behavior of PGPLOT can be modified by defining one or more
+{\it environment variables}.  The variables have names which begin with
+|PGPLOT_|. In VMS, they are logical names; in Unix, they are Unix
+environment variables. 
+
+To set the value of a variable in VMS (DCL):
+\begintt
+$ DEFINE PGPLOT_ENVOPT VG
+\endtt
+In Unix (csh):
+\begintt
+setenv PGPLOT_ENVOPT VG
+\endtt
+Quotation marks may be required around the value (double-quotes in VMS,
+single quotes in Unix) to prevent interpretation of special characters
+by the command interpreter. 
+
+To unset a variable in VMS or Unix:
+\begintt
+$ DEASSIGN PGPLOT_ENVOPT
+unsetenv PGPLOT_ENVOPT
+\endtt
+
+The following are some of the environment variables currently in use:
+
+\item{$\bullet$} |PGPLOT_ENVOPT|: this variable provides additional
+options for the |PGENV| subroutine (see description in Appendix~A). 
+
+\item{$\bullet$} |PGPLOT_FONT|: the name of the binary file containing
+character font digitization, \eg, |PGPLOT_FONT| =
+|"/usr/tjp/grfont.dat"|. 
+
+\item{$\bullet$} |PGPLOT_IDENT|: if this variable is defined (with any
+value), the user name and time are written at the lower right corner of
+the plot by routine |PGEND| (hardcopy devices only), \eg, |PGPLOT_IDENT|
+= |YES|. 
+
+\item{$\bullet$} |PGPLOT_TYPE|: the plot type to be used in PGPLOT when
+a device specification omits the type, \eg, |PGPLOT_TYPE| = |QMS|. 
+
+\item{$\bullet$} |PGPLOT_BUFFER|: controls buffering (see Chapter~7). 
+
+\endchapter

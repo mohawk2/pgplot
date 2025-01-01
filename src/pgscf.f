@@ -1,8 +1,7 @@
 C*PGSCF -- set character font
-C%void cpgscf(int font);
 C+
-      SUBROUTINE PGSCF (FONT)
-      INTEGER  FONT
+      SUBROUTINE PGSCF (IF)
+      INTEGER  IF
 C
 C Set the Character Font for subsequent text plotting. Four different
 C fonts are available:
@@ -16,14 +15,10 @@ C string by using the escape sequences \fn, \fr, \fi, and \fs for fonts
 C 1, 2, 3, and 4, respectively.
 C
 C Argument:
-C  FONT   (input)  : the font number to be used for subsequent text
+C  IF     (input)  : the font number to be used for subsequent text
 C                    plotting (in range 1-4).
 C--
 C 26-Sep-1985 - new routine [TJP].
-C 25-OCT-1993 - changed name of argument [TJP].
 C-----------------------------------------------------------------------
-      LOGICAL PGNOTO
-C
-      IF (PGNOTO('PGSCF')) RETURN
-      CALL GRSFNT(FONT)
+      CALL GRSFNT(IF)
       END

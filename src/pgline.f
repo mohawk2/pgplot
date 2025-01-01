@@ -1,5 +1,4 @@
 C*PGLINE -- draw a polyline (curve defined by line-segments)
-C%void cpgline(int n, const float *xpts, const float *ypts);
 C+
       SUBROUTINE PGLINE (N, XPTS, YPTS)
       INTEGER  N
@@ -25,15 +24,13 @@ C--
 C 27-Nov-1986
 C-----------------------------------------------------------------------
       INTEGER  I
-      LOGICAL PGNOTO
 C
-      IF (PGNOTO('PGLINE')) RETURN
       IF (N.LT.2) RETURN
 C
       CALL PGBBUF
       CALL GRMOVA(XPTS(1),YPTS(1))
       DO 10 I=2,N
-         CALL GRLINA(XPTS(I),YPTS(I))
- 10   CONTINUE
+          CALL GRLINA(XPTS(I),YPTS(I))
+   10 CONTINUE
       CALL PGEBUF
       END

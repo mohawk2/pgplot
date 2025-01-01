@@ -1,4 +1,4 @@
-C*PGCONX -- contour map of a 2D data array (non rectangular)
+C*PGCONX -- contour map of a 2D data array (non-rectangular)
 C+
       SUBROUTINE PGCONX (A, IDIM, JDIM, I1, I2, J1, J2, C, NC, PLOT)
       INTEGER  IDIM, JDIM, I1, J1, I2, J2, NC
@@ -77,15 +77,14 @@ C 22-Apr-1990 - corrected bug in panelling algorithm [TJP].
 C 13-Dec-1990 - make errors non-fatal [TJP].
 C-----------------------------------------------------------------------
       INTEGER  MAXEMX,MAXEMY
-      PARAMETER (MAXEMX=100)
-      PARAMETER (MAXEMY=100)
+      PARAMETER (MAXEMX=50)
+      PARAMETER (MAXEMY=50)
       INTEGER  I
       INTEGER  NNX,NNY, KX,KY, KI,KJ, IA,IB, JA,JB, LS, PX, PY
-      LOGICAL  STYLE, PGNOTO
+      LOGICAL  STYLE
 C
 C Check arguments.
 C
-      IF (PGNOTO('PGCONX')) RETURN
       IF (I1.LT.1 .OR. I2.GT.IDIM .OR. I1.GE.I2 .OR.
      1    J1.LT.1 .OR. J2.GT.JDIM .OR. J1.GE.J2) THEN
           CALL GRWARN('PGCONX: invalid range I1:I2, J1:J2')

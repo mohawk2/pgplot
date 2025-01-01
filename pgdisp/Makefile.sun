@@ -1,0 +1,143 @@
+CCOMPL=cc
+.SUFFIXES: .c .o
+SRC=/usr/local/fig24/src/local
+DIST=/usr/local/fig24/src/figaro
+SRCDIR=${SRC}/figdisp
+INCDIR=${SRC}/inc
+LINTFLAG=-I/usr/local/include /usr/openwin/lib/lint/llib-lX11.ln
+CFLAGC=-O -I/usr/local/include
+LIBS=-lX11 -lm
+PGLIBS=-lX11 -lm
+#
+# The RCS version number
+#
+RCSDIST=-rdist
+
+.SUFFIXES: .c .o .c,v .h,v .icon .icon,v
+
+#
+# PGDISP-only routines
+#
+PGOBJS=pg.cleanup.o pgdisp.o pg.figcurs.o pg.getdata.o pg.getvisuals.o\
+	pg.handlexevent.o pg.proccom.o pg.resdb.o
+PGSRC=cleanup.c pgdisp.c figcurs.c getdata.c getvisuals.c handlexevent.c\
+	proccom.c resdb.c
+#
+# Fastdisp-only routines
+#
+FIGOBJS=checkoff.o calcslit.o calchist.o cleanup.o coordtrans.o copyzoom.o\
+	dokey.o doseeing.o doslit.o drawline.o exposebmwin.o exposecmap.o\
+	exposesee.o figdisp.o figcurs.o getdata.o getprec.o getvisuals.o\
+	graphline.o handlexevent.o initbmcmap.o initbmdata.o initbmluts.o\
+	initbmwin.o initcmapwin.o initgc.o initlocwin.o initpatchwin.o\
+	initseewin.o labelplot.o labelxaxis.o labelyaxis.o lwwrite.o panloc.o\
+	panpatch.o printhelp.o proccom.o redrawim.o resdb.o resizebmwin.o\
+	resizecmap.o resizeim.o resizeloc.o seehester.o transim.o transluts.o\
+	updateloc.o updatepatch.o updatetitle.o writeim.o writeim16.o\
+	writeluts.o zoomim.o
+FIGSRC=$(FIGOBJS:.o=.c)
+#
+# Shared routines
+#
+OBJECTS=exposelgwin.o getcolors.o initlgluts.o initlgwin.o initlock.o\
+	initwmattr.o mainloop.o resizelgwin.o returnbuf.o waitevent.o\
+	updatelgtitle.o
+COMSRC=$(OBJECTS:.o=.c)
+#
+# The programs to compile
+#
+PROGS=pgdisp figdisp exam1 exam2
+
+lib:
+
+prog: $(PROGS)
+
+install: pgdisp figdisp
+	cp pgdisp figdisp ../figaro
+
+pgdisp: $(PGOBJS) $(OBJECTS)
+	$(CCOMPL) -o pgdisp $(CFLAGC) -Bstatic $(PGOBJS) $(OBJECTS) $(PGLIBS)
+
+figdisp: $(FIGOBJS) $(OBJECTS)
+	$(CCOMPL) -o figdisp $(CFLAGC) -Bstatic $(FIGOBJS) $(OBJECTS) $(LIBS)
+
+exam1: exam1.o
+	$(CCOMPL) -o exam1 exam1.o -Bstatic -L../libs -ltvpckg -lpgplot -lX11
+	
+exam2: exam2.o
+	$(CCOMPL) -o exam2 exam2.o -Bstatic -L../libs -ltvpckg -lpgplot -lX11
+	
+%.h:: $(SRCDIR)/%.h,v
+	@co $(RDIST) -q $(SRCDIR)/$*.h,v
+
+%.icon:: $(SRCDIR)/%.icon,v
+	@co $(RDIST) -q $(SRCDIR)/$*.icon,v
+
+clean:
+	-@rm -f $(PGOBJS) $(OBJECTS) $(FIGOBJS) $(PROGS) exam1.o exam2.o
+
+lint: $(COMSRC) $(FIGSRC)
+	lint $(LINTFLAG) $(COMSRC) $(FIGSRC) -lm
+
+pglint: $(COMSRC) $(PGSRC)
+	lint -DPGDISP $(LINTFLAG) $(COMSRC) $(PGSRC) -lm
+
+%.o:: %.c
+	$(CCOMPL) -c $(CFLAGC) $*.c
+
+%.o:: $(SRCDIR)/%.c,v
+	@co $(RCSDIST) -q $(SRCDIR)/$*.c,v
+	$(CCOMPL) -c $(CFLAGC) $*.c
+	@rm -f $*.c
+#
+# The PGPLOT version needs to be compiled with special flags
+#
+pg.%.o:: %.c
+	$(CCOMPL) -c -o pg.$*.o -DPGDISP $(CFLAGC) $*.c
+
+pg.%.o:: $(SRCDIR)/%.c,v
+	@co $(RCSDIST) -q $(SRCDIR)/$*.c,v
+	$(CCOMPL) -c -o pg.$*.o -DPGDISP $(CFLAGC) $*.c
+	@rm -f $*.c
+#
+# The include file dependancies
+#
+dokey.o exam1.o exam2.o getdata.o handlexevent.o initlock.o initwmattr.o\
+	pg.getdata.o pg.handlexevent.o pg.proccom.o proccom.o writeim.o\
+	writeim16.o: commands.h
+
+checkoff.o cleanup.o coordtrans.o copyzoom.o dokey.o doseeing.o doslit.o\
+	drawline.o exposebmwin.o exposecmap.o exposelgwin.o exposesee.o\
+	figcurs.o figdisp.o getdata.o getvisuals.o handlexevent.o initbmdata.o\
+	initbmluts.o initbmwin.o initcmapwin.o initlgluts.o initlgwin.o\
+	initlock.o initlocwin.o initpatchwin.o initseewin.o initwmattr.o\
+	lwwrite.o mainloop.o panloc.o panpatch.o pg.cleanup.o pg.figcurs.o\
+	pg.getdata.o pg.getvisuals.o pg.handlexevent.o pg.proccom.o pg.resdb.o\
+	pgdisp.o proccom.o redrawim.o resdb.o resizebmwin.o resizecmap.o\
+	resizeim.o resizelgwin.o resizeloc.o returnbuf.o seehester.o seeing.o\
+	transim.o transluts.o updateloc.o updatepatch.o updatetitle.o\
+	waitevent.o writeim.o writeim16.o writeluts.o zoomim.o: figdisp.h
+
+initbmwin.o initcmapwin.o initlgwin.o initlocwin.o initpatchwin.o\
+	initseewin.o: figdisp.icon
+
+initlgwin.o: nocursor.icon
+
+doslit.o figdisp.o getdata.o getvisuals.o handlexevent.o initbmwin.o\
+	initcmapwin.o initlgwin.o initlock.o initlocwin.o lwwrite.o\
+	pg.getdata.o pg.getvisuals.o pg.handlexevent.o pg.proccom.o pgdisp.o\
+	proccom.o resizebmwin.o resizecmap.o resizeim.o resizeloc.o updateloc.o\
+	waitevent.o writeim.o writeim16.o zoomim.o: messages.h
+
+checkoff.o cleanup.o coordtrans.o copyzoom.o dokey.o doseeing.o doslit.o\
+	drawline.o exposebmwin.o exposecmap.o exposelgwin.o exposesee.o\
+	figcurs.o figdisp.o getdata.o getvisuals.o handlexevent.o initbmdata.o\
+	initbmluts.o initbmwin.o initcmapwin.o initlgluts.o initlgwin.o\
+	initlock.o initlocwin.o initpatchwin.o initseewin.o initwmattr.o\
+	lwwrite.o mainloop.o panloc.o panpatch.o pg.cleanup.o pg.figcurs.o\
+	pg.getdata.o pg.getvisuals.o pg.handlexevent.o pg.proccom.o pg.resdb.o\
+	pgdisp.o printhelp.o proccom.o redrawim.o resdb.o resizebmwin.o\
+	resizecmap.o resizelgwin.o resizeim.o resizeloc.o returnbuf.o\
+	seehester.o seeing.o transim.o transluts.o updateloc.o updatepatch.o\
+	updatetitle.o waitevent.o writeim.o writeim16.o writeluts.o\
+	zoomim.o: globals.h

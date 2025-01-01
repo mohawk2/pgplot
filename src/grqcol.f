@@ -14,18 +14,26 @@ C                    1 if the device has no color capability, or a
 C                    larger number (e.g., 3, 7, 15, 255).
 C--
 C 31-May-1989 - new routine [TJP].
-C  1-Sep-1994 - avoid driver call [TJP].
 C-----------------------------------------------------------------------
       INCLUDE 'grpckg1.inc'
+      INTEGER NBUF,LCHR
+      REAL    RBUF(6)
+      CHARACTER*1 CHR
 C
 C Error if no workstation is open.
 C
       IF (GRCIDE.LT.1) THEN
           CI1 = 0
           CI2 = 0
+C
+C Query device driver.
+C
       ELSE
-          CI1 = GRMNCI(GRCIDE)
-          CI2 = GRMXCI(GRCIDE)
+          NBUF = 0
+          LCHR = 0
+          CALL GREXEC(GRGTYP,2,RBUF,NBUF,CHR,LCHR)
+          CI1 = RBUF(5)
+          CI2 = RBUF(6)
       END IF
 C
       END

@@ -1,7 +1,7 @@
 C*GRCURS -- read cursor position
 C+
-      INTEGER FUNCTION GRCURS (IDENT,IX,IY,IXREF,IYREF,MODE,POSN,CH)
-      INTEGER IDENT, IX, IY, IXREF, IYREF, MODE, POSN
+      INTEGER FUNCTION GRCURS (IDENT,IX,IY,CH)
+      INTEGER IDENT, IX, IY
       CHARACTER*(*) CH
 C
 C GRPCKG: Read the cursor position and a character typed by the user.
@@ -13,14 +13,6 @@ C positioned the cursor, the user types a single character on his
 C keyboard; GRCURS then returns this character and the new cursor
 C position.
 C
-C "Rubber band" feedback of cursor movement can be requested (although
-C it may not be supported on some devices). If MODE=1, a line from
-C the anchor point to the current cursor position is displayed as
-C the cursor is moved. If MODE=2, a rectangle with vertical and
-C horizontal sides and one vertex at the anchor point and the opposite
-C vertex at the current cursor position is displayed as the cursor is
-C moved.
-C
 C Returns:
 C
 C GRCURS (integer): 1 if the call was successful; 0 if the device
@@ -28,13 +20,10 @@ C      has no cursor or some other error occurs.
 C
 C Arguments:
 C
-C IDENT (integer, input):  GRPCKG plot identifier (from GROPEN).
-C IX    (integer, in/out): the device x-coordinate of the cursor.
-C IY    (integer, in/out): the device y-coordinate of the cursor.
-C IXREF (integer, input):  x-coordinate of anchor point.
-C IYREF (integer, input):  y-coordinate of anchor point.
-C MODE  (integer, input):  type of rubber-band feedback.
-C CH    (char,    output): the character typed by the user; if the device
+C IDENT (integer, input): GRPCKG plot identifier (from GROPEN).
+C IX (integer, input/output): the device x-coordinate of the cursor.
+C IY (integer, input/output): the device y-coordinate of the cursor.
+C CH (character, output): the character typed by the user; if the device
 C      has no cursor or if some other error occurs, the value CHAR(0)
 C      [ASCII NUL character] is returned.
 C--
@@ -44,15 +33,14 @@ C  5-Aug-1986 - add GREXEC support [AFT].
 C 11-Jun-1987 - remove built-ins [TJP].
 C 15-Feb-1988 - remove test for batch jobs; leave this to the device
 C               handler [TJP].
-C 13-Dec-1990 - remove code to abort after 10 cursor errors [TJP].
-C  7-Sep-1994 - add support for rubber-band modes [TJP].
-C 17-Jan-1995 - start picture if necessary [TJP].
+C 13-Dec-1990 - remove code to abort after 10 cursor errors (I may 
+C               regret this!) [TJP].
 C-----------------------------------------------------------------------
       INCLUDE 'grpckg1.inc'
       REAL           RBUF(6)
-      INTEGER        NBUF, LCHR, ICURS, ERRCNT
+      INTEGER        NBUF,LCHR,IXMX,IYMX,ICURS
       CHARACTER*16   CHR
-      CHARACTER      C
+      INTEGER        ERRCNT
       SAVE           ERRCNT
       DATA           ERRCNT/0/
 C
@@ -61,50 +49,33 @@ C
       CALL GRSLCT(IDENT)
       CALL GRTERM
 C
-C Begin picture if necessary.
-C
-      IF (.NOT.GRPLTD(GRCIDE)) CALL GRBPIC
-C
 C Make sure cursor is on view surface. (It does not
 C have to be in the viewport.)
 C
-      IX = MAX(0,MIN(GRXMXA(GRCIDE),IX))
-      IY = MAX(0,MIN(GRYMXA(GRCIDE),IY))
-C
-C Does the device have a cursor?
-C
-      C = GRGCAP(GRCIDE)(2:2)
+      CALL GREXEC(GRGTYP, 6,RBUF,NBUF,CHR,LCHR)
+      IXMX = RBUF(2)
+      IYMX = RBUF(4)
+      CALL GREXEC(GRGTYP, 4,RBUF,NBUF,CHR,LCHR)
       ICURS = 0
-      IF (C.EQ.'C' .OR. C.EQ.'X') ICURS=1
+      IF (CHR(2:2).EQ.'C') ICURS=1
+      IX = MAX(0,MIN(IXMX,IX))
+      IY = MAX(0,MIN(IYMX,IY))
 C
-C Device does have a cursor.
+C External devices.
 C
       IF (ICURS.GT.0) THEN
-C         -- initial position of cursor
-          RBUF(1) = IX
-          RBUF(2) = IY
-C         -- reference point for rubber band
-          RBUF(3) = IXREF
-          RBUF(4) = IYREF
-C         -- rubber band mode
-          RBUF(5) = MODE
-C         -- position cursor?
-          RBUF(6) = POSN
-          NBUF = 6
-          LCHR = 0
+          RBUF(1)=IX
+          RBUF(2)=IY
           CALL GREXEC(GRGTYP,17,RBUF,NBUF,CHR,LCHR)
           IX = RBUF(1)
           IY = RBUF(2)
-          CH = CHR(1:1)
+          CH = CHR
           GRCURS = 1
-C         -- error if driver returns NUL
-          IF (ICHAR(CHR(1:1)).EQ.0) GRCURS = 0
 C
 C Other devices are illegal.
 C
       ELSE
           CALL GREXEC(GRGTYP, 1,RBUF,NBUF,CHR,LCHR)
-          LCHR = INDEX(CHR,' ')
           IF (ERRCNT.LE.10) CALL 
      1        GRWARN('output device has no cursor: '//CHR(:LCHR))
           CH = CHAR(0)

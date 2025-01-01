@@ -1,0 +1,972 @@
+% PGPLOT manual,  5-JUL-1989, T. J. Pearson
+%------------------------------------------------------------------------
+% Copyright (c) 1983, 1984, 1985, 1986, 1987, 1988, 1989 by
+% California Institute of Technology.
+% All rights reserved.
+%------------------------------------------------------------------------
+
+\beginappendix{D}{SUPPORTED DEVICES}
+
+\beginsection Introduction
+
+This Appendix presents device-specific information for some of the
+supported devices. Table \the\chapnum.1 shows the devices for which
+device handlers are available, together with the names by which they are
+known to PGPLOT. The names of the device types can be abbreviated so
+long as there is no ambiguity; in most cases, this means the first two
+letters are sufficient. Each installation of PGPLOT is configured with
+the devices appropriate for that installation, so not every device is
+available in every installation of PGPLOT. Some devices are available
+under VMS only, and others are available under Unix only. 
+
+\pageinsert
+  \def\head#1{\noalign{\medskip\centerline{\bf #1}\smallskip}}
+  \centerline{\bf Table \the\chapnum.1\quad Available Devices}
+\halign{\indent#\hfil&  \quad\tt#\hfil\cr
+\head{Terminals}
+GraphOn GO-230 terminal                         &/GF \cr
+Tektronix 4006/4010 storage-tube terminal       &/TEK4010 \cr
+Retrographics modified VT100 terminal (VT640)   &/RETRO \cr
+DEC VT125, VT240, or VT340 terminal (REGIS)     &/VT125 \cr
+Tektronix 4100-series color terminal            &/TK4100 \cr
+ZSTEM 240/4014 terminal emulators (IBM PC)      &/ZSTEM \cr
+\head{High-resolution Display Devices}
+DeAnza (Gould 8500 low resolution)              &/DEanza \cr
+Grinnell GMR-270 Image Display System           &/GRINNELL \cr
+Digisolve Ikon Pixel Engine                     &/IKon \cr
+Liacom Graphic Video Display (GVD-02)           &/LIacom \cr
+Peritek Corp. VCH-Q frame-buffer video          &/PERITEK \cr
+Peritek Corp. VCK-Q frame-buffer video          &/PK \cr
+Sigma Args, 7000 series                         &/ARgs \cr
+Sigma, T5670 terminal                           &/GOC \cr
+Tektronix 4014 (12 bit addressing)              &/TFILE \cr
+VAX/VMS workstations                            &/WS \cr
+Sun workstations (SunView mode)                 &/SUNVIEW \cr
+Sun workstations (using CGI routines)           &/CGI \cr
+IIS IVAS image display                          &/IVAS \cr
+Imagraph image display                          &/IMA \cr
+\head{Pen Plotters}
+Gould (now Bryans) Colourwriter 6320            &/CW6320 \cr
+HPGL Driver (tested on HP7475A plotter)         &/HPGL \cr
+HPGL Driver (portrait mode)                     &/VHPG \cr
+Hewlett Packard 7221 pen plotter                &/HP7221 \cr
+Houston Instruments HIDMP pen plotter           &/HIDMP \cr
+Bruning (fmr Nicolet) Zeta 8 Digital Plotter    &/ZEta \cr
+\head{Laser Printers}
+Hewlett Packard LaserJet, LaserJet+,II          &/LJ \cr
+PostScript device (landscape mode)              &/PS \cr
+PostScript device (portrait mode)               &/VPS \cr
+QUIC devices (QMS 800 etc) (landscape mode)     &/QMS \cr
+QUIC devices (QMS 800 etc) (portrait mode)      &/VQMS \cr
+Canon LBP-8/A2 Laser printer (landscape mode)   &/BCanon \cr
+Canon LBP-8/A2 Laser printer (landscape mode)   &/CAnon \cr
+Canon LBP-8/A2 Laser printer (portrait mode)    &/VCanon \cr
+Impress (Imagen) device (landscape mode)        &/IMPRESS \cr
+Impress (Imagen) device (portrait mode)         &/VIMPRESS \cr
+}
+\vfill
+\endinsert
+
+\pageinsert
+  \def\head#1{\noalign{\medskip\centerline{\bf #1}\smallskip}}
+  \centerline{\bf Table \the\chapnum.1\quad (continued)}
+\halign{\indent#\hfil&  \quad\tt#\hfil\cr
+\head{Dot-matrix Printers}
+EPSON FX100 printer                             &/EPSON \cr
+EXCL (C.Itoh Megaserve) printer                 &/EXCL \cr
+LA50 and other DEC sixel printers               &/LA50 \cr
+Printronix P300 or P600 printer                 &/PRINTRONIX \cr
+Toshiba ``3-in-on''" printer, model P351        &/TOSHIBA \cr
+Versatec V80 printer (landscape mode)           &/VERSATEC \cr
+Versatec V80 printer (portrait mode)            &/VVERSATEC \cr
+\head{Other}
+Null device (no graphical output)               &/NULL \cr
+Metafile                                        &/FILE \cr
+}
+\vfill
+\endinsert
+
+The description of each device is organized under the following headings:
+
+\proclaim Supported device: description of device.
+
+\proclaim Device type code: the code to be used (following the /) in a
+PGPLOT device specification; usually this can be abbreviated to two 
+letters.  Some devices can be used in two modes: {\it landscape\/} (long 
+axis horizontal) and {\it portrait\/} (long axis vertical). Different 
+device type codes are used for the two modes.
+
+\proclaim Default file or device name: the file or device name that is 
+used by default if none is included in the device specification. (For 
+example, if the device specification is given as |/VERS|, it is expanded
+to |PGPLOT.VEPLOT/VERS|; if it is given as |UV/VERS|, it is expanded to
+|UV.VEPLOT/VERS|.) 
+
+\proclaim Default view surface dimensions:
+Most hardcopy devices print on $11\times8.5$-inch paper, and the 
+standard usable ``view surface'' is $10.5\times8.0$ inches. The 
+dimensions are meaningless for most CRT devices where the image size 
+depends on the size of the monitor.
+
+\proclaim Resolution:
+The nominal resolution of the device in pixels/inch. The exact 
+resolution can be ill-defined; \eg, on a pen plotter, it depends on the
+size of the pen nib.
+
+\proclaim Color capability:
+What color indices are available?  Can the representation of each 
+color index be changed?  Do changes to the representation affect 
+primitive elements that have already been drawn?
+
+\proclaim Input capability:
+Instructions for the use of the graphics cursor, if one is available.
+
+\proclaim File format:
+Description of the file in which the graphic commands are stored. For
+some devices, the commands are sent directly to the device and no 
+intermediate file is required.
+
+\proclaim Obtaining hardcopy:
+When an intermediate file is used, this section gives instructions for 
+sending the graphic commands from the file to the device.
+{\it It is important to check the correct procedure with your
+System Manager before attempting to generate a hardcopy plot. 
+Attempting to print or plot a file on the wrong sort of device will at
+best waste a large quantity of paper, and may damage the device or crash
+the VAX.}
+
+
+\beginsection Versatec
+
+\proclaim Supported device: Versatec V-80 printer/plotter (and compatible 
+models).
+
+\proclaim Device type code: |/VErsatec| (landscape mode), |/VVersatec|
+(portrait mode).
+
+\proclaim Default file name: |PGPLOT.VEPLOT| (landscape mode),
+|PGPLOT.VVPLOT| (portrait mode).
+
+\proclaim Default view surface dimensions:
+10.5 inches horizontal $\times$ 8.0 inches vertical (landscape mode),
+8.0 inches horizontal $\times$ 10.5 inches vertical (portrait mode).
+These are nominal values; the actual scale may vary, particularly
+in the dimension parallel to the paper motion.
+
+\proclaim Resolution:
+200 pixels/inch (both dimensions).
+
+\proclaim Color capability:
+Color indices 0 (erase) and 1 (black) are supported. Requests for other
+color indices are converted to 1.  It is not possible to change color
+representation.
+
+\proclaim Input capability: None.
+
+\proclaim File format:
+The file contains variable length records (up to 265 bytes), one record
+corresponding to one horizontal dot row of the plot. The file has record
+attributes ``No Carriage Control.'' The first byte in each record is
+control-D (hexadecimal 04: plot mode specifier). The remaining 8-bit
+bytes each represent 8 dots, with the most significant bit representing
+the left-most dot; 1 implies the corresponding dot is to be filled in.
+Thus the maximum number of dots per line is $264 \times 8 = 2112$,
+corresponding to 10.56 inches at 200 dots per inch. The vertical spacing
+of dot rows is also 200 per inch.  Plot pages are separated by a record
+containing a form-feed character only (1 byte, hexadecimal 0C). 
+These files are intended for use with a special driver and printer
+symbiont which recognize the control-D and send the remainder of the
+record to the Versatec in plot mode instead of text mode. This is {\it
+not\/} the format expected by the standard VMS driver provided by
+Versatec. 
+
+\proclaim Obtaining hardcopy:
+Use the VMS |COPY| command to send the file to a suitable device or use
+the VMS |PRINT| command if a suitable printer queue has been
+established.
+Examples: 
+\begintt
+$ COPY PGPLOT.VEPLOT LVA0:
+$ PRINT/NOTIFY/QUEUE=VERSATEC PGPLOT.VEPLOT
+\endtt
+On DEIMOS: 
+\begintt
+$ PRINT PGPLOT.VEPLOT
+\endtt
+On PHOBOS: 
+\begintt
+$ VPRINT PGPLOT.VEPLOT
+\endtt
+On Starlink: 
+\begintt
+$ PRINT/PASSALL/QUEUE=SYS_VERSATEC PGPLOT.VEPLOT
+\endtt
+
+
+\beginsection PostScript printers
+
+\proclaim Supported device: any printer that accepts the PostScript page 
+description language, \eg, the LaserWriter (Apple Computer, Inc.).
+
+\proclaim Device type code: |/PS| (landscape mode), |/VPS|
+(portrait mode).
+
+\proclaim Default file name: |PGPLOT.PSPLOT| (landscape mode),
+|PGPLOT.VPPLOT| (portrait mode).
+
+\proclaim Default view surface dimensions:
+10.5 inches horizontal $\times$ 7.8 inches vertical (landscape mode),
+7.8 inches horizontal $\times$ 10.5 inches vertical (portrait mode).
+
+\proclaim Resolution:
+Commands sent to the device use coordinate increments of 0.001~inch,
+giving an ``apparent'' resolution of 1000 pixels/inch. The true
+resolution is device-dependent; \eg, on an Apple LaserWriter it is 300
+pixels/inch (in both dimensions). 
+
+\proclaim Color capability:
+Color indices 0 (erase), 1--13 (black), 14 (light grey), and 15 (dark grey)
+are supported. Requests for other color indices are converted to 1.  
+It is not possible to change color representation.
+
+\proclaim Input capability: None.
+
+\proclaim File format:
+The file contains variable length records containing Post\-Script commands.
+The commands use only printable ASCII characters, and the file can be
+examined or modified with a text editor. 
+
+\proclaim Obtaining hardcopy:
+Use the VMS |COPY| command to send the file to a suitable device or use
+the VMS |PRINT| command if a suitable printer queue has been
+established.
+On DEIMOS: 
+\begintt
+$ PRINT PGPLOT.PSPLOT/QUEUE=LW
+\endtt
+
+\proclaim References:
+(1) Adobe Systems, Inc. {\it PostScript Language Reference Manual.}
+Addison-Wesley, Reading, Massachusetts, 1985.
+(2) Adobe Systems, Inc. {\it PostScript Language Tutorial and Cookbook.}
+Addison-Wesley, Reading, Massachusetts, 1985.
+
+
+\beginsection QMS Lasergrafix 
+
+\proclaim Supported device: QMS Lasergrafix 800/1200 laser printers and 
+other printers accepting ``QUIC'' commands.
+
+\proclaim Device type code: |/QMs| (landscape mode), |/VQms|
+(portrait mode).
+
+\proclaim Default file name: |PGPLOT.QMPLOT| (landscape mode),
+|PGPLOT.QEPLOT| (portrait mode).
+
+\proclaim Default view surface dimensions:
+10.5 inches horizontal $\times$ 8.0 inches vertical (landscape mode),
+8.0 inches horizontal $\times$ 10.5 inches vertical (portrait mode).
+These are nominal values; the actual scale may vary.
+
+\proclaim Resolution:
+300 pixels/inch (both dimensions). Commands sent to the device use
+coordinate increments of 0.001~inch, giving an ``apparent'' resolution
+of 1000 pixels/inch.
+
+\proclaim Color capability:
+Color indices 0 (erase) and 1 (black) are supported. Requests for other
+color indices are converted to 1.  It is not possible to change color
+representation.
+
+\proclaim Input capability: None.
+
+\proclaim File format:
+The file contains variable length records containing QUIC commands.
+The commands use only printable ASCII characters, and the file can be
+examined or modified with a text editor. 
+
+\proclaim Obtaining hardcopy:
+Use the VMS |COPY| command to send the file to a suitable device or use
+the VMS |PRINT| command if a suitable printer queue has been
+established.
+Examples: 
+\begintt
+$ COPY PGPLOT.QMPLOT TXA0:
+$ PRINT/NOTIFY/QUEUE=LASER PGPLOT.QMPLOT
+\endtt
+On XHMEIA: 
+\begintt
+$ LASER PGPLOT.QMPLOT
+\endtt
+On CVAX:   
+\begintt
+$ PRINT/QUEUE=TXA0 PGPLOT.QMPLOT
+\endtt
+
+
+\beginsection Printronix
+
+\proclaim Supported device: Printronix P300, P600 and equivalent
+dot-matrix printer-plotters.
+
+\proclaim Device type code: |/PRintronix| (landscape mode only).
+
+\proclaim Default file name: |PGPLOT.PRPLOT|.
+
+\proclaim Default view surface dimensions:
+13.2 inches horizontal $\times$ 10.0 inches vertical, on standard 
+$15\times11.0$-inch computer paper.  These are nominal
+values, but the printer is usually quite accurately aligned.
+
+\proclaim Resolution:
+60 pixels/inch horizontal $\times$ 72 pixels/inch vertical.
+
+\proclaim Color capability:
+Color indices 0 (erase) and 1 (black) are supported. Requests for other
+color indices are converted to 1.  It is not possible to change color
+representation.
+
+\proclaim Input capability: None.
+
+\proclaim File format:
+A Printronix file contains variable length records (up to 135 bytes),
+one record corresponding to one horizontal dot row of the plot. The file
+has record attributes ``No Carriage Control.'' The last three bytes in
+each record are control-E (hexadecimal 05: plot mode specifier),
+carriage-return, line-feed. The remaining bytes each use the 6
+lower-order bits to represent 6 dots, with the least significant bit
+representing the left-most dot; 1 implies the corresponding dot is to be
+filled in. The top two bits are always 1. Thus the maximum number of dots
+per line is $132 \times 6 = 792$, corresponding to 13.2 inches at 60
+dots per inch. If a
+plot covers more than one page, no form-feed codes are inserted; rather
+a sufficient number of blank plot lines are inserted to advance to the
+top of the next page (792 lines per 11-inch page). If these files are to
+be printed on a Printronix printer using the standard VAX/VMS
+line-printer driver (LPDRIVER or LCDRIVER), the system manager must set
+the characteristics of the printer and associated queue correctly. It is 
+important to ensure that (1) all 8-bit characters, including
+non-printable control characters, are passed to the printer, (2) lines
+of 135 bytes or less are not truncated, and (3) no extra formatting 
+commands (e.g., form-feeds) are sent to the printer. The following
+setup is used on Phobos:
+\begintt
+$ SET PRINTER/LOWER/CR/PRINTALL LPA0:
+$ SET DEVICE/SPOOLED=(SYS$PRINT,SYS2:)	LPA0:
+$ DEFINE/FORM/NOTRUNC/NOWRAP DEFAULT 0
+$ INITIALIZE/QUEUE/START/ON=LPA0: SYS$PRINT -
+      /DEFAULT=(FLAG=ONE)/PROT=(W:RW)/SCHED=NOSIZE
+\endtt
+
+\proclaim Obtaining hardcopy:
+On VAX/VMS machines, Printronix plot files can be printed with a
+standard |PRINT| command, but the |/PASSALL| qualifier {\it must\/} be
+included. (If the printer is setup as in the example above, |/NOFEED|
+can be substituted for |/PASSALL|, but this is not recommended.) 
+Examples: 
+\begintt
+$ PRINT/NOTIFY/PASSALL PGPLOT.PRPLOT
+\endtt
+On Phobos: 
+\begintt
+$ PRINT/PASSALL PGPLOT.PRPLOT
+\endtt
+On Deimos: 
+\begintt
+$ PPRINT/PASSALL PGPLOT.PRPLOT
+\endtt
+On Starlink: 
+\begintt
+$ PRINT/PASSALL/QUEUE=SYS_PRINTRONIX PGPLOT.PRPLOT
+\endtt
+On Ikaros (Convex-Unix): 
+\begintt
+lpr -l PGPLOT.PRPLOT
+\endtt
+
+
+\beginsection VT125 (DEC REGIS terminals)
+
+\proclaim Supported device: 
+Digital Equipment Corporation VT125, VT240, or VT241 terminal; other
+REGIS devices may also work. 
+
+\proclaim Device type code: |/VT125|.
+
+\proclaim Default file name (VMS): |TT:PGPLOT.VTPLOT|. This usually means the
+terminal you are logged in to (logical name |TT|), but the plot can be
+sent to another terminal by giving the device name, \eg, |TTC0:/VT|, or
+it can be saved in a file by specifying a file name, \eg, 
+|CITSCR:[TJP]XPLOT/VT| (in this case a disk name must be included as 
+part of the file name).
+
+\proclaim Default file name (Unix): |/dev/tty|, the
+terminal you are logged in to. the plot can be
+sent to another terminal by giving the device name, or
+it can be saved in a file by specifying a file name.
+
+\proclaim Default view surface dimensions: Depends on monitor.
+
+\proclaim Resolution: The default view surface is 768 (horizontal)$\times$
+460 (vertical) pixels.  On most Regis devices, the resolution is 
+degraded in the vertical direction giving only 230 distinguishable 
+raster lines. (There are actually 240 raster lines, but 10 are reserved 
+for a line of text.)
+
+\proclaim Color capability:  Color indices 0--3 are supported.
+By default, color index 0 is black (the background color). Color indices
+1--3 are white, red, and green on color monitors, or white, dark grey, and
+light grey on monochrome monitors.  The color representation of all 
+the color indices can be changed, although only a finite number of 
+different colors can be obtained (see the manual for the terminal).
+
+\proclaim Input capability: The graphics cursor is a blinking
+diamond-crosshair. The user positions the cursor using the arrow keys
+and PF1--PF4 keys on his keyboard [Note: NOT the
+keyboard of the terminal on which he is plotting, if that is different.]
+The arrow keys move the cursor in the appropriate direction; the size of
+the step for each keystroke is controlled by the PF1--PF4 keys: PF1
+$\Rightarrow$ 1 pixel, PF2 $\Rightarrow$ 4 pixels, PF3 $\Rightarrow$ 16
+pixels, PF4 $\Rightarrow$ 64 pixels. [The VT240 terminal has a built-in
+capability to position the cursor, but PGPLOT does not use this as it is
+not available on the VT125.] The user indicates that the cursor has
+been positioned by typing any character other than an arrow or PF1-PF4
+key [control characters, \eg, |^C|, and other special characters should
+be avoided, as they may be intercepted by the operating system]. 
+
+\proclaim File format:
+A REGIS plot file is formatted in records of 80 characters or less, and
+has no carriage-control attributes. 
+The records are
+grouped into ``buffers,'' each of which begins with \esc{\tt Pp} to put the
+terminal into graphics mode and ends with \esc{\tt $\backslash$} to put it back into
+text mode.  The terminal is in graphics mode only while a buffer is
+being transmitted, so a user's program can write to the terminal at any
+time (in text mode) without worrying if it might be in graphics mode.
+Everything between the escape sequences is REGIS: see the VT125 or VT240
+manual for an explanation.  PGPLOT attempts to minimize the number of
+characters in the REGIS commands, but REGIS is not a very efficient
+format. It does have the great advantage, though, that it can easily be
+examined with an editor.   The file may also contain characters outside
+the \esc{\tt Pp}$\ldots$ \esc {\tt $\backslash$} delimiters, \eg, escape
+sequences to erase the text screen and home the cursor. 
+
+The following escape sequences are used:
+\smallskip
+\halign{\indent\esc{\tt #}\hfil&\quad -- #\hfil\cr
+[2J &Erase entire screen (text)\cr
+[H  &Move cursor to home position\cr
+Pp  &Enter REGIS graphics mode\cr
+$\backslash$ &Leave REGIS graphics mode\cr
+}
+\smallskip
+
+
+PGPLOT uses a very limited subset of the REGIS commands supported
+by the VT125 and VT240. The following list summarizes the REGIS commands
+presently used. 
+
+\medskip\noindent
+Initialization: the following standard commands are used to initialize
+the device every time a new frame is started; most of these restore a
+VT125 or VT240 to its default state, but the screen addressing mode is
+nonstandard. 
+\smallskip
+\halign{\indent\tt #\hfil&\quad-- #\hfil\cr
+;		           & resynchronize\cr
+W(R)		           & replace mode writing\cr
+W(I3)		           & color index 1\cr
+W(F3)		           & both bit planes\cr
+W(M1)		           & unit multiplier\cr
+W(N0)		           & negative off\cr
+W(P1)		           & pattern 1\cr
+W(P(M2))	           & pattern multiplier 2\cr
+W(S0)		           & shading off\cr
+S(G1)		           & select graphics plane [Rainbow REGIS]\cr
+S(A[0,479][767,0])         & screen addressing, origin at bottom left\cr
+S(I0)		           & background dark\cr
+S(S1)		           & scale 1\cr
+S(M0(L0)(AL0))             & output map section 0 (black)\cr
+S(M1(L30)(AH120L50S100))   & output map section 1 (red/dim grey)\cr
+S(M2(L59)(AH240L50S100))   & output map section 2 (green/light grey)\cr
+S(M3(L100)(AL100))         & output map section 3 (white)\cr
+}
+\medskip\noindent
+Drawing lines: the {\tt P} and {\tt V} commands are used with absolute
+coordinates, relative coordinates, and pixel vectors. The {\tt(B)},
+{\tt(S)}, {\tt(E)}, and {\tt(W)} modifiers are not used. Coordinates
+which do not change are omitted. 
+\smallskip
+\halign{\indent{\tt #}\hfil&\quad -- #\hfil\cr
+P[x,y]		& move to position, \eg \tt\ P[499,0]\cr
+V[x,y]		& draw vector to position, \eg \tt\ 
+                  V[][767][,479][0][,0]\cr
+}
+\medskip\noindent
+Line attributes: the line style and line color attributes are 
+specified with {\tt W} commands, \eg
+\smallskip
+\halign{\indent{\tt #}\hfil&\quad -- #\hfil\cr
+W(P2)		& line style 2\cr
+W(I2)		& intensity (color index) 2\cr
+}
+\smallskip\noindent
+and {\tt S} commands are used to change the output
+map.  The PGPLOT color indices 0, 1, 2, 3 correspond to output map
+sections 0, 3, 1, 2.
+
+\proclaim Obtaining hardcopy: A hardcopy of the plot can be obtained 
+using a printer attached to the VT125/VT240 terminal (see the 
+instruction manual for the terminal). A plot stored in disk file
+can be displayed by copying it to a suitable terminal; \eg, use |TYPE| 
+on VMS or |cat| on Unix.
+
+
+\beginsection VAX Workstations
+
+\proclaim Driver: WSDRIVER, version 4.1 (1989 Jun 7), by S.~C. 
+Allendorf.
+
+\proclaim Supported device: This driver should work with all VAX/VMS
+workstations running VWS software; it requires the UISSHR shareable
+image provided by DEC. 
+
+\proclaim Device type code: |/WS|.
+
+\proclaim Default device name: |PGPLOT|.  Output is always directed to
+device |SYS$WORKSTATION|; the ``device name'' provided by the user is
+used to label the PGPLOT window. 
+
+\proclaim Default view surface dimensions: Depends on monitor.
+
+\proclaim Resolution: Depends on monitor.
+
+\proclaim Color capability: VAX workstations have 1, 4, or 8 bitplanes.
+On 1-plane devices, there are only two colors (background = white,
+color index 1 = black). On 4-plane devices, color indices 0--11
+are available (4 indices are reserved for text windows and pointers).
+On 8-plane systems, color indices 0--249 are available (6 indices
+are reserved for text windows and pointers).
+
+\proclaim Input capability: The cursor is controlled by the mouse or the
+keypad (arrow keys and PF1--PF4) available on the controlling (DEC-like)
+keyboard. The user positions the cursor, and then types any key on the
+controlling keyboard.  The mouse buttons are not used. 
+
+\proclaim Notes: The displayed window is deleted when PGEND is executed 
+or on program exit. PGPLOT requests confirmation from the user before
+deleting the window. Type a carriage-return at the prompt when you are
+ready to continue. This makes it impossible to overlay a plot
+created by one program on a plot created by another. (The |/APPEND|
+qualifier which allows this for other devices has no effect on device
+|/WS|.) PGPLOT uses a window which is nominally 11 inches wide by 8.5
+inches tall, i.e., the same size as you would get in a hardcopy. If you
+prefer a vertical orientation, execute the following command before
+running the program: 
+\begintt
+$ DEFINE PGPLOT_WS_ASPECT PORTRAIT 
+\endtt
+Substitute |LANDSCAPE| for |PORTRAIT| to revert to horizontal
+orientation.
+
+VAXstations can also be used in Tektronix emulation mode. If you run a
+process in a Tektronix emulation window, you can use device
+specification |/TEK| to tell PGPLOT to plot in Tektronix mode within the
+same window. If you run in a VT220 window, you can tell PGPLOT to create
+a new Tektronix window and plot in it by giving a device specification
+|TK:/TEK|. (|TK:| is the VMS device name of the Tektronix emulator.)
+This has one problem: the window will be deleted as soon as your program
+calls PGEND or exits; you may need to add a user-prompt in your program
+before the call of PGEND. 
+
+\beginsection Sun Workstations
+
+\proclaim Driver: SVDRIV, by Brian M. Sutin (sutin@astro.umd.edu),
+1989 May 19. 
+
+\proclaim Supported device: This driver should work with all Sun
+workstations running the SunView environment.
+
+\proclaim Device type code: |/SUNVIEW|.
+
+\proclaim Default device name: none. Output is always directed to
+the workstation screen.
+
+\proclaim Default view surface dimensions: Depends on monitor.
+
+\proclaim Resolution: PGPLOT uses a square window with $500 \times 500$ 
+pixels.
+
+\proclaim Color capability: 32 colors, 16 pre-defined; white background.
+
+\proclaim Input capability: The cursor is controlled by the mouse.
+The user positions the cursor, and then types any key on the
+controlling keyboard.  The mouse buttons can be used instead of 
+keystrokes.
+
+\proclaim Notes: The displayed window is deleted when PGEND is executed 
+or on program exit. PGPLOT requests confirmation from the user before
+deleting the window. 
+
+
+\beginsection Grinnell
+
+\proclaim Supported device: Grinnell GMR-270 Image Display System. 
+
+\proclaim Device type code: |/GRinnell|.
+
+\proclaim Default device name: |TV_DEVICE| (a logical name, usually
+defined by the system manager).
+
+\proclaim Default view surface dimensions: Depends on monitor.
+
+\proclaim Resolution: The full view surface is $512\times512$ pixels. 
+
+\proclaim Color capability: Color indices 0--255 are supported. The
+default color representation is as listed in Chapter 5. The
+representation of all color indices can be changed. 
+
+\proclaim Input capability: The graphics cursor is a white cross-hair.
+The user positions the cursor using the arrow keys and PF1--PF4 keys on
+his terminal keyboard (|SYS$COMMAND|). The arrow keys move the cursor in
+the appropriate direction; the size of the step for each keystroke is
+controlled by the PF1--PF4 keys: PF1 $\Rightarrow$ 1 pixel, PF2
+$\Rightarrow$ 4 pixels, PF3 $\Rightarrow$ 16 pixels, PF4 $\Rightarrow$
+64 pixels. The user indicates that the cursor has been positioned by
+typing any character other than an arrow or PF1-PF4 key [control
+characters, \eg, |^C|, and other special characters should be avoided,
+as they may be intercepted by the operating system]. 
+
+\proclaim File format: It is not possible to send Grinnell plots to a 
+disk file.
+
+\proclaim Obtaining hardcopy: Not possible.
+
+
+\beginsection IVAS
+
+\proclaim Supported device: International Imaging Systems IVAS Display 
+Processor.
+
+\proclaim Device type code: |/IVAS|.
+
+\proclaim Default device name: |/dev/ga0| (Unix).
+
+\proclaim Default view surface dimensions: Depends on monitor.
+
+\proclaim Resolution: The full view surface is $1024\times1024$ pixels. 
+
+\proclaim Color capability: Color indices 0--15 are supported. The
+default color representation is as listed in Chapter 5. The
+representation of all color indices can be changed. 
+
+\proclaim Input capability: The graphics cursor is a yellow cross.
+The user positions the cursor using the mouse, and 
+indicates that the cursor has been positioned by
+typing any character other than an arrow or PF1-PF4 key [control
+characters, \eg, |^C|, and other special characters should be avoided,
+as they may be intercepted by the operating system]. 
+
+\proclaim File format: It is not possible to send IVAS plots to a 
+disk file.
+
+\proclaim Obtaining hardcopy: Not possible.
+
+
+\beginsection Sigma ARGS
+
+\proclaim Supported device: Sigma ARGS color graphic display.
+
+\proclaim Device type code: |/ARgs|.
+
+\proclaim Default device name: |ARGS_DEVICE| (a logical name).
+
+\proclaim Default view surface dimensions: Depends on monitor.
+
+\proclaim Resolution: The full view surface is $512\times512$ pixels. 
+
+\proclaim Color capability: Color indices 0--255 are supported. The
+default color representation is as listed in Chapter 5. The
+representation of all color indices can be changed. 
+
+\proclaim Input capability: maybe....
+
+\proclaim File format: It is not possible to send ARGS plots to a 
+disk file.
+
+\proclaim Obtaining hardcopy: Not possible.
+
+
+\beginsection Tektronix 4006, 4010
+
+\proclaim Supported device: Tektronix 4006 and 4010 Series Storage Tube 
+terminals, and ``emulators.''
+
+\proclaim Device type code: |/TEk4010|.
+
+\proclaim Default device name: |TT| (a logical name, usually equivalent 
+to the logged-in terminal).
+
+\proclaim Default view surface dimensions: Depends on monitor.
+
+\proclaim Resolution: The full view surface is nominally 1024 
+(horizontal)$\times$ 768 (vertical) pixels, but the actual resolution
+varies from device to device.
+
+\proclaim Color capability: None.  Only color index 1 is permitted, and
+requests for other color indices are ignored.
+It is not possible to change color representation, or to erase by using 
+color index 0.
+
+\proclaim Input capability: Maybe....
+
+\proclaim File format: It is not possible to send Tektronix plots to a 
+disk file.
+
+\proclaim Obtaining hardcopy: A hardcopy of the plot can be obtained 
+using a Tektronix hardcopy unit attached to the terminal.
+
+
+\beginsection Tektronix 4100 
+
+\proclaim Supported device: Tektronix 4100-series terminals.
+
+\proclaim Device type code: |/TK4100|.
+
+\proclaim Default device name: |TT| (a logical name, usually equivalent 
+to the logged-in terminal).
+
+\proclaim Default view surface dimensions: Depends on monitor.
+
+\proclaim Resolution: The view surface is nominally 4096 (horizontal)
+$\times$ 3072 (vertical) pixels, but the true resolution depends on
+which terminal is used, and is usually much less than this.
+
+\proclaim Color capability: Color indices 0--16 are supported. The
+default color representation is as listed in Chapter 5. The
+representation of all color indices can be changed. 
+
+\proclaim Input capability: Not yet implemented.
+
+\proclaim File format: It is not possible to send Tektronix plots to a 
+disk file.
+
+\proclaim Obtaining hardcopy: It is possible to obtain a hardcopy of the 
+plot (in color, even) using a printer attached to the terminal.
+
+ 
+\beginsection Retrographics 
+
+\proclaim Supported device:  Digital Engineering, Inc., Retrographics
+modified VT100 terminal (VT640).
+
+\proclaim Device type code: |/REtro|. 
+
+\proclaim Default device name: |TT:| (the logged-in terminal). 
+
+\proclaim Default view surface dimensions: Depends on monitor. 
+
+\proclaim Resolution: The full view surface is 1024 (horizontal)$\times$ 
+780 pixels. 
+
+\proclaim Color capability: Color indices 0 (erase, black) and 1
+(bright: usually green) are supported. It is not possible to change
+color representation. 
+
+\proclaim Input capability: The graphics cursor is a crosshair across
+the entire screen. The user positions the cursor using the four arrow
+keys on the keyboard of the Retrographics terminal. ``By striking the
+desired directional arrow key, the crosshair will move across the
+display screen at the rate of one dot per keystroke. Applying a constant
+pressure on an arrow key will cause the crosshair to move at a
+continuous rapid rate; releasing the key will stop the crosshair's
+movement.'' The user indicates that the cursor has been positioned by
+typing any printable ASCII character on the keyboard of the
+Retrographics terminal. Most control characters (\eg, |^C|) are
+intercepted by the operating system and cannot be used. 
+
+\proclaim File format: It is not possible to send Retro plots to a disk
+file. 
+
+\proclaim Obtaining hardcopy: Not possible. 
+
+
+\beginsection Null Device
+
+\proclaim Supported device: The ``null'' device can be used to suppress
+all graphic output from a program.  
+
+\proclaim Device type code: |/Null|.
+
+\proclaim Default device name: None (the device name, if specified, is 
+ignored).
+
+\proclaim Default view surface dimensions: Undefined.
+
+\proclaim Resolution: Undefined.
+
+\proclaim Color capability: Color indices 0--255 are accepted.
+
+\proclaim Input capability: None.
+
+\proclaim File format: None.
+
+\proclaim Obtaining hardcopy: Not possible.
+
+
+
+\beginsection Canon
+
+
+\proclaim Supported device:  Canon LBP-8/A2 Laser printer.
+Conforms to ISO 646, 2022, 2375 and 6429 specifications.
+VDM (graphics) conforms to proposed American National
+Standard VDM mode.
+
+\proclaim Device type code:  |/CAnon| (landscape mode), |/VCanon| 
+(portrait mode) and |/BCanon| (bitmap in landscape mode only).
+
+\proclaim Default file name:  |PGPLOT.CAN|
+
+\proclaim Default view surface dimensions:  24 cm by 19 cm.
+
+\proclaim Resolution:  300 pixels per inch in both directions.
+
+\proclaim Color capability:  Color indices 0 (erase) and 1 (black) are
+supported.  Note, hardware polygon fill is used and colors
+0-11 control the fill pattern.
+
+\proclaim Input capability:  None.
+
+\proclaim File format:  Variable length records with Carriage control
+of LIST.
+
+\proclaim Obtaining hardcopy:  If printer is connected to a terminal
+line (RS-232 option) then printing the file on the corresponding
+queue should suffice.  If the printer is connected using
+the Centronics interface that appears the to VAX as an
+LP device then it is important to ensure that (1) all 8 bit
+characters are passed to the printer (2) lines longer than
+132 bytes are not truncated, and (3) no extra formatting
+commands (e.g. form-feeds) are sent to the printer.
+This can be done with the VMS command:
+\begintt
+$ SET PRINT/PASSALL/LOWER/CR <device>
+\endtt
+Note, some interface boards have a option to append a carriage
+return after a formfeed or LF character, it is necessary
+that this be disabled.
+The file should be printed with the /PASSALL qualifier i.e.,
+\begintt
+$ PRINT/PASSALL <filename>
+\endtt
+Note, SET PRINT/PASSALL and PRINT/PASSALL do not do the
+same things and hence PASSALL is required in both locations.
+
+{\it Note:\/} The BCDRIVER  produces
+a bitmap that then can be printed on the Canon.  The default
+size is 1556 blocks and takes 5 min (parallel) or 15 min (serial
+9600 baud) to print.  Thus for simple line graphs CADRIVER
+produces much smaller files (typically $<$100 blocks) that
+that plot in $<$30 sec.  However, for complex graphs, for
+example those obtained with PGGRAY, BCDRIVER will produce
+the smaller file and plot faster.  Therefore, it is suggested
+that sites with Canon laser printers should support both drivers.
+
+
+
+\beginsection 	Colorwriter 6320 Plotter
+
+\proclaim Supported device:	Gould (now Bryans) Colourwriter 6320 or any
+		device obeying Gould Plotter Language.
+
+\proclaim Device type code:	|/CW6320|
+
+\proclaim Default device name:	|$PLOTTER1|	(Defined system logical name)
+
+\proclaim Default view surface dimensions:	280mm by 360mm (A3)
+
+\proclaim Resolution:	0.025mm
+
+\proclaim Colour Capability:	Up to 10 pens.Default is pen 1 which is
+				picked up on initialization without a call
+				to PGSCI.Calls to PGSCI are interpreted as
+				the pen number and colours therefore depend
+				on how the pens have been loaded into the 
+				stalls.If a call is made for a pen higher
+				than 10 the selected pen defaults to 1.
+
+\proclaim Input Capability:	Possible but not supported.
+
+\proclaim File format:	Ascii character strings.It is possible to send the
+		data to a file which can then be copied to the plotter or
+		examined on a terminal.
+
+\proclaim Obtaining hard copy:	PGPLOT has been fixed to send the plot
+		directly to the plotter without an intermediate file.
+
+
+
+\beginsection Ikon 
+
+\proclaim Supported device:  Digisolve Ikon Pixel Engine
+
+\proclaim Device type code:  |/IKon.|
+
+\proclaim Default device name:  |IKON_DEFAULT| (a logical name).
+
+\proclaim Default view surface dimensions:  Depends on monitor.
+
+\proclaim Resolution:  The full view surface is 1024 by 780 pixels.
+
+\proclaim Color capability: Color indices 0-255 are supported.  The default
+representation is listed in Chapter 5 of the PGPLOT manual.  The
+representation of all color indices can be changed.
+
+\proclaim Input capability:  
+
+\proclaim File format:  It is not possible to send IKON plots to a disk file.
+
+\proclaim Obtaining hardcopy:  Not possible.
+
+
+
+\beginsection Zeta
+
+\proclaim  Supported device:  Zeta 8 Digital Plotter.
+
+\proclaim  Device type code:  |/ZEta|
+
+\proclaim  Default file name:  |PGPLOT.ZET|
+
+\proclaim  Default view surface dimensions:  11 inches by 11 inches.  Current
+   version does not allow larger plots although the manual indicates
+   plots up to 144 feet are possible.
+
+\proclaim Resolution:  This version is written for the case where the resolution
+   switch is set to .025 mm.  Actual resolution depends on thickness
+   of pen tip.
+
+\proclaim  Color capability:  Color indices 1 to 8 are supported corresponding
+   to pens 1-8.  It is not possible to erase lines.
+
+\proclaim  Input capability:  None.
+
+\proclaim  File format:  Variable length records with Carriage control of LIST.
+
+\proclaim Obtaining hardcopy: On Starlink print the file on the queue associated
+   with the Zeta plotter.  If the Plotter is attached to a terminal
+   line, then TYPEing the file at the terminal will produce a plot.
+   On Starlink:
+\begintt
+   $ PRINT/NOFEED/QUE=ZETA PGPLOT.ZET
+\endtt
+
+   To stop a Zeta plot job, once it has been started, use the buttons
+   on the plotter.  Press PAUSE, NEXT PLOT and CLEAR.  Only after
+   this sequence is it safe to delete the job from the ZETA Queue.
+   Failing to press the NEXT PLOT button will not correctly advance
+   the paper.  Failing to press CLEAR but, deleting the current
+   job can prevent the following plot from being plotted.
+
+\endchapter

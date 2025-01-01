@@ -1,0 +1,58 @@
+PGPLOT software port to MIPS machine running ULTRIX and XWINDOWS
+-----------------------------------------------------------------
+
+Brad Carter
+University of NSW
+March 1993
+
+The sys_mips directory contains all additions to the PGPLOT code
+to make it run on a Decstation 5000, running the ultrix
+operating system and X11R5 X-windows. The changes are
+as follows:
+
+o Machine-dependent fortran code was copied from the sys_dec3100
+directory of the pgplot49e release:
+
+grprom.f        tedriv.f
+grgcom.f        grvt03.f        vtdriv.f
+
+o Additional machine-dependent files were copied from the sys_sun
+directory:
+
+gr_termio.c     grgcom.f        grgmsg.f        grprom.f        grtter.f
+grdate.f        grgenv.f        grlgtr.f        grsy00.f        gruser.f
+grexec.f        grgetc.c        grmsg.f         grtermio.c      grwarn.f
+grflun.f        grglun.f        groptx.f        grtrml.f
+
+o Some files were copied also from the sys_hp directory:
+
+Makefile	setup		makeclean	grexec.f
+
+o The xwdriv.c code was copied from the src directory.
+
+The following files were modified:
+
+Makefile
+setup
+makeclean
+grexec.f
+grsy00.f
+xwdriv.c
+
+in order to specify the directory paths to use on the UNSW Decstation,
+and to remove references to shareable libraries, which are
+not available under ultrix. The vt125 driver was added to grexec.f.
+A lib directory was created using mkdir for the libpgplot.a
+archive of object modules. 
+
+Instructions for installing PGPLOT on a MIPS machine are
+in the sys_mips/Makefile. Note that you will need to correctly
+set the paths in:
+
+Makefile
+setup
+makeclean
+grsy00.f
+xwdriv.c
+
+for PGPLOT to be installed properly on your system.

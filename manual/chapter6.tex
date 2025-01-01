@@ -1,0 +1,215 @@
+% PGPLOT manual, 9-May-1988, T. J. Pearson
+%------------------------------------------------------------------------
+% Copyright (c) 1983, 1984, 1985, 1986, 1987, 1988, 1989 by
+% California Institute of Technology.
+% All rights reserved.
+%------------------------------------------------------------------------
+
+\beginchapter{6}{HIGHER-LEVEL ROUTINES}
+
+\beginsection Introduction
+
+This chapter describes a number of ``high level'' routines that
+simplify the composition of complicated graphical images.  They include 
+routines for drawing graphs of one variable or function against another
+(``xy-plots''), histograms, and display of two-dimensional data 
+(functions of two variables).  Rather than giving complete details
+of all the available routines, this chapter just points out some of the 
+ways that they can be used. See Appendix~A for details of the calling 
+sequences.
+
+\beginsection XY-plots
+
+The basic technique for drawing xy-plots is described in Chapter~2,
+which showed how to make {\it scatter plots\/} using graph markers
+produced by |PGPOINT| and {\it line plots\/} produced by |PGLINE|.
+Considerable variation in the appearance of the graph can be achieved
+using the following techniques.
+
+\beginsub{Attributes.}
+Use different attributes to distinguish different datasets.  Graph markers
+can be distinguished by choosing different markers, different colors, or
+different sizes (character height attribute).  Lines and curves can be 
+distinguished by line-style, color, or line-width.
+
+\beginsub{Box parameters.}
+If routine |PGENV| is replaced by calls to the more basic routines
+(see $\S$3.6), including |PGBOX|, considerable variety in the appearance 
+of the graph can be achieved.  For example, one can suppress the tick 
+marks, draw the tick marks projecting out of the box instead of into it,
+or draw a grid over the whole viewport.  Note that |PGBOX| may be
+called many times: one might call it once to draw a grid using thin
+dotted lines, and again to draw the frame and tick marks using thick 
+lines:
+\begintt
+      CALL PGSLW(1)
+      CALL PGSLS(4)
+      CALL PGBOX('G',30.0,0,'G',0.2,0)
+      CALL PGSLW(3)
+      CALL PGSLS(1)
+      CALL PGBOX('ABCTSN',90.0,3,'ABCTSNV',0.0,0)
+\endtt
+Note that in this example we have also specified tick intervals 
+explicitly.  If the horizontal axis is to represent an angle in degrees, 
+it is convenient to choose a tick interval that is a simple fraction of
+360; here we have a major tick interval of 90\deg\ and a minor tick 
+interval of 30\deg.
+
+\beginsub{Stepped-line plots.}
+As an alternative to |PGLINE|, which ``joins up the dots'' using
+straight line segments, it is sometimes appropriate to use |PGBIN|
+which produces a ``stepped line plot'' (sometimes misleadingly called
+a histogram) with horizontal line segments at each data point and 
+vertical line segments joining them.  This is often used, for example,
+in displaying digitized spectra.
+
+\beginsub{Error bars.}
+Graphs of real data often require the inclusion of error bars.  The two
+routines |PGERRX| and |PGERRY| draw horizontal and vertical error bars,
+respectively.  These routines are usually used in combination with 
+|PGPOINT|, \eg, to draw a set of points with $\pm2\sigma$ error-bars:
+\begintt
+      DO 10 I=1,15
+          YHI = YPTS(I) + 2.0*ERR(I)
+          YLO = YPTS(I) - 2.0*ERR(I)
+          CALL PGPOINT(1, XPTS(I), YPTS(I), 17)
+          CALL PGERRY(1, XPTS(I), YLO, YHI, 1.0)
+   10 CONTINUE
+\endtt
+
+\beginsub{Logarithmic axes.}
+It is commonly required that the $x$-axis, the $y$-axis, or both, be
+logarithmic instead of linear; that is, one wishes to plot the
+logarithm of the quantity instead of its actual value.  PGPLOT doesn't
+provide any automatic mechanism to do this: one has to adopt $\log_{10} x$
+and/or $\log_{10} y$ instead of $x$ and $y$ as world-coordinates; \ie,
+if the range of $x$ is to be 1 to 1000, choose as world-coordinate 
+limits for the window $\log 1 = 0.0$ and $\log 1000 = 3.0$, and supply
+the logarithms of $x$ to |PGPOINT| and |PGLINE|.  However, |PGENV| and
+|PGBOX| have options for {\it labeling\/} the axis logarithmically;
+if this option is used in our example, the axis will have labeled
+major tick marks at 1, 10, 100, and 1000, with logarithmically-spaced
+minor tick marks at 2, 3, 4, $\ldots$, 20, 30, 40, \etc.  An example may 
+make this clearer:
+\begintt
+      CALL PGENV(-2.0,2.0,-0.5,2.5,1,30)
+      CALL PGLABEL('Frequency, \gn (GHz)',
+     1             'Flux Density, S\d\gn\u (Jy)', ' ')
+      DO 10 I=1,15
+          XPTS(I) = ALOG10(FREQ(I))
+          YPTS(I) = ALOG10(FLUX(I))
+   10 CONTINUE
+      CALL PGPOINT(15, XPTS, YPTS, 17)
+\endtt
+This is a fragment of a program to draw the spectrum of a radio source,
+which is usually plotted as a log--log plot of flux density $v$.
+frequency. It first calls |PGENV| to initialize the viewport and window;
+the |AXIS| argument is 30 so both axes will be logarithmic. The $x$-axis
+(frequency, $\nu$) runs from 0.01 to 100~GHz, the $y$-axis (flux 
+density, $S_\nu$) runs from 0.3 to 300 Jy. Note that it is necessary to
+specify the logarithms of these limits in the call to |PGENV|. The
+penultimate argument requests equal scales in $x$ and $y$ so that slopes
+will be correct. The program then marks 15 data points, supplying the 
+{\it logarithms} of frequency and flux density to |PGPOINT|.
+
+
+\beginsection Histograms
+
+The routine |PGHIST| draws a histogram, that is, the frequency distribution 
+of measured values in a dataset.  Suppose we have 500 measurements of
+a quantity (the sky brightness temperature at 20~GHz, say, in mK) stored
+in Fortran array |VALUES|.  The following program-fragment draws a
+histogram of the distribution of these values in the range 0.0 to 5.0,
+using 25 bins (so that each bin is 0.2~K wide, the first running from 
+0.0 to 0.2, the second from 0.2 to 0.4, \etc):
+\begintt
+      DO 10 I=1,500
+          VALUES(I) = ....
+   10 CONTINUE
+      CALL PGHIST(500, VALUES, 0.00, 5.00, 25, 0)
+      CALL PGLABEL('Temperature (K)',
+     1             'Number of measurements',
+     2             'Sky Brightness at 20 GHz' )
+\endtt
+The histogram does not depend on the {\it order\/} of the values within 
+the array.
+
+
+\beginsection Functions of two variables
+
+A function of two variables, $f = f(x,y)$, really needs a 
+three-dimensional display. |PGPLOT| does not have any three-dimensional
+display capability, but it provides three methods for two-dimensional
+display of three-dimensional data.
+
+\beginsub{Contour maps.} In a contour map of $f(x,y)$, the 
+world-coordinates are $x$ and $y$ and the contours are lines of constant
+$f$.  The PGPLOT contouring routines (|PGCONT| and |PGCONS|) require the
+input data to be stored in a two-dimensional Fortran array |F|, with element
+|F(I,J)| containing the value of the function $f(x,y)$ for a point 
+$(x_i, y_j)$.  Furthermore, the function must be sampled on a regular 
+grid: the $(x,y)$ coordinates corresponding to |(I,J)| must be related 
+to |I| and |J| by:
+$$\eqalign{x = a + b|I| + c|J|,\cr
+           y = d + e|I| + f|J|.\cr}
+$$
+The constants $a, b, c, d, e, f$ are supplied to |PGCONT| in a six-element
+Fortran array.  The other input required is an array containing the
+contour values, \ie, the constant values of $f$ corresponding to each 
+contour to be drawn. In the following example, we assume that values 
+have been assigned to the elements of array |F|. We first find the 
+maximum and minimum values of |F|, and choose 10 contour levels evenly
+spaced between the maximum and minimum:
+\begintt
+      REAL F(50,50), ALEV(10), TR(6)
+      ...
+      FMIN = F(1,1)
+      FMAX = F(1,1)
+      DO 300 I=1,50
+        DO 200 J=1,50
+          FMIN = MIN(F(I,J),FMIN)
+          FMAX = MAX(F(I,J),FMAX)
+  200   CONTINUE
+  300 CONTINUE
+      DO 400 I=1,10
+        ALEV(I) = FMIN + (I-1)*(FMAX-FMIN)/9.0
+  400 CONTINUE
+\endtt
+Next, we choose a window and viewport, and set up an array |TR|
+containing the 6 constants in the transformation between array indices
+and world coordinates. In this case, the transformation is simple,
+as we want $x = |I|$, $y = |J|$:
+\begintt
+      CALL PGENV(0.,50.,5.,45.,0,2)
+      TR(1) = 0.0
+      TR(2) = 1.0
+      TR(3) = 0.0
+      TR(4) = 0.0
+      TR(5) = 0.0
+      TR(6) = 1.0
+\endtt
+Finally, we call |PGCONT|; actually, we call it twice, to draw the first
+five contours in color index 2 (red) and the remaining 5 in color index 3 
+(green):
+\begintt 
+      CALL PGSCI(2)
+      CALL PGCONT(F,50,50,1,50,1,50,ALEV,5,TR)
+      CALL PGSCI(3)
+      CALL PGCONT(F,50,50,1,50,1,50,ALEV(6),5,TR)
+\endtt
+Normally |PGCONT| is preferable to |PGCONS|.  See the description in
+Appendix~A for suggestions as to when |PGCONS| should be used.
+
+\beginsub{Gray-scale plots.}  The routine |PGGRAY| is used in a similar
+way to |PGCONT|.  Instead of drawing contours, it shades the interior
+of the viewport, the intensity of shading representing the value of the
+function at each point.  The exact appearance of the resulting ``image'' 
+is device-dependent. On some devices, |PGGRAY| does the shading by 
+drawing many dots, so it can be {\it very\/} slow.
+
+\beginsub{Cross sections.} Routine |PGHI2D| draws a series of 
+cross-sections through a two-dimensional data array.  Each cross-section
+``hides'' those that appear behind it, giving a three-dimensional 
+effect.  See Appendix~A for details.
+
+\endchapter

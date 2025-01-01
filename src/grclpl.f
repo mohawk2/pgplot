@@ -1,3 +1,4 @@
+
 C*GRCLPL -- clip line against clipping rectangle
 C+
       SUBROUTINE GRCLPL (X0,Y0,X1,Y1,VIS)
@@ -18,18 +19,16 @@ C--
 C 13-Jul-1984 - [TJP].
 C 20-Jun-1985 - [TJP] - revise clipping algorithm.
 C 28-Jun-1991 - [TJP] - use IAND().
-C 12-Jun-1992 - [TJP] - clip exactly on the boundary.
 C
 C Caution: IAND is a non-standard intrinsic function to do bitwise AND
 C of two integers. If it is not supported by your Fortran compiler, you
 C will need to modify this routine or supply an IAND function.
 C-----------------------------------------------------------------------
       INCLUDE 'grpckg1.inc'
+      INTEGER  XMIN,XMAX,YMIN,YMAX
       LOGICAL  VIS
       INTEGER  C0,C1,C
-      REAL     XMIN,XMAX,YMIN,YMAX
       REAL     X,Y, X0,Y0, X1,Y1
-      INTEGER IAND
 C
       XMIN = GRXMIN(GRCIDE)
       YMIN = GRYMIN(GRCIDE)
@@ -47,20 +46,20 @@ C             ! line is invisible
           IF (C.EQ.0) C = C1
           IF (IAND(C,1).NE.0) THEN
 C             ! crosses XMIN
-              Y = Y0 + (Y1-Y0)*(XMIN-X0)/(X1-X0)
-              X = XMIN
+              Y = Y0 + (Y1-Y0)*(XMIN-0.49-X0)/(X1-X0)
+              X = XMIN-0.49
           ELSE IF (IAND(C,2).NE.0) THEN
 C             ! crosses XMAX
-              Y = Y0 + (Y1-Y0)*(XMAX-X0)/(X1-X0)
-              X = XMAX
+              Y = Y0 + (Y1-Y0)*(XMAX+0.49-X0)/(X1-X0)
+              X = XMAX+0.49
           ELSE IF (IAND(C,4).NE.0) THEN
 C             ! crosses YMIN
-              X = X0 + (X1-X0)*(YMIN-Y0)/(Y1-Y0)
-              Y = YMIN
+              X = X0 + (X1-X0)*(YMIN-0.49-Y0)/(Y1-Y0)
+              Y = YMIN-0.49
           ELSE IF (IAND(C,8).NE.0) THEN
 C             ! crosses YMAX
-              X = X0 + (X1-X0)*(YMAX-Y0)/(Y1-Y0)
-              Y = YMAX
+              X = X0 + (X1-X0)*(YMAX+0.49-Y0)/(Y1-Y0)
+              Y = YMAX+0.49
           END IF
           IF (C.EQ.C0) THEN
               X0 = X

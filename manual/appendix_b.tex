@@ -1,0 +1,73 @@
+% PGPLOT manual, 5-JUL-1989, T. J. Pearson
+%------------------------------------------------------------------------
+% Copyright (c) 1983, 1984, 1985, 1986, 1987, 1988, 1989 by
+% California Institute of Technology.
+% All rights reserved.
+%------------------------------------------------------------------------
+
+\beginappendix{B}{PGPLOT SYMBOLS}
+
+The PGPLOT primitive subroutines |PGPOINT| and |PGPTEXT| are used for
+drawing symbols (graph markers) and strings of symbols (text). The
+available symbols are listed in this appendix. The total number of
+different symbols available is about 1000. Each symbol is composed of a
+set of vectors, based on digitized type fonts devised by A. V. Hershey
+of the US Naval Postgraduate School, and each symbol is assigned a
+number in the range 0--4000. PGPLOT uses the ASCII code for representing
+graph markers and symbols. ASCII codes 0--31 are used for the graph 
+markers, and codes 32--127 are used for the standard ASCII printable 
+characters. The font-switching and escape mechanisms described in
+Chapters 4 and 5 can be used to enlarge the available character set. 
+
+Table \the\chapnum.1 shows the graphical representation of all the
+available symbols arranged according to Hershey's numerical sequence;
+the blank spaces in this table represent ``space'' characters of various
+widths. Note that not every number has an associated character.  Any
+character can be inserted in a text string using an escape sequence of
+the form |\(|$n$|)|, where $n$ is the 4-digit Hershey number. 
+
+\pageinsert
+  \centerline{\bf Table \the\chapnum.1\quad PGPLOT Character Set}
+  \smallskip
+  \insertplot{figb1.ps}{7.5}{5.0}{2.0}{1.25}{1}{0}
+  \vfill
+\endinsert
+
+\pageinsert
+  \centerline{\bf Table \the\chapnum.1 (continued)}
+  \smallskip
+  \insertplot{figb2.ps}{7.5}{5.0}{2.0}{1.25}{1}{0}
+  \vfill
+\endinsert
+\pageinsert
+  \centerline{\bf Table \the\chapnum.1 (continued)}
+  \smallskip
+  \insertplot{figb3.ps}{7.5}{5.0}{2.0}{1.25}{1}{0}
+  \vfill
+\endinsert
+\pageinsert
+  \centerline{\bf Table \the\chapnum.1 (continued)}
+  \smallskip
+  \insertplot{figb4.ps}{7.5}{5.0}{2.0}{1.25}{1}{0}
+  \vfill
+\endinsert
+\pageinsert
+  \centerline{\bf Table \the\chapnum.1 (continued)}
+  \smallskip
+  \insertplot{figb5.ps}{7.5}{5.0}{2.0}{1.25}{1}{0}
+  \vfill
+\endinsert
+\pageinsert
+  \centerline{\bf Table \the\chapnum.1 (continued)}
+  \smallskip
+  \insertplot{figb6.ps}{7.5}{5.0}{2.0}{1.25}{1}{0}
+  \vfill
+\endinsert
+\pageinsert
+  \centerline{\bf Table \the\chapnum.1 (continued)}
+  \smallskip
+  \insertplot{figb7.ps}{7.5}{5.0}{2.0}{1.25}{1}{0}
+  \vfill
+\endinsert
+
+\endchapter
